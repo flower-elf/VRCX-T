@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 
 namespace VRCX_0
@@ -10,7 +11,7 @@ namespace VRCX_0
     {
         public static SQLite Instance;
         private readonly ReaderWriterLockSlim m_ConnectionLock;
-        private SQLiteConnection m_Connection;
+        private SqliteConnection m_Connection;
 
         static SQLite()
         {
@@ -29,9 +30,17 @@ namespace VRCX_0
             if (!string.IsNullOrEmpty(jsonDataSource))
                 dataSource = jsonDataSource;
 
-            m_Connection = new SQLiteConnection($"Data Source=\"{dataSource}\";Version=3;PRAGMA locking_mode=NORMAL;PRAGMA busy_timeout=5000;PRAGMA journal_mode=WAL;PRAGMA optimize=0x10002;", true);
-
+            m_Connection = new SqliteConnection($"Data Source={dataSource};Pooling=False");
             m_Connection.Open();
+
+            using var pragma = m_Connection.CreateCommand();
+            pragma.CommandText = """
+                PRAGMA locking_mode=NORMAL;
+                PRAGMA busy_timeout=5000;
+                PRAGMA journal_mode=WAL;
+                PRAGMA optimize=0x10002;
+                """;
+            pragma.ExecuteNonQuery();
         }
 
         public void Exit()
@@ -45,12 +54,12 @@ namespace VRCX_0
             m_ConnectionLock.EnterReadLock();
             try
             {
-                using var command = new SQLiteCommand(sql, m_Connection);
+                using var command = new SqliteCommand(sql, m_Connection);
                 if (args != null)
                 {
                     foreach (var arg in args)
                     {
-                        command.Parameters.Add(new SQLiteParameter(arg.Key, arg.Value));
+                        command.Parameters.AddWithValue(arg.Key, UnwrapValue(arg.Value));
                     }
                 }
 
@@ -79,12 +88,12 @@ namespace VRCX_0
             m_ConnectionLock.EnterWriteLock();
             try
             {
-                using var command = new SQLiteCommand(sql, m_Connection);
+                using var command = new SqliteCommand(sql, m_Connection);
                 if (args != null)
                 {
                     foreach (var arg in args)
                     {
-                        command.Parameters.Add(new SQLiteParameter(arg.Key, arg.Value));
+                        command.Parameters.AddWithValue(arg.Key, UnwrapValue(arg.Value));
                     }
                 }
                 result = command.ExecuteNonQuery();
@@ -95,6 +104,24 @@ namespace VRCX_0
             }
 
             return result;
+        }
+
+        private static object UnwrapValue(object value)
+        {
+            if (value is JsonElement je)
+            {
+                return je.ValueKind switch
+                {
+                    JsonValueKind.String => je.GetString(),
+                    JsonValueKind.Number => je.TryGetInt64(out var l) ? l : je.GetDouble(),
+                    JsonValueKind.True => 1L,
+                    JsonValueKind.False => 0L,
+                    JsonValueKind.Null => DBNull.Value,
+                    JsonValueKind.Undefined => DBNull.Value,
+                    _ => je.GetRawText()
+                };
+            }
+            return value ?? DBNull.Value;
         }
     }
 }

@@ -1,7 +1,7 @@
 using NLog;
 using NLog.Targets;
 using System;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
@@ -212,7 +212,7 @@ namespace VRCX_0
 
             #region Handle Database Error
 
-            catch (SQLiteException e)
+            catch (SqliteException e)
             {
                 logger.Fatal(e, "Unhandled SQLite Exception, closing.");
                 var messageBoxResult = MessageBox.Show(

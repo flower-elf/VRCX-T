@@ -30,11 +30,10 @@ namespace VRCX_0
             if (MetadataCache.TryGetValue(filePath, out metadata))
                 return true;
 
-            var id = CacheDatabase.IsFileCached(filePath);
-            if (id == -1)
+            if (!CacheDatabase.IsFileCached(filePath))
                 return false;
             
-            var metadataStr = CacheDatabase.GetMetadataById(id);
+            var metadataStr = CacheDatabase.GetMetadata(filePath);
             var metadataObj = metadataStr == null ? null : JsonConvert.DeserializeObject<ScreenshotMetadata>(metadataStr);
             MetadataCache.TryAdd(filePath, metadataObj);
 
