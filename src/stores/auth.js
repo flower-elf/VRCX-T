@@ -31,6 +31,7 @@ import security from '../services/security';
 import webApiService from '../services/webapi';
 
 import * as workerTimers from 'worker-timers';
+import { useActivityStore } from './activity';
 
 export const useAuthStore = defineStore('Auth', () => {
     const advancedSettingsStore = useAdvancedSettingsStore();
@@ -39,6 +40,7 @@ export const useAuthStore = defineStore('Auth', () => {
     const updateLoopStore = useUpdateLoopStore();
     const modalStore = useModalStore();
     const vrcxStore = useVrcxStore();
+    const activityStore = useActivityStore();
 
     const { t } = useI18n();
     const state = reactive({
@@ -124,7 +126,7 @@ export const useAuthStore = defineStore('Auth', () => {
         const [lastUserLoggedIn, savedEnableCustomEndpoint] = await Promise.all(
             [
                 configRepository.getString('lastUserLoggedIn', ''),
-                configRepository.getBool('VRCX-0_enableCustomEndpoint', false)
+                configRepository.getBool('VRCX_enableCustomEndpoint', false)
             ]
         );
         loginForm.value.lastUserLoggedIn = lastUserLoggedIn;
@@ -553,7 +555,7 @@ export const useAuthStore = defineStore('Auth', () => {
      */
     async function toggleCustomEndpoint() {
         await configRepository.setBool(
-            'VRCX-0_enableCustomEndpoint',
+            'VRCX_enableCustomEndpoint',
             enableCustomEndpoint.value
         );
         loginForm.value.endpoint = '';
@@ -1012,6 +1014,8 @@ export const useAuthStore = defineStore('Auth', () => {
         advancedSettingsStore.runAvatarAutoCleanup(userStore.currentUser.id);
         watchState.isLoggedIn = true;
         AppApi.CheckGameRunning(); // restore state from hot-reload
+
+        activityStore.startFullCacheBuild(userStore.currentUser.id);
     }
 
     /**
