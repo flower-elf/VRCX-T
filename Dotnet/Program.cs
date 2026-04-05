@@ -265,6 +265,7 @@ namespace VRCX_0
 
             Update.Check();
 
+            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 

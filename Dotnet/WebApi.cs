@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -364,7 +365,10 @@ namespace VRCX_0
         {
             try
             {
-                var url = (string)options["url"];
+                options = NormalizeOptions(options);
+                var url = GetStringValue(options["url"]);
+                if (string.IsNullOrEmpty(url))
+                    throw new Exception("Missing request URL");
                 HttpRequestMessage request;
 
                 // Handle special upload types
@@ -390,7 +394,7 @@ namespace VRCX_0
                     var httpMethod = HttpMethod.Get;
                     if (options.TryGetValue("method", out var methodObj))
                     {
-                        httpMethod = HttpMethod.Parse(methodObj.ToString());
+                        httpMethod = HttpMethod.Parse(GetStringValue(methodObj));
                     }
 
                     request = new HttpRequestMessage(httpMethod, url);
@@ -398,7 +402,7 @@ namespace VRCX_0
                     // Handle body for non-GET requests
                     if (httpMethod != HttpMethod.Get && options.TryGetValue("body", out var body))
                     {
-                        var bodyContent = new StringContent((string)body, Encoding.UTF8);
+                        var bodyContent = new StringContent(GetStringValue(body) ?? string.Empty, Encoding.UTF8);
 
                         // Set content type if specified in headers
                         if (options.TryGetValue("headers", out var headersObj))
@@ -486,19 +490,81 @@ namespace VRCX_0
 
         private static Dictionary<string, string> ParseHeaders(object headers)
         {
+            if (headers == null)
+                return new Dictionary<string, string>();
+
+            headers = NormalizeValue(headers);
             Dictionary<string, string> headersDict;
             if (headers.GetType() == typeof(JObject))
             {
                 headersDict = ((JObject)headers).ToObject<Dictionary<string, string>>();
+            }
+            else if (headers is Dictionary<string, object> dictObj)
+            {
+                headersDict = dictObj.ToDictionary(kvp => kvp.Key, kvp => GetStringValue(kvp.Value));
             }
             else
             {
                 var headersKvp = (IEnumerable<KeyValuePair<string, object>>)headers;
                 headersDict = new Dictionary<string, string>();
                 foreach (var (key, value) in headersKvp)
-                    headersDict.Add(key, value.ToString());
+                    headersDict.Add(key, GetStringValue(value));
             }
             return headersDict;
+        }
+
+        private static IDictionary<string, object> NormalizeOptions(IDictionary<string, object> options)
+        {
+            var normalized = new Dictionary<string, object>(options.Count);
+            foreach (var (key, value) in options)
+            {
+                normalized[key] = NormalizeValue(value);
+            }
+            return normalized;
+        }
+
+        private static object NormalizeValue(object value)
+        {
+            if (value is JsonElement jsonElement)
+                return ConvertJsonElement(jsonElement);
+
+            return value;
+        }
+
+        private static object ConvertJsonElement(JsonElement element)
+        {
+            return element.ValueKind switch
+            {
+                JsonValueKind.String => element.GetString(),
+                JsonValueKind.Number when element.TryGetInt64(out var longValue) => longValue,
+                JsonValueKind.Number => element.GetDouble(),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Null or JsonValueKind.Undefined => null,
+                JsonValueKind.Array => element.EnumerateArray().Select(ConvertJsonElement).ToList(),
+                JsonValueKind.Object => element
+                    .EnumerateObject()
+                    .ToDictionary(prop => prop.Name, prop => ConvertJsonElement(prop.Value)),
+                _ => element.ToString()
+            };
+        }
+
+        private static string GetStringValue(object value)
+        {
+            if (value == null)
+                return null;
+
+            if (value is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind switch
+                {
+                    JsonValueKind.String => jsonElement.GetString(),
+                    JsonValueKind.Null or JsonValueKind.Undefined => null,
+                    _ => jsonElement.ToString()
+                };
+            }
+
+            return value as string ?? value.ToString();
         }
     }
 }

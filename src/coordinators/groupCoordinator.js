@@ -706,10 +706,99 @@ export async function updateInGameGroupOrder() {
         if (!json) {
             return;
         }
-        groupStore.setInGameGroupOrder(JSON.parse(json));
+        const parsed = parseInGameGroupOrder(json);
+        if (!parsed) {
+            console.warn('Ignoring invalid in-game group order payload', json);
+            return;
+        }
+        groupStore.setInGameGroupOrder(parsed);
     } catch (err) {
         console.error(err);
     }
+}
+
+/**
+ * Parses the stored in-game group order payload.
+ * Returns null if the data cannot be recovered safely.
+ * @param {unknown} json
+ * @returns {Array<string> | null}
+ */
+function parseInGameGroupOrder(json) {
+    if (Array.isArray(json)) {
+        return json;
+    }
+
+    if (typeof json !== 'string') {
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(json);
+        return Array.isArray(parsed) ? parsed : null;
+    } catch (err) {
+        const recovered = extractFirstJsonValue(json);
+        if (!recovered) {
+            return null;
+        }
+        try {
+            const parsed = JSON.parse(recovered);
+            return Array.isArray(parsed) ? parsed : null;
+        } catch {
+            return null;
+        }
+    }
+}
+
+/**
+ * Extracts the first complete JSON value from a string.
+ * This recovers values that have valid JSON followed by trailing garbage.
+ * @param {string} input
+ * @returns {string | null}
+ */
+function extractFirstJsonValue(input) {
+    const trimmed = input.trimStart();
+    if (!trimmed) {
+        return null;
+    }
+
+    const firstChar = trimmed[0];
+    if (firstChar === '[' || firstChar === '{') {
+        let depth = 0;
+        let inString = false;
+        let escaped = false;
+        for (let i = 0; i < trimmed.length; i++) {
+            const char = trimmed[i];
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                } else if (char === '\\') {
+                    escaped = true;
+                } else if (char === '"') {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (char === '"') {
+                inString = true;
+                continue;
+            }
+
+            if (char === '[' || char === '{') {
+                depth++;
+                continue;
+            }
+
+            if (char === ']' || char === '}') {
+                depth--;
+                if (depth === 0) {
+                    return trimmed.slice(0, i + 1);
+                }
+            }
+        }
+    }
+
+    return null;
 }
 
 /**
