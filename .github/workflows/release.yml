@@ -1,0 +1,141 @@
+name: Build & Release
+
+on:
+    workflow_dispatch:
+        inputs:
+            release:
+                description: 'Create a GitHub Release'
+                type: boolean
+                default: false
+            stable:
+                description: 'Stable release (only when Release is checked)'
+                type: boolean
+                default: false
+
+concurrency:
+    group: ${{ github.ref }}-build
+    cancel-in-progress: true
+
+permissions:
+    contents: write
+
+jobs:
+    build:
+        runs-on: windows-latest
+        defaults:
+            run:
+                shell: bash
+        steps:
+            - uses: actions/checkout@v6
+
+            - id: meta
+              run: |
+                  if [ "${{ inputs.release }}" = "true" ] && [ "${{ inputs.stable }}" = "true" ]; then
+                      version="$(cat Version)"
+                      prerelease=false
+                  elif [ "${{ inputs.release }}" = "true" ]; then
+                      version=$(sed -n 's/^## *//p' CHANGELOG-beta.md | head -1)
+                      prerelease=true
+                  else
+                      version="$(cat Version)"
+                      prerelease=false
+                  fi
+                  echo "version=${version}"       >> "$GITHUB_OUTPUT"
+                  echo "tag=v${version}"           >> "$GITHUB_OUTPUT"
+                  echo "name=VRCX-0 ${version}"   >> "$GITHUB_OUTPUT"
+                  echo "prerelease=${prerelease}" >> "$GITHUB_OUTPUT"
+
+            - id: changelog
+              if: inputs.release
+              run: |
+                  if [ "${{ inputs.stable }}" = "true" ]; then
+                      src="CHANGELOG.md"
+                  else
+                      src="CHANGELOG-beta.md"
+                  fi
+                  notes=$(sed '1{/^## /d}' "$src" | sed '/^<!--/,/-->/d' | sed '/./,$!d' | sed -e :a -e '/^\n*$/{$d;N;ba}')
+                  if [ -z "$notes" ]; then
+                      notes="No changelog provided."
+                  fi
+                  echo "$notes" > .release-notes.md
+
+            - uses: actions/setup-dotnet@v5
+              with:
+                  dotnet-version: '10.0.x'
+
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: lts/*
+                  cache: npm
+
+            - name: Set installer version
+              run: echo "!define PRODUCT_VERSION_FROM_FILE \"${{ steps.meta.outputs.version }}.0\"" > Installer/version_define.nsh
+
+            - uses: actions/cache@v5
+              with:
+                  path: ~/.nuget/packages
+                  key: ${{ runner.os }}-nuget-${{ hashFiles('Dotnet/VRCX-0.csproj') }}
+                  restore-keys: ${{ runner.os }}-nuget-
+
+            - run: npm ci
+            - run: npm run prod
+
+            - name: Build .NET
+              run: |
+                  dotnet build Dotnet/VRCX-0.csproj \
+                      -p:Configuration=Release \
+                      -p:Platform=x64 \
+                      -t:Restore,Build \
+                      -m --self-contained
+
+            - run: choco install nsis -y
+
+            - name: Create installer
+              uses: joncloud/makensis-action@v4
+              with:
+                  script-file: Installer/installer.nsi
+                  additional-plugin-paths: Installer/Plugins
+
+            - name: Rename installer
+              run: mv Installer/VRCX-0_Setup.exe "VRCX-0_${{ steps.meta.outputs.version }}_Setup.exe"
+
+            - name: Create zip
+              shell: pwsh
+              run: |
+                  $v = "${{ steps.meta.outputs.version }}"
+                  Get-ChildItem -Path build -Recurse -File |
+                      Where-Object { $_.Extension -notin '.log','.pdb' } |
+                      Compress-Archive -DestinationPath "VRCX-0_${v}.zip"
+
+            # ── Artifacts (always) ───────────────────────────
+            - name: Upload installer
+              uses: actions/upload-artifact@v7
+              with:
+                  name: VRCX-0-Setup
+                  path: VRCX-0_${{ steps.meta.outputs.version }}_Setup.exe
+
+            - name: Upload zip
+              uses: actions/upload-artifact@v7
+              with:
+                  name: VRCX-0-Zip
+                  path: VRCX-0_${{ steps.meta.outputs.version }}.zip
+
+            # ── Release (conditional) ────────────────────────
+            - name: SHA256
+              if: inputs.release
+              run: |
+                  v="${{ steps.meta.outputs.version }}"
+                  sha256sum "VRCX-0_${v}_Setup.exe" "VRCX-0_${v}.zip" > SHA256SUMS.txt
+
+            - name: Create GitHub Release
+              if: inputs.release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: ${{ steps.meta.outputs.tag }}
+                  name: ${{ steps.meta.outputs.name }}
+                  prerelease: ${{ steps.meta.outputs.prerelease }}
+                  body_path: .release-notes.md
+                  files: |
+                      VRCX-0_${{ steps.meta.outputs.version }}_Setup.exe
+                      VRCX-0_${{ steps.meta.outputs.version }}.zip
+                      SHA256SUMS.txt
