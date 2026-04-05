@@ -17,7 +17,7 @@
     VIProductVersion "${PRODUCT_VERSION}"
     VIFileVersion "${VERSION}"
     VIAddVersionKey "FileVersion" "${VERSION}"
-    VIAddVersionKey "ProductName" "VRCX"
+    VIAddVersionKey "ProductName" "VRCX-0"
     VIAddVersionKey "ProductVersion" "${PRODUCT_VERSION}"
     VIAddVersionKey "LegalCopyright" "Copyright vrcx-team, pypy, natsumi"
     VIAddVersionKey "FileDescription" "Friendship management tool for VRChat"
@@ -35,10 +35,10 @@
     SetCompressor /SOLID lzma
     SetCompressorDictSize 16
     Unicode True
-    Name "VRCX"
-    OutFile "VRCX_Setup.exe"
-    InstallDir "$PROGRAMFILES64\VRCX"
-    InstallDirRegKey HKLM "Software\VRCX" "InstallDir"
+    Name "VRCX-0"
+    OutFile "VRCX-0_Setup.exe"
+    InstallDir "$PROGRAMFILES64\VRCX-0"
+    InstallDirRegKey HKLM "Software\VRCX-0" "InstallDir"
     RequestExecutionLevel admin
     ShowInstDetails show
 
@@ -72,9 +72,9 @@
     ;------------------------------
     ; Finish Page
 
-    ; Checkbox to launch VRCX.
+    ; Checkbox to launch VRCX-0.
     !define MUI_FINISHPAGE_RUN
-    !define MUI_FINISHPAGE_RUN_TEXT "Launch VRCX"
+    !define MUI_FINISHPAGE_RUN_TEXT "Launch VRCX-0"
     !define MUI_FINISHPAGE_RUN_FUNCTION launchVRCX
 
     ; Checkbox to create desktop shortcut.
@@ -109,19 +109,19 @@ FunctionEnd
 Function .onInit
     StrCpy $upgradeInstallation 0
 
-    ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "UninstallString"
+    ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX-0" "UninstallString"
     StrCmp $R0 "" notInstalled
         StrCpy $upgradeInstallation 1
     notInstalled:
 
-    ; If VRCX is already running, display a warning message
+    ; If VRCX-0 is already running, display a warning message
     loop:
-    StrCpy $1 "VRCX.exe"
+    StrCpy $1 "VRCX-0.exe"
     nsProcess::_FindProcess "$1"
     Pop $R1
     ${If} $R1 = 0
-        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "VRCX is still running. $\n$\nClick `OK` to kill the running process or `Cancel` to cancel this installer." /SD IDOK IDCANCEL cancel
-            nsExec::ExecToStack "taskkill /IM VRCX.exe"
+        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "VRCX-0 is still running. $\n$\nClick `OK` to kill the running process or `Cancel` to cancel this installer." /SD IDOK IDCANCEL cancel
+            nsExec::ExecToStack "taskkill /IM VRCX-0.exe"
     ${Else}
         Goto done
     ${EndIf}
@@ -140,12 +140,12 @@ Function .onInstSuccess
 FunctionEnd
 
 Function createDesktopShortcut
-    CreateShortcut "$DESKTOP\VRCX.lnk" "$INSTDIR\VRCX.exe"
+    CreateShortcut "$DESKTOP\VRCX-0.lnk" "$INSTDIR\VRCX-0.exe"
 FunctionEnd
 
 Function launchVRCX
     SetOutPath $INSTDIR
-    ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\VRCX.exe" ""
+    ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\VRCX-0.exe" ""
 FunctionEnd
 
 ;--------------------------------
@@ -169,57 +169,57 @@ Section "Install" SecInstall
 
     File /r /x *.log /x *.pdb "..\build\Cef\*.*"
 
-    WriteRegStr HKLM "Software\VRCX" "InstallDir" $INSTDIR
+    WriteRegStr HKLM "Software\VRCX-0" "InstallDir" $INSTDIR
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayName" "VRCX"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "Publisher" "vrcx-team"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayVersion" "${VERSION}"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayArch" "x64"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "InstallLocation" "$INSTDIR"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayIcon" "$\"$INSTDIR\VRCX.ico$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX-0" "DisplayName" "VRCX-0"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX-0" "Publisher" "vrcx-team"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX-0" "DisplayVersion" "${VERSION}"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX-0" "DisplayArch" "x64"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX-0" "InstallLocation" "$INSTDIR"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX-0" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX-0" "DisplayIcon" "$\"$INSTDIR\VRCX.ico$\""
 
     ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
     IntFmt $0 "0x%08X" $0
-    WriteRegDWORD HKLM  "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "EstimatedSize" "$0"
+    WriteRegDWORD HKLM  "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX-0" "EstimatedSize" "$0"
 
     ${GetParameters} $R2
     ${GetOptions} $R2 /SKIP_SHORTCUT= $3
     StrCmp $3 "true" noShortcut
-        CreateShortCut "$SMPROGRAMS\VRCX.lnk" "$INSTDIR\VRCX.exe"
-        ApplicationID::Set "$SMPROGRAMS\VRCX.lnk" "VRCX"
+        CreateShortCut "$SMPROGRAMS\VRCX-0.lnk" "$INSTDIR\VRCX-0.exe"
+        ApplicationID::Set "$SMPROGRAMS\VRCX-0.lnk" "VRCX-0"
     noShortcut:
 
     WriteRegStr HKCU "Software\Classes\vrcx" "" "URL:vrcx"
-    WriteRegStr HKCU "Software\Classes\vrcx" "FriendlyTypeName" "VRCX"
+    WriteRegStr HKCU "Software\Classes\vrcx" "FriendlyTypeName" "VRCX-0"
     WriteRegStr HKCU "Software\Classes\vrcx" "URL Protocol" ""
     WriteRegExpandStr HKCU "Software\Classes\vrcx\DefaultIcon" "" "$INSTDIR\VRCX.ico"
     WriteRegStr HKCU "Software\Classes\vrcx\shell" "" "open"
-    WriteRegStr HKCU "Software\Classes\vrcx\shell\open" "FriendlyAppName" "VRCX"
-    WriteRegStr HKCU "Software\Classes\vrcx\shell\open\command" "" '"$INSTDIR\VRCX.exe" /uri="%1" /params="%2 %3 %4"'
+    WriteRegStr HKCU "Software\Classes\vrcx\shell\open" "FriendlyAppName" "VRCX-0"
+    WriteRegStr HKCU "Software\Classes\vrcx\shell\open\command" "" '"$INSTDIR\VRCX-0.exe" /uri="%1" /params="%2 %3 %4"'
 SectionEnd
 
 ;--------------------------------
 ;Uninstaller Section
 
 Section "Uninstall"
-    ; If VRCX is already running, display a warning message and exit
-    StrCpy $1 "VRCX.exe"
+    ; If VRCX-0 is already running, display a warning message and exit
+    StrCpy $1 "VRCX-0.exe"
     nsProcess::_FindProcess "$1"
     Pop $R1
     ${If} $R1 = 0
-        MessageBox MB_OK|MB_ICONEXCLAMATION "VRCX is still running. Cannot uninstall this software.$\nPlease close VRCX and try again." /SD IDOK
+        MessageBox MB_OK|MB_ICONEXCLAMATION "VRCX-0 is still running. Cannot uninstall this software.$\nPlease close VRCX-0 and try again." /SD IDOK
         Abort
     ${EndIf}
 
     RMDir /r "$INSTDIR"
 
-    DeleteRegKey HKLM "Software\VRCX"
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX"
+    DeleteRegKey HKLM "Software\VRCX-0"
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX-0"
     DeleteRegKey HKCU "Software\Classes\vrcx"
 
     ${IfNot} ${Silent}
-        Delete "$SMPROGRAMS\VRCX.lnk"
-        Delete "$DESKTOP\VRCX.lnk"
+        Delete "$SMPROGRAMS\VRCX-0.lnk"
+        Delete "$DESKTOP\VRCX-0.lnk"
     ${EndIf}
 SectionEnd

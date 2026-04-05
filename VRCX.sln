@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VRCX-Cef", "Dotnet\VRCX-Cef.csproj", "{D9F66F2E-3ED9-4D53-A6AC-ADCC1513562A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VRCX-0-Cef", "Dotnet\VRCX-0-Cef.csproj", "{D9F66F2E-3ED9-4D53-A6AC-ADCC1513562A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DBMerger", "Dotnet\DBMerger\DBMerger.csproj", "{9BE1DD2F-CABC-4CF9-A53E-C62923760887}"
 EndProject
