@@ -18,7 +18,6 @@ export default defineConfig([
         languageOptions: {
             globals: {
                 ...globals.browser,
-                CefSharp: 'readonly',
                 VRCX: 'readonly',
                 VRCXStorage: 'readonly',
                 SQLite: 'readonly',

@@ -73,6 +73,12 @@ namespace VRCX_0
                     htmlFolder,
                     CoreWebView2HostResourceAccessKind.Allow);
 
+                // Map virtual host to AppData folder (for custom.css / custom.js)
+                coreWebView.SetVirtualHostNameToFolderMapping(
+                    "appdata.vrcx-0.local",
+                    Program.AppDataDirectory,
+                    CoreWebView2HostResourceAccessKind.Allow);
+
                 // Set up message router
                 Router = new MessageRouter();
                 Router.SetWebView(coreWebView);
@@ -84,6 +90,11 @@ namespace VRCX_0
                 Router.Register("Discord", Discord.Instance);
                 Router.Register("AssetBundleManager", AssetBundleManager.Instance);
                 coreWebView.WebMessageReceived += Router.OnWebMessageReceived;
+
+                // Inject app version so frontend can read it synchronously
+                var escapedVersion = Program.Version.Replace("'", "\\'");
+                await coreWebView.AddScriptToExecuteOnDocumentCreatedAsync(
+                    $"window.__VRCX_VERSION__ = '{escapedVersion}';");
 
                 // Settings
                 var settings = coreWebView.Settings;
@@ -100,6 +111,7 @@ namespace VRCX_0
                 {
                     var uri = args.Uri;
                     if (uri.StartsWith("https://vrcx-0.local/") ||
+                        uri.StartsWith("https://appdata.vrcx-0.local/") ||
                         uri.StartsWith("http://localhost:9000/") ||
                         uri.StartsWith("devtools://") ||
                         uri.StartsWith("about:"))

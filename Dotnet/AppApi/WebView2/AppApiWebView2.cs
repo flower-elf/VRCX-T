@@ -22,11 +22,6 @@ namespace VRCX_0
             MainForm.Instance.Browser?.CoreWebView2?.OpenDevToolsWindow();
         }
 
-        public override void SetVR(bool active, bool hmdOverlay, bool wristOverlay, bool menuButton, int overlayHand)
-        {
-            // VR overlay removed in VRCX-0
-        }
-
         public override void SetZoom(double zoomLevel)
         {
             if (MainForm.Instance.Browser?.CoreWebView2 == null)
@@ -105,11 +100,6 @@ namespace VRCX_0
         public override bool CheckForUpdateExe()
         {
             return File.Exists(Path.Join(Program.AppDataDirectory, "update.exe"));
-        }
-
-        public override void ExecuteVrOverlayFunction(string function, string json)
-        {
-            // VR overlay removed in VRCX-0
         }
 
         public override void FocusWindow()

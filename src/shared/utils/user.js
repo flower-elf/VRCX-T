@@ -1,4 +1,5 @@
 import { HueToHex } from './base/ui';
+import { getColourFromUserID } from './colour';
 import { convertFileUrlToImageUrl } from './common';
 import { languageMappings } from '../constants';
 import { removeEmojis } from './base/string';
@@ -42,8 +43,8 @@ function languageClass(language) {
  * @param {boolean} isDarkMode
  * @returns
  */
-async function getNameColour(userId, isDarkMode) {
-    const hue = await AppApi.GetColourFromUserID(userId);
+function getNameColour(userId, isDarkMode) {
+    const hue = getColourFromUserID(userId);
     return HueToHex(hue, isDarkMode);
 }
 

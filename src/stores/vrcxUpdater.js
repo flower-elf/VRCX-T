@@ -69,7 +69,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             autoUpdateVRCX.value = 'Off';
         }
 
-        appVersion.value = await AppApi.GetVersion();
+        appVersion.value = window.__VRCX_VERSION__ || '';
         vrcxId.value = VRCX0_id;
 
         await initBranch();

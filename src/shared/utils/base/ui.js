@@ -328,37 +328,31 @@ function updateTrustColorClasses(trustColor) {
     document.getElementsByTagName('head')[0].appendChild(style);
 }
 
-async function refreshCustomCss() {
-    if (document.contains(document.getElementById('app-custom-style'))) {
-        document.getElementById('app-custom-style').remove();
+function refreshCustomCss() {
+    const existing = document.getElementById('app-custom-style');
+    if (existing) {
+        existing.remove();
     }
-    const customCss = await AppApi.CustomCss();
-    if (customCss) {
-        const head = document.head;
-        const $appCustomStyle = document.createElement('link');
-        $appCustomStyle.setAttribute('id', 'app-custom-style');
-        $appCustomStyle.rel = 'stylesheet';
-        $appCustomStyle.type = 'text/css';
-        $appCustomStyle.href = URL.createObjectURL(
-            new Blob([customCss], { type: 'text/css' })
-        );
-        head.appendChild($appCustomStyle);
-    }
+    const link = document.createElement('link');
+    link.id = 'app-custom-style';
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = 'https://appdata.vrcx-0.local/custom.css';
+    link.onerror = () => link.remove();
+    document.head.appendChild(link);
 }
 
-async function refreshCustomScript() {
-    if (document.contains(document.getElementById('app-custom-script'))) {
-        document.getElementById('app-custom-script').remove();
+function refreshCustomScript() {
+    const existing = document.getElementById('app-custom-script');
+    if (existing) {
+        existing.remove();
     }
-    const customScript = await AppApi.CustomScript();
-    if (customScript) {
-        const head = document.head;
-        const $appCustomScript = document.createElement('script');
-        $appCustomScript.setAttribute('id', 'app-custom-script');
-        $appCustomScript.type = 'text/javascript';
-        $appCustomScript.textContent = customScript;
-        head.appendChild($appCustomScript);
-    }
+    const script = document.createElement('script');
+    script.id = 'app-custom-script';
+    script.type = 'text/javascript';
+    script.src = 'https://appdata.vrcx-0.local/custom.js';
+    script.onerror = () => script.remove();
+    document.head.appendChild(script);
 }
 
 /**

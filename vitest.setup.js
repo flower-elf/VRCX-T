@@ -3,7 +3,7 @@
  * Loads English locale messages into i18n so that
  * translation calls return expected values in tests.
  *
- * Provides global stubs for CefSharp IPC bindings.
+ * Provides global stubs for WebView2 bridge bindings.
  */
 
 import { i18n } from './src/plugins/i18n';

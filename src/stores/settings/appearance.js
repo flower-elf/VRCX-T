@@ -24,6 +24,7 @@ import {
     updateTrustColorClasses
 } from '../../shared/utils/base/ui';
 import { computeTrustLevel, getNameColour } from '../../shared/utils';
+import { getColourBulk } from '../../shared/utils/colour';
 import { database } from '../../services/database';
 
 import { loadLocalizedStrings } from '../../plugins';
@@ -472,13 +473,13 @@ export const useAppearanceSettingsStore = defineStore(
          *
          * @param customFunc
          */
-        async function userColourInit(customFunc) {
+        function userColourInit(customFunc) {
             let dictObject = null;
             if (typeof customFunc === 'function') {
                 dictObject = customFunc(userStore.cachedUsers.keys());
             } else {
-                dictObject = await AppApi.GetColourBulk(
-                    Array.from(userStore.cachedUsers.keys())
+                dictObject = getColourBulk(
+                    userStore.cachedUsers.keys()
                 );
             }
             if (!dictObject) {

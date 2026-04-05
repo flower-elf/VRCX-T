@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
@@ -26,13 +24,6 @@ namespace VRCX_0
                 args.ErrorContext.Handled = true;
             }
         };
-
-        public int GetColourFromUserID(string userId)
-        {
-            using var hasher = MD5.Create();
-            var hash = hasher.ComputeHash(Encoding.UTF8.GetBytes(userId));
-            return (hash[3] << 8) | hash[4];
-        }
 
         public void OpenLink(string url)
         {
@@ -84,24 +75,6 @@ namespace VRCX_0
             });
         }
 
-        public string CustomCss()
-        {
-            var filePath = Path.Join(Program.AppDataDirectory, "custom.css");
-            if (File.Exists(filePath))
-                return File.ReadAllText(filePath);
-
-            return string.Empty;
-        }
-
-        public string CustomScript()
-        {
-            var filePath = Path.Join(Program.AppDataDirectory, "custom.js");
-            if (File.Exists(filePath))
-                return File.ReadAllText(filePath);
-
-            return string.Empty;
-        }
-
         public string CurrentCulture()
         {
             var culture = CultureInfo.CurrentCulture.ToString();
@@ -116,25 +89,9 @@ namespace VRCX_0
             return CultureInfo.InstalledUICulture.Name;
         }
 
-        public string GetVersion()
-        {
-            return Program.Version;
-        }
-
         public bool VrcClosedGracefully()
         {
             return LogWatcher.Instance.VrcClosedGracefully;
-        }
-
-        public Dictionary<string, int> GetColourBulk(List<object> userIds)
-        {
-            var output = new Dictionary<string, int>();
-            foreach (string userId in userIds)
-            {
-                output.Add(userId, GetColourFromUserID(userId));
-            }
-
-            return output;
         }
 
         public void SetAppLauncherSettings(bool enabled, bool killOnExit, bool runProcessOnce)

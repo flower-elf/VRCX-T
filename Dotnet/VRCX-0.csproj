@@ -105,10 +105,4 @@
     <Exec Command="&quot;$(ProjectDir)..\Dotnet\build-tools\Topten.nvpatch.exe&quot; --enable &quot;$(ProjectDir)..\build\VRCX-0.exe&quot;" />
   </Target>
 
-  <ItemGroup>
-    <Content Remove="obj1\**" />
-    <Compile Remove="obj1\**" />
-    <Content Remove="AppApi\Electron\**" />
-    <Compile Remove="AppApi\Electron\**" />
-  </ItemGroup>
 </Project>

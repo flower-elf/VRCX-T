@@ -8,6 +8,7 @@ declare global {
     interface Window {
         $pinia: any;
         $debug: AppDebug;
+        __VRCX_VERSION__: string;
         AppApi: AppApi;
         WebApi: WebApi;
         VRCXStorage: VRCXStorage;
@@ -116,19 +117,14 @@ declare global {
         OpenCalendarFile(icsContent: string): Promise<void>;
 
         // Common Functions
-        GetColourFromUserID(userId: string): Promise<number>;
         OpenLink(url: string): Promise<void>;
         OpenDiscordProfile(discordId: string): Promise<void>;
         GetLaunchCommand(): Promise<string>;
         IPCAnnounceStart(): Promise<void>;
         SendIpc(type: string, data: string): Promise<void>;
-        CustomCss(): Promise<string>;
-        CustomScript(): Promise<string>;
         CurrentCulture(): Promise<string>;
         CurrentLanguage(): Promise<string>;
-        GetVersion(): Promise<string>;
         VrcClosedGracefully(): Promise<boolean>;
-        GetColourBulk(userIds: string[]): Promise<Record<string, number>>;
         SetAppLauncherSettings(
             enabled: boolean,
             killOnExit: boolean,
