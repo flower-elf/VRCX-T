@@ -34,7 +34,7 @@
                         </TooltipWrapper>
 
                         <TooltipWrapper
-                            v-if="visibility.steamvr"
+                            v-if="!isMacOS && visibility.steamvr"
                             :content="
                                 gameStore.isSteamVRRunning
                                     ? t('status_bar.steamvr_running')
@@ -52,7 +52,7 @@
                         </TooltipWrapper>
 
                         <HoverCard
-                            v-if="visibility.vrchat"
+                            v-if="!isMacOS && visibility.vrchat"
                             v-model:open="gameHoverOpen"
                             :open-delay="50"
                             :close-delay="50">
@@ -169,6 +169,40 @@
                                 }}</span>
                             </div>
                         </TooltipWrapper>
+
+                        <div
+                            v-if="visibility.nowPlaying && nowPlaying.url"
+                            class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border min-w-0 max-w-[400px]">
+                            <i v-if="!isYouTubeNowPlaying" class="ri-play-fill text-[10px] shrink-0" />
+                            <i v-if="isYouTubeNowPlaying" class="ri-youtube-fill text-[#FF0000] shrink-0 text-[12px]" />
+                            <TooltipWrapper v-else :content="nowPlaying.url" side="top">
+                                <span
+                                    class="text-[10px] shrink-0 truncate max-w-[180px] cursor-pointer hover:text-foreground"
+                                    @click="handleNowPlayingClick"
+                                    >{{ nowPlaying.url }}</span
+                                >
+                            </TooltipWrapper>
+                            <TooltipWrapper :content="nowPlaying.name" side="top">
+                                <span
+                                    class="text-[11px] text-foreground truncate cursor-pointer"
+                                    @click="handleNowPlayingClick"
+                                    >{{ nowPlaying.name }}</span
+                                >
+                            </TooltipWrapper>
+                            <template v-if="nowPlaying.playing">
+                                <div
+                                    class="shrink-0 h-[4px] rounded-full bg-muted overflow-hidden ml-1"
+                                    style="width: 40px"
+                                    :title="`${nowPlayingElapsedText} / ${nowPlayingLengthText}`">
+                                    <div
+                                        class="h-full rounded-full bg-foreground/60 transition-[width] duration-1000 ease-linear"
+                                        :style="{ width: `${nowPlaying.percentage}%` }" />
+                                </div>
+                                <span class="text-[10px] tabular-nums shrink-0">
+                                    {{ nowPlayingElapsedText }} / {{ nowPlayingLengthText }}
+                                </span>
+                            </template>
+                        </div>
                     </div>
 
                     <!-- Right section -->
@@ -259,6 +293,7 @@
 
             <ContextMenuContent>
                 <ContextMenuCheckboxItem
+                    v-if="!isMacOS"
                     :model-value="visibility.vrchat"
                     @select.prevent
                     @update:model-value="toggleVisibility('vrchat')">
@@ -271,6 +306,7 @@
                     {{ t('status_bar.servers') }}
                 </ContextMenuCheckboxItem>
                 <ContextMenuCheckboxItem
+                    v-if="!isMacOS"
                     :model-value="visibility.steamvr"
                     @select.prevent
                     @update:model-value="toggleVisibility('steamvr')">
@@ -289,12 +325,19 @@
                     WebSocket
                 </ContextMenuCheckboxItem>
                 <ContextMenuCheckboxItem
+                    :model-value="visibility.nowPlaying"
+                    @select.prevent
+                    @update:model-value="toggleVisibility('nowPlaying')">
+                    {{ t('status_bar.now_playing') }}
+                </ContextMenuCheckboxItem>
+                <ContextMenuCheckboxItem
                     :model-value="visibility.uptime"
                     @select.prevent
                     @update:model-value="toggleVisibility('uptime')">
                     {{ t('status_bar.app_uptime_short') }}
                 </ContextMenuCheckboxItem>
                 <ContextMenuCheckboxItem
+                    v-if="!isMacOS"
                     :model-value="visibility.zoom"
                     @select.prevent
                     @update:model-value="toggleVisibility('zoom')">
@@ -347,6 +390,7 @@
         ContextMenuTrigger
     } from '@/components/ui/context-menu';
     import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+    import { storeToRefs } from 'pinia';
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import {
         NumberField,
@@ -355,13 +399,21 @@
         NumberFieldIncrement,
         NumberFieldInput
     } from '@/components/ui/number-field';
-    import { useGameStore, useGeneralSettingsStore, useUserStore, useVrcStatusStore, useVrcxStore } from '@/stores';
+    import {
+        useGameLogStore,
+        useGameStore,
+        useGeneralSettingsStore,
+        useUserStore,
+        useVrcStatusStore,
+        useVrcxStore
+    } from '@/stores';
     import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-    import { timeToText } from '@/shared/utils';
+    import { formatSeconds, timeToText } from '@/shared/utils';
     import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
     import { useIntervalFn, useNow } from '@vueuse/core';
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import { useI18n } from 'vue-i18n';
+    import { openExternalLink } from '@/shared/utils/appActions';
     import { wsState } from '@/services/websocket';
 
     import dayjs from 'dayjs';
@@ -384,13 +436,35 @@
 
     const { t } = useI18n();
 
-
+    const isMacOS = computed(() => navigator.platform.includes('Mac'));
 
     const gameStore = useGameStore();
+    const gameLogStore = useGameLogStore();
     const userStore = useUserStore();
     const vrcxStore = useVrcxStore();
     const vrcStatusStore = useVrcStatusStore();
     const generalSettingsStore = useGeneralSettingsStore();
+
+    const { nowPlaying } = storeToRefs(gameLogStore);
+
+    const nowPlayingElapsedText = computed(() => {
+        if (!nowPlaying.value.playing) return '';
+        return formatSeconds(Math.floor(nowPlaying.value.elapsed));
+    });
+
+    const nowPlayingLengthText = computed(() => {
+        if (!nowPlaying.value.length) return '';
+        return formatSeconds(nowPlaying.value.length);
+    });
+
+    function handleNowPlayingClick() {
+        const url = nowPlaying.value.url;
+        if (url) {
+            openExternalLink(url);
+        }
+    }
+
+    const isYouTubeNowPlaying = computed(() => /youtu\.?be/i.test(nowPlaying.value.url));
 
     // --- Game session timer ---
     const gameHoverOpen = ref(false);
@@ -442,7 +516,7 @@
         }
     );
 
-    const VISIBILITY_KEY = 'VRCX-0_statusBarVisibility';
+    const VISIBILITY_KEY = 'VRCX_statusBarVisibility';
 
     const visibility = reactive({ ...defaultVisibility });
 
@@ -551,8 +625,8 @@
         return formatAppUptime(elapsedSeconds);
     });
 
-    const CLOCKS_KEY = 'VRCX-0_statusBarClocks';
-    const CLOCK_COUNT_KEY = 'VRCX-0_statusBarClockCount';
+    const CLOCKS_KEY = 'VRCX_statusBarClocks';
+    const CLOCK_COUNT_KEY = 'VRCX_statusBarClockCount';
     const localOffset = normalizeUtcHour(dayjs().utcOffset() / 60);
     const defaultClocks = [{ offset: localOffset }, { offset: 0 }, { offset: localOffset < 0 ? 9 : -5 }];
 
@@ -665,7 +739,9 @@
     const zoomEditing = ref(false);
     const zoomInputRef = ref(null);
 
-    initZoom();
+    if (!isMacOS.value) {
+        initZoom();
+    }
 
     /**
      *

@@ -783,7 +783,8 @@
                     "disable_gpu_acceleration": "Disable GPU Acceleration",
                     "disable_gpu_acceleration_tooltip": "Only change this option if you know what you're doing, may fix issues with UI, requires restarting VRCX",
                     "disable_vr_overlay_gpu_acceleration": "Disable VR Overlay GPU Acceleration",
-                    "proxy": "Proxy Settings"
+                    "proxy": "Proxy Settings",
+                    "startup_linux": "Add \"--startup\" arg to startup VRCX.desktop file to start VRCX minimized at system startup"
                 },
                 "favorites": {
                     "header": "Favorite Groups Filter",
@@ -3124,6 +3125,7 @@
         "clock": "Clock",
         "clocks_label": "Clocks",
         "clocks_none": "None",
-        "timezone": "Timezone"
+        "timezone": "Timezone",
+        "now_playing": "Now Playing"
     }
 }
