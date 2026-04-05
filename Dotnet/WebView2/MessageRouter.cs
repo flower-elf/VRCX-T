@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Web.WebView2.Core;
 using NLog;
@@ -15,10 +16,12 @@ namespace VRCX_0
         private readonly ConcurrentDictionary<string, object> _services = new();
         private readonly ConcurrentDictionary<string, List<MethodInfo>> _methodCache = new();
         private CoreWebView2 _webView;
+        private SynchronizationContext _syncContext;
 
         public void SetWebView(CoreWebView2 webView)
         {
             _webView = webView;
+            _syncContext = SynchronizationContext.Current;
         }
 
         public void Register(string name, object instance)
@@ -306,7 +309,25 @@ namespace VRCX_0
             try
             {
                 var json = JsonSerializer.Serialize(message);
-                _webView.PostWebMessageAsJson(json);
+
+                if (_syncContext != null && SynchronizationContext.Current != _syncContext)
+                {
+                    _syncContext.Post(_ =>
+                    {
+                        try
+                        {
+                            _webView?.PostWebMessageAsJson(json);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Error(ex, "Error posting message to WebView2 (marshalled)");
+                        }
+                    }, null);
+                }
+                else
+                {
+                    _webView.PostWebMessageAsJson(json);
+                }
             }
             catch (Exception ex)
             {

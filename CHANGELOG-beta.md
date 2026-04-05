@@ -1,3 +1,10 @@
 ## 2026.04.05-beta.1
 
-<!-- 版本号写在上面的标题里，CI 自动读。发完 stable 后内容搬去 CHANGELOG.md。 -->
+First version after forking from VRCX.
+This is not a testing build, but the initial release after refactoring.
+No extensive testing yet, but core functionality appears to work.
+
+- Change license: pre-fork code remains MIT, new code and future changes are GPLv3
+- Remove CEF, switch to WebView2
+- Remove Linux and macOS support
+- Remove VR Overlay, keep XSOverlay and OVR Toolkit HUD notification support
