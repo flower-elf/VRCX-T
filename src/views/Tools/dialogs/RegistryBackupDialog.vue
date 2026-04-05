@@ -105,7 +105,7 @@
      *
      */
     async function updateRegistryBackupDialog() {
-        const backupsJson = await configRepository.getString('VRCX-0_VRChatRegistryBackups');
+        const backupsJson = await configRepository.getString('VRChatRegistryBackups');
         registryBackupTable.value.data = JSON.parse(backupsJson || '[]');
     }
 
@@ -151,7 +151,7 @@
     async function deleteVrcRegistryBackup(row) {
         const backups = registryBackupTable.value.data;
         removeFromArray(backups, row);
-        await configRepository.setString('VRCX-0_VRChatRegistryBackups', JSON.stringify(backups));
+        await configRepository.setString('VRChatRegistryBackups', JSON.stringify(backups));
         await updateRegistryBackupDialog();
     }
 

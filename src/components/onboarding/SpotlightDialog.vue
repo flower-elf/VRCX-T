@@ -68,7 +68,7 @@
     ];
 
     onMounted(async () => {
-        const seen = await configRepository.getBool('VRCX-0_onboarding_welcome_seen', false);
+        const seen = await configRepository.getBool('onboarding_welcome_seen', false);
         if (!seen) {
             setTimeout(() => {
                 isOpen.value = true;
@@ -81,7 +81,7 @@
      */
     async function handleDismiss() {
         isOpen.value = false;
-        await configRepository.setBool('VRCX-0_onboarding_welcome_seen', true);
+        await configRepository.setBool('onboarding_welcome_seen', true);
     }
 </script>
 

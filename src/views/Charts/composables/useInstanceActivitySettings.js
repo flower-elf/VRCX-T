@@ -16,7 +16,7 @@ export function useInstanceActivitySettings() {
                 isSoloInstanceVisibleValue,
                 isNoFriendInstanceVisibleValue
             ] = await Promise.all([
-                configRepository.getInt('VRCX-0_InstanceActivityBarWidth', 25),
+                configRepository.getInt('InstanceActivityBarWidth', 25),
                 configRepository.getBool(
                     'VRCX-0_InstanceActivityDetailVisible',
                     true

@@ -361,9 +361,9 @@
                 configRepository.getString(periodKey, '30'),
                 configRepository.getString(ACTIVITY_SELF_TOP_WORLDS_SORT_KEY, 'count'),
                 configRepository.getBool(ACTIVITY_SELF_EXCLUDE_HOME_WORLD_KEY, false),
-                configRepository.getBool('VRCX-0_overlapExcludeEnabled', false),
-                configRepository.getString('VRCX-0_overlapExcludeStart', '1'),
-                configRepository.getString('VRCX-0_overlapExcludeEnd', '6')
+                configRepository.getBool('overlapExcludeEnabled', false),
+                configRepository.getString('overlapExcludeStart', '1'),
+                configRepository.getString('overlapExcludeEnd', '6')
             ]);
         selectedPeriod.value = ['0', '7', '30', '90', '180', '365'].includes(period) ? period : '30';
         topWorldsSortBy.value = ['time', 'count'].includes(sortBy) ? sortBy : 'count';
@@ -663,13 +663,13 @@
 
     async function onExcludeToggle(value) {
         excludeHoursEnabled.value = value;
-        await configRepository.setBool('VRCX-0_overlapExcludeEnabled', value);
+        await configRepository.setBool('overlapExcludeEnabled', value);
         await refreshOverlapOnly();
     }
 
     async function onExcludeRangeChange() {
-        await configRepository.setString('VRCX-0_overlapExcludeStart', excludeStartHour.value);
-        await configRepository.setString('VRCX-0_overlapExcludeEnd', excludeEndHour.value);
+        await configRepository.setString('overlapExcludeStart', excludeStartHour.value);
+        await configRepository.setString('overlapExcludeEnd', excludeEndHour.value);
         await refreshOverlapOnly();
     }
 

@@ -118,22 +118,22 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
             vrcRegistryAskRestoreConfig
         ] = await Promise.all([
             configRepository.getBool('enablePrimaryPassword', false),
-            configRepository.getString('VRCX-0_bioLanguage'),
-            configRepository.getBool('VRCX-0_relaunchVRChatAfterCrash', false),
-            configRepository.getBool('VRCX-0_vrcQuitFix', true),
-            configRepository.getBool('VRCX-0_autoSweepVRChatCache', false),
-            configRepository.getBool('VRCX-0_selfInviteOverride', false),
-            configRepository.getBool('VRCX-0_saveInstancePrints', false),
-            configRepository.getBool('VRCX-0_cropInstancePrints', false),
-            configRepository.getBool('VRCX-0_saveInstanceStickers', false),
-            configRepository.getBool('VRCX-0_avatarRemoteDatabase', true),
-            configRepository.getBool('VRCX-0_enableAppLauncher', true),
-            configRepository.getBool('VRCX-0_enableAppLauncherAutoClose', true),
+            configRepository.getString('bioLanguage'),
+            configRepository.getBool('relaunchVRChatAfterCrash', false),
+            configRepository.getBool('vrcQuitFix', true),
+            configRepository.getBool('autoSweepVRChatCache', false),
+            configRepository.getBool('selfInviteOverride', false),
+            configRepository.getBool('saveInstancePrints', false),
+            configRepository.getBool('cropInstancePrints', false),
+            configRepository.getBool('saveInstanceStickers', false),
+            configRepository.getBool('avatarRemoteDatabase', true),
+            configRepository.getBool('enableAppLauncher', true),
+            configRepository.getBool('enableAppLauncherAutoClose', true),
             configRepository.getBool(
                 'VRCX-0_enableAppLauncherRunProcessOnce',
                 true
             ),
-            configRepository.getBool('VRCX-0_screenshotHelper', true),
+            configRepository.getBool('screenshotHelper', true),
             configRepository.getBool(
                 'VRCX-0_screenshotHelperModifyFilename',
                 false
@@ -142,28 +142,28 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
                 'VRCX-0_screenshotHelperCopyToClipboard',
                 false
             ),
-            configRepository.getBool('VRCX-0_youtubeAPI', false),
-            configRepository.getString('VRCX-0_youtubeAPIKey', ''),
-            configRepository.getBool('VRCX-0_translationAPI', false),
-            configRepository.getString('VRCX-0_translationAPIKey', ''),
-            configRepository.getString('VRCX-0_translationAPIType', 'google'),
-            configRepository.getString('VRCX-0_translationAPIEndpoint', ''),
-            configRepository.getString('VRCX-0_translationAPIModel', ''),
-            configRepository.getString('VRCX-0_translationAPIPrompt', ''),
-            configRepository.getBool('VRCX-0_progressPie', false),
-            configRepository.getBool('VRCX-0_progressPieFilter', true),
+            configRepository.getBool('youtubeAPI', false),
+            configRepository.getString('youtubeAPIKey', ''),
+            configRepository.getBool('translationAPI', false),
+            configRepository.getString('translationAPIKey', ''),
+            configRepository.getString('translationAPIType', 'google'),
+            configRepository.getString('translationAPIEndpoint', ''),
+            configRepository.getString('translationAPIModel', ''),
+            configRepository.getString('translationAPIPrompt', ''),
+            configRepository.getBool('progressPie', false),
+            configRepository.getBool('progressPieFilter', true),
             configRepository.getBool(
                 'VRCX-0_showConfirmationOnSwitchAvatar',
                 false
             ),
-            configRepository.getBool('VRCX-0_gameLogDisabled', false),
-            configRepository.getString('VRCX-0_avatarAutoCleanup', 'Off'),
-            configRepository.getString('VRCX-0_userGeneratedContentPath', ''),
-            configRepository.getBool('VRCX-0_autoDeleteOldPrints', false),
-            configRepository.getFloat('VRCX-0_notificationOpacity', 100),
-            configRepository.getBool('VRCX-0_saveInstanceEmoji', false),
-            configRepository.getBool('VRCX-0_vrcRegistryAutoBackup', true),
-            configRepository.getBool('VRCX-0_vrcRegistryAskRestore', true)
+            configRepository.getBool('gameLogDisabled', false),
+            configRepository.getString('avatarAutoCleanup', 'Off'),
+            configRepository.getString('userGeneratedContentPath', ''),
+            configRepository.getBool('autoDeleteOldPrints', false),
+            configRepository.getFloat('notificationOpacity', 100),
+            configRepository.getBool('saveInstanceEmoji', false),
+            configRepository.getBool('vrcRegistryAutoBackup', true),
+            configRepository.getBool('vrcRegistryAskRestore', true)
         ]);
 
         if (!bioLanguageConfig || !languageCodes.includes(bioLanguageConfig)) {
@@ -238,7 +238,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
     }
     function setVrcQuitFix() {
         vrcQuitFix.value = !vrcQuitFix.value;
-        configRepository.setBool('VRCX-0_vrcQuitFix', vrcQuitFix.value);
+        configRepository.setBool('vrcQuitFix', vrcQuitFix.value);
     }
     function setAutoSweepVRChatCache() {
         autoSweepVRChatCache.value = !autoSweepVRChatCache.value;
@@ -336,7 +336,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
     }
     async function setYouTubeApi() {
         youTubeApi.value = !youTubeApi.value;
-        await configRepository.setBool('VRCX-0_youtubeAPI', youTubeApi.value);
+        await configRepository.setBool('youtubeAPI', youTubeApi.value);
     }
     async function setTranslationApi() {
         translationApi.value = !translationApi.value;
@@ -486,11 +486,11 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
 
     function setBioLanguage(language) {
         bioLanguage.value = language;
-        configRepository.setString('VRCX-0_bioLanguage', language);
+        configRepository.setString('bioLanguage', language);
     }
     async function setProgressPie() {
         progressPie.value = !progressPie.value;
-        await configRepository.setBool('VRCX-0_progressPie', progressPie.value);
+        await configRepository.setBool('progressPie', progressPie.value);
     }
     async function setProgressPieFilter() {
         progressPieFilter.value = !progressPieFilter.value;
@@ -517,7 +517,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
 
     async function setAvatarAutoCleanup(value) {
         avatarAutoCleanup.value = value;
-        await configRepository.setString('VRCX-0_avatarAutoCleanup', value);
+        await configRepository.setString('avatarAutoCleanup', value);
     }
 
     /**
@@ -575,7 +575,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         );
         if (cleanupSetting === 'Off') return;
     
-        const configKey = `VRCX-0_lastAvatarCleanupDate_${userId}`;
+        const configKey = `lastAvatarCleanupDate_${userId}`;
         const lastCleanupStr = await configRepository.getString(
             configKey,
             ''
@@ -623,7 +623,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
             path = '';
         }
         ugcFolderPath.value = path;
-        await configRepository.setString('VRCX-0_userGeneratedContentPath', path);
+        await configRepository.setString('userGeneratedContentPath', path);
     }
 
     async function setAutoDeleteOldPrints() {
@@ -636,7 +636,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
 
     async function setNotificationOpacity(value) {
         notificationOpacity.value = value;
-        await configRepository.setInt('VRCX-0_notificationOpacity', value);
+        await configRepository.setInt('notificationOpacity', value);
     }
 
     async function setVrcRegistryAutoBackup() {

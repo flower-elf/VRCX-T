@@ -132,7 +132,7 @@
      *
      */
     function saveTableFilters() {
-        configRepository.setString('VRCX-0_friendLogTableFilters', JSON.stringify(friendLogTable.value.filters[0].value));
+        configRepository.setString('friendLogTableFilters', JSON.stringify(friendLogTable.value.filters[0].value));
     }
     /**
      *

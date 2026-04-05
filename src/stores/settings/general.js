@@ -72,18 +72,18 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
             recentActionCooldownEnabledConfig,
             recentActionCooldownMinutesConfig
         ] = await Promise.all([
-            configRepository.getBool('VRCX-0_StartAtWindowsStartup', false),
+            configRepository.getBool('StartAtWindowsStartup', false),
             VRCXStorage.Get('VRCX-0_StartAsMinimizedState'),
             VRCXStorage.Get('VRCX-0_CloseToTray'),
-            configRepository.getBool('VRCX-0_CloseToTray'),
+            configRepository.getBool('CloseToTray'),
             VRCXStorage.Get('VRCX-0_DisableGpuAcceleration'),
-            configRepository.getString('VRCX-0_localFavoriteFriendsGroups', '[]'),
-            configRepository.getBool('VRCX-0_udonExceptionLogging', false),
-            configRepository.getBool('VRCX-0_logResourceLoad', false),
-            configRepository.getBool('VRCX-0_logEmptyAvatars', false),
-            configRepository.getBool('VRCX-0_autoLoginDelayEnabled', false),
-            configRepository.getInt('VRCX-0_autoLoginDelaySeconds', 0),
-            configRepository.getBool('VRCX-0_autoStateChangeEnabled', false),
+            configRepository.getString('localFavoriteFriendsGroups', '[]'),
+            configRepository.getBool('udonExceptionLogging', false),
+            configRepository.getBool('logResourceLoad', false),
+            configRepository.getBool('logEmptyAvatars', false),
+            configRepository.getBool('autoLoginDelayEnabled', false),
+            configRepository.getInt('autoLoginDelaySeconds', 0),
+            configRepository.getBool('autoStateChangeEnabled', false),
             configRepository.getString(
                 'VRCX-0_autoStateChangeAloneStatus',
                 'join me'
@@ -96,22 +96,22 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
                 'VRCX-0_autoStateChangeInstanceTypes',
                 '[]'
             ),
-            configRepository.getBool('VRCX-0_autoStateChangeNoFriends', false),
+            configRepository.getBool('autoStateChangeNoFriends', false),
             configRepository.getBool(
                 'VRCX-0_autoStateChangeAloneDescEnabled',
                 false
             ),
-            configRepository.getString('VRCX-0_autoStateChangeAloneDesc', ''),
+            configRepository.getString('autoStateChangeAloneDesc', ''),
             configRepository.getBool(
                 'VRCX-0_autoStateChangeCompanyDescEnabled',
                 false
             ),
-            configRepository.getString('VRCX-0_autoStateChangeCompanyDesc', ''),
-            configRepository.getString('VRCX-0_autoStateChangeGroups', '[]'),
-            configRepository.getString('VRCX-0_autoAcceptInviteRequests', 'Off'),
-            configRepository.getString('VRCX-0_autoAcceptInviteGroups', '[]'),
-            configRepository.getBool('VRCX-0_recentActionCooldownEnabled', false),
-            configRepository.getInt('VRCX-0_recentActionCooldownMinutes', 60)
+            configRepository.getString('autoStateChangeCompanyDesc', ''),
+            configRepository.getString('autoStateChangeGroups', '[]'),
+            configRepository.getString('autoAcceptInviteRequests', 'Off'),
+            configRepository.getString('autoAcceptInviteGroups', '[]'),
+            configRepository.getBool('recentActionCooldownEnabled', false),
+            configRepository.getInt('recentActionCooldownMinutes', 60)
         ]);
 
         isStartAtWindowsStartup.value = isStartAtWindowsStartupConfig;
@@ -125,7 +125,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
                 'VRCX-0_CloseToTray',
                 isCloseToTray.value.toString()
             );
-            await configRepository.remove('VRCX-0_CloseToTray');
+            await configRepository.remove('CloseToTray');
         } else {
             isCloseToTray.value = isCloseToTrayConfig === 'true';
         }
@@ -212,11 +212,11 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     }
     function setLogResourceLoad() {
         logResourceLoad.value = !logResourceLoad.value;
-        configRepository.setBool('VRCX-0_logResourceLoad', logResourceLoad.value);
+        configRepository.setBool('logResourceLoad', logResourceLoad.value);
     }
     function setLogEmptyAvatars() {
         logEmptyAvatars.value = !logEmptyAvatars.value;
-        configRepository.setBool('VRCX-0_logEmptyAvatars', logEmptyAvatars.value);
+        configRepository.setBool('logEmptyAvatars', logEmptyAvatars.value);
     }
     function setAutoLoginDelayEnabled() {
         autoLoginDelayEnabled.value = !autoLoginDelayEnabled.value;

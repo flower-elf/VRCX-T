@@ -201,10 +201,10 @@
     const cardScaleBase = ref(1);
     const cardSpacingBase = ref(1);
     const persistCardScale = debounce((value) => {
-        configRepository.setString('VRCX-0_FriendLocationCardScale', value.toString());
+        configRepository.setString('FriendLocationCardScale', value.toString());
     }, 200);
     const persistCardSpacing = debounce((value) => {
-        configRepository.setString('VRCX-0_FriendLocationCardSpacing', value.toString());
+        configRepository.setString('FriendLocationCardSpacing', value.toString());
     }, 200);
 
     const cardScale = computed({
@@ -250,7 +250,7 @@
         get: () => showSameInstanceBase.value,
         set: (value) => {
             showSameInstanceBase.value = value;
-            configRepository.setBool('VRCX-0_FriendLocationShowSameInstance', value);
+            configRepository.setBool('FriendLocationShowSameInstance', value);
         }
     });
 
@@ -884,9 +884,9 @@
     async function loadInitialSettings() {
         try {
             const [storedScale, storedSpacing, storedShowSameInstance] = await Promise.all([
-                configRepository.getString('VRCX-0_FriendLocationCardScale', '1'),
-                configRepository.getString('VRCX-0_FriendLocationCardSpacing', '1'),
-                configRepository.getBool('VRCX-0_FriendLocationShowSameInstance', null)
+                configRepository.getString('FriendLocationCardScale', '1'),
+                configRepository.getString('FriendLocationCardSpacing', '1'),
+                configRepository.getBool('FriendLocationShowSameInstance', null)
             ]);
 
             const parsedScale = parseFloat(storedScale);

@@ -504,10 +504,10 @@
 
     async function loadLayoutSettings() {
         const [iterations, spacing, curvature, separation] = await Promise.all([
-            configRepository.getInt('VRCX-0_MutualGraphLayoutIterations', LAYOUT_DEFAULTS.layoutIterations),
-            configRepository.getInt('VRCX-0_MutualGraphLayoutSpacing', LAYOUT_DEFAULTS.layoutSpacing),
-            configRepository.getFloat('VRCX-0_MutualGraphEdgeCurvature', LAYOUT_DEFAULTS.edgeCurvature),
-            configRepository.getFloat('VRCX-0_MutualGraphCommunitySeparation', LAYOUT_DEFAULTS.communitySeparation)
+            configRepository.getInt('MutualGraphLayoutIterations', LAYOUT_DEFAULTS.layoutIterations),
+            configRepository.getInt('MutualGraphLayoutSpacing', LAYOUT_DEFAULTS.layoutSpacing),
+            configRepository.getFloat('MutualGraphEdgeCurvature', LAYOUT_DEFAULTS.edgeCurvature),
+            configRepository.getFloat('MutualGraphCommunitySeparation', LAYOUT_DEFAULTS.communitySeparation)
         ]);
         layoutSettings.layoutIterations = clampNumber(iterations, LAYOUT_ITERATIONS_MIN, LAYOUT_ITERATIONS_MAX);
         layoutSettings.layoutSpacing = clampNumber(spacing, LAYOUT_SPACING_MIN, LAYOUT_SPACING_MAX);
@@ -517,10 +517,10 @@
     }
 
     function persistLayoutSettings() {
-        configRepository.setInt('VRCX-0_MutualGraphLayoutIterations', layoutSettings.layoutIterations);
-        configRepository.setInt('VRCX-0_MutualGraphLayoutSpacing', layoutSettings.layoutSpacing);
-        configRepository.setFloat('VRCX-0_MutualGraphEdgeCurvature', layoutSettings.edgeCurvature);
-        configRepository.setFloat('VRCX-0_MutualGraphCommunitySeparation', layoutSettings.communitySeparation);
+        configRepository.setInt('MutualGraphLayoutIterations', layoutSettings.layoutIterations);
+        configRepository.setInt('MutualGraphLayoutSpacing', layoutSettings.layoutSpacing);
+        configRepository.setFloat('MutualGraphEdgeCurvature', layoutSettings.edgeCurvature);
+        configRepository.setFloat('MutualGraphCommunitySeparation', layoutSettings.communitySeparation);
     }
 
     function resetLayoutSettings() {

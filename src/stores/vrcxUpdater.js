@@ -56,8 +56,8 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
     async function initVRCXUpdaterSettings() {
 
         const [VRCX0_autoUpdateVRCX, VRCX0_id] = await Promise.all([
-            configRepository.getString('VRCX-0_autoUpdateVRCX', 'Auto Download'),
-            configRepository.getString('VRCX-0_id', '')
+            configRepository.getString('autoUpdateVRCX', 'Auto Download'),
+            configRepository.getString('id', '')
         ]);
 
         if (VRCX0_autoUpdateVRCX === 'Auto Install') {
@@ -108,7 +108,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             pendingVRCXUpdate.value = false;
         }
         autoUpdateVRCX.value = value;
-        await configRepository.setString('VRCX-0_autoUpdateVRCX', value);
+        await configRepository.setString('autoUpdateVRCX', value);
     }
     /**
      * @param {string} value
@@ -121,7 +121,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
      */
     function setBranch(value) {
         branch.value = value;
-        configRepository.setString('VRCX-0_branch', value);
+        configRepository.setString('branch', value);
     }
 
     async function initBranch() {
@@ -133,7 +133,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         } else {
             branch.value = 'Stable';
         }
-        await configRepository.setString('VRCX-0_branch', branch.value);
+        await configRepository.setString('branch', branch.value);
     }
 
     async function hasVersionChanged() {
@@ -228,7 +228,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
     async function loadVrcxId() {
         if (!vrcxId.value) {
             vrcxId.value = crypto.randomUUID();
-            await configRepository.setString('VRCX-0_id', vrcxId.value);
+            await configRepository.setString('id', vrcxId.value);
         }
     }
     function getAssetOfInterest(assets) {

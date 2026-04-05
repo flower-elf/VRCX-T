@@ -189,9 +189,9 @@ export const useAppearanceSettingsStore = defineStore(
                 appCjkFontPackConfig,
                 lastDarkThemeConfig
             ] = await Promise.all([
-                configRepository.getString('VRCX-0_appLanguage'),
+                configRepository.getString('appLanguage'),
                 configRepository.getBool('displayVRCPlusIconsAsAvatar', true),
-                configRepository.getBool('VRCX-0_hideNicknames', false),
+                configRepository.getBool('hideNicknames', false),
                 configRepository.getBool(
                     'VRCX-0_showInstanceIdInLocation',
                     false
@@ -200,19 +200,19 @@ export const useAppearanceSettingsStore = defineStore(
                     'VRCX-0_isAgeGatedInstancesVisible',
                     true
                 ),
-                configRepository.getBool('VRCX-0_sortFavorites', true),
+                configRepository.getBool('sortFavorites', true),
                 configRepository.getBool(
                     'VRCX-0_instanceUsersSortAlphabetical',
                     false
                 ),
-                configRepository.getInt('VRCX-0_tablePageSize', 20),
+                configRepository.getInt('tablePageSize', 20),
                 configRepository.getString(
                     'VRCX-0_tablePageSizes',
                     JSON.stringify(DEFAULT_TABLE_PAGE_SIZES)
                 ),
-                configRepository.getBool('VRCX-0_dtHour12', false),
-                configRepository.getBool('VRCX-0_dtIsoFormat', false),
-                configRepository.getInt('VRCX-0_weekStartsOn', 1),
+                configRepository.getBool('dtHour12', false),
+                configRepository.getBool('dtIsoFormat', false),
+                configRepository.getInt('weekStartsOn', 1),
                 configRepository.getString(
                     'VRCX-0_sidebarSortMethods',
                     JSON.stringify([
@@ -221,8 +221,8 @@ export const useAppearanceSettingsStore = defineStore(
                         'Sort by Last Active'
                     ])
                 ),
-                configRepository.getInt('VRCX-0_navPanelWidth', 240),
-                configRepository.getBool('VRCX-0_sidebarGroupByInstance', true),
+                configRepository.getInt('navPanelWidth', 240),
+                configRepository.getBool('sidebarGroupByInstance', true),
                 configRepository.getBool(
                     'VRCX-0_hideFriendsInSameInstance',
                     false
@@ -235,36 +235,36 @@ export const useAppearanceSettingsStore = defineStore(
                     'VRCX-0_sidebarDivideByFriendGroup',
                     true
                 ),
-                configRepository.getString('VRCX-0_sidebarFavoriteGroups', '[]'),
+                configRepository.getString('sidebarFavoriteGroups', '[]'),
                 configRepository.getString(
                     'VRCX-0_sidebarFavoriteGroupOrder',
                     '[]'
                 ),
-                configRepository.getBool('VRCX-0_hideUserNotes', false),
-                configRepository.getBool('VRCX-0_hideUserMemos', false),
-                configRepository.getBool('VRCX-0_hideUnfriends', false),
-                configRepository.getBool('VRCX-0_randomUserColours', false),
-                configRepository.getString('VRCX-0_tableDensity'),
-                configRepository.getBool('VRCX-0_compactTableMode', false),
+                configRepository.getBool('hideUserNotes', false),
+                configRepository.getBool('hideUserMemos', false),
+                configRepository.getBool('hideUnfriends', false),
+                configRepository.getBool('randomUserColours', false),
+                configRepository.getString('tableDensity'),
+                configRepository.getBool('compactTableMode', false),
                 configRepository.getString(
                     'VRCX-0_trustColor',
                     JSON.stringify(TRUST_COLOR_DEFAULTS)
                 ),
-                configRepository.getBool('VRCX-0_notificationIconDot', true),
-                configRepository.getBool('VRCX-0_navIsCollapsed', false),
-                configRepository.getBool('VRCX-0_dataTableStriped', false),
-                configRepository.getBool('VRCX-0_showPointerOnHover', false),
+                configRepository.getBool('notificationIconDot', true),
+                configRepository.getBool('navIsCollapsed', false),
+                configRepository.getBool('dataTableStriped', false),
+                configRepository.getBool('showPointerOnHover', false),
                 configRepository.getBool(
                     'VRCX-0_accessibleStatusIndicators',
                     false
                 ),
-                configRepository.getBool('VRCX-0_useOfficialStatusColors', true),
-                configRepository.getBool('VRCX-0_showNewDashboardButton', true),
+                configRepository.getBool('useOfficialStatusColors', true),
+                configRepository.getBool('showNewDashboardButton', true),
                 configRepository.getString(
                     'VRCX-0_fontFamily',
                     APP_FONT_DEFAULT_KEY
                 ),
-                configRepository.getString('VRCX-0_customFontFamily', ''),
+                configRepository.getString('customFontFamily', ''),
                 configRepository.getString(
                     'VRCX-0_cjkFontPack',
                     APP_CJK_FONT_PACK_DEFAULT_KEY
@@ -386,7 +386,7 @@ export const useAppearanceSettingsStore = defineStore(
             applyAccessibleStatusClass();
             applyOfficialStatusColorsClass();
 
-            await configRepository.remove('VRCX-0_navWidth');
+            await configRepository.remove('navWidth');
 
             // Migrate old settings
             // Assume all exist if one does
@@ -427,7 +427,7 @@ export const useAppearanceSettingsStore = defineStore(
             await loadLocalizedStrings(language);
 
             appLanguage.value = language;
-            configRepository.setString('VRCX-0_appLanguage', language);
+            configRepository.setString('appLanguage', language);
             locale.value = appLanguage.value;
 
             changeHtmlLangAttribute(language);
@@ -530,11 +530,11 @@ export const useAppearanceSettingsStore = defineStore(
          */
         function setThemeMode(mode) {
             themeMode.value = mode;
-            configRepository.setString('VRCX-0_ThemeMode', mode);
+            configRepository.setString('ThemeMode', mode);
             if (THEME_CONFIG[mode]?.isDark === true) {
                 const normalized = resolveLastDarkTheme(mode);
                 lastDarkTheme.value = normalized;
-                configRepository.setString('VRCX-0_lastDarkTheme', normalized);
+                configRepository.setString('lastDarkTheme', normalized);
             }
             const { isDark } = changeAppThemeStyle(mode);
             isDarkMode.value = isDark;
@@ -580,13 +580,13 @@ export const useAppearanceSettingsStore = defineStore(
         function setAppFontFamily(value) {
             const normalized = normalizeAppFontFamily(value);
             appFontFamily.value = normalized;
-            configRepository.setString('VRCX-0_fontFamily', normalized);
+            configRepository.setString('fontFamily', normalized);
             applyAppFontFamily(normalized, customFontFamily.value);
         }
 
         function setCustomFontFamily(value) {
             customFontFamily.value = value;
-            configRepository.setString('VRCX-0_customFontFamily', value);
+            configRepository.setString('customFontFamily', value);
             if (appFontFamily.value === 'custom') {
                 applyAppFontFamily('custom', value);
             }
@@ -599,7 +599,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setAppCjkFontPack(value) {
             const normalized = normalizeAppCjkFontPack(value);
             appCjkFontPack.value = normalized;
-            configRepository.setString('VRCX-0_cjkFontPack', normalized);
+            configRepository.setString('cjkFontPack', normalized);
             applyAppCjkFontPack(normalized);
         }
 
@@ -630,7 +630,7 @@ export const useAppearanceSettingsStore = defineStore(
          */
         function setHideNicknames() {
             hideNicknames.value = !hideNicknames.value;
-            configRepository.setBool('VRCX-0_hideNicknames', hideNicknames.value);
+            configRepository.setBool('hideNicknames', hideNicknames.value);
         }
         /**
          *
@@ -658,7 +658,7 @@ export const useAppearanceSettingsStore = defineStore(
          */
         function setSortFavorites() {
             sortFavorites.value = !sortFavorites.value;
-            configRepository.setBool('VRCX-0_sortFavorites', sortFavorites.value);
+            configRepository.setBool('sortFavorites', sortFavorites.value);
         }
         /**
          *
@@ -679,7 +679,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setTablePageSize(size) {
             const processedSize = clampInt(size, 1, MAX_TABLE_PAGE_SIZE);
             tablePageSize.value = processedSize;
-            configRepository.setInt('VRCX-0_tablePageSize', processedSize);
+            configRepository.setInt('tablePageSize', processedSize);
 
             return processedSize;
         }
@@ -721,14 +721,14 @@ export const useAppearanceSettingsStore = defineStore(
          */
         function setDtHour12() {
             dtHour12.value = !dtHour12.value;
-            configRepository.setBool('VRCX-0_dtHour12', dtHour12.value);
+            configRepository.setBool('dtHour12', dtHour12.value);
         }
         /**
          *
          */
         function setDtIsoFormat() {
             dtIsoFormat.value = !dtIsoFormat.value;
-            configRepository.setBool('VRCX-0_dtIsoFormat', dtIsoFormat.value);
+            configRepository.setBool('dtIsoFormat', dtIsoFormat.value);
         }
         /**
          * @param {number} value - 0 (Sunday), 1 (Monday), or 6 (Saturday)
@@ -736,7 +736,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setWeekStartsOn(value) {
             const v = [0, 1, 6].includes(value) ? value : 1;
             weekStartsOn.value = v;
-            configRepository.setInt('VRCX-0_weekStartsOn', v);
+            configRepository.setInt('weekStartsOn', v);
         }
         /**
          * @param {string} method
@@ -775,7 +775,7 @@ export const useAppearanceSettingsStore = defineStore(
          */
         function setNavCollapsed(collapsed) {
             isNavCollapsed.value = collapsed;
-            configRepository.setBool('VRCX-0_navIsCollapsed', collapsed);
+            configRepository.setBool('navIsCollapsed', collapsed);
         }
         /**
          *
@@ -872,21 +872,21 @@ export const useAppearanceSettingsStore = defineStore(
          */
         function setHideUserNotes() {
             hideUserNotes.value = !hideUserNotes.value;
-            configRepository.setBool('VRCX-0_hideUserNotes', hideUserNotes.value);
+            configRepository.setBool('hideUserNotes', hideUserNotes.value);
         }
         /**
          *
          */
         function setHideUserMemos() {
             hideUserMemos.value = !hideUserMemos.value;
-            configRepository.setBool('VRCX-0_hideUserMemos', hideUserMemos.value);
+            configRepository.setBool('hideUserMemos', hideUserMemos.value);
         }
         /**
          *
          */
         function setHideUnfriends() {
             hideUnfriends.value = !hideUnfriends.value;
-            configRepository.setBool('VRCX-0_hideUnfriends', hideUnfriends.value);
+            configRepository.setBool('hideUnfriends', hideUnfriends.value);
         }
         /**
          *
@@ -921,7 +921,7 @@ export const useAppearanceSettingsStore = defineStore(
             const normalized = normalizeTableDensity(density);
             tableDensity.value = normalized;
             applyTableDensity(tableDensity.value);
-            configRepository.setString('VRCX-0_tableDensity', tableDensity.value);
+            configRepository.setString('tableDensity', tableDensity.value);
         }
 
         /**

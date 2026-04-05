@@ -1,7 +1,6 @@
 import { toast } from 'vue-sonner';
 
 import { AppDebug } from '../services/appConfig';
-import { migrateMemos } from './memoCoordinator';
 import { syncFriendSearchIndex } from './searchIndexCoordinator';
 import { reconnectWebSocket } from '../services/websocket';
 import { useAuthStore } from '../stores/auth';
@@ -64,11 +63,5 @@ export async function runInitFriendsListFlow(t) {
 
     friendStore.tryApplyFriendOrder(); // once again
     friendStore.getAllUserStats(); // joinCount, lastSeen, timeSpent
-
-    // remove old data from json file and migrate to SQLite (July 2021)
-    if (await VRCXStorage.Get(`${userId}_friendLogUpdatedAt`)) {
-        VRCXStorage.Remove(`${userId}_feedTable`);
-        migrateMemos();
-        friendStore.migrateFriendLog(userId);
-    }
 }
+

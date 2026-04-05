@@ -67,7 +67,7 @@ vi.mock('../../../../services/config', () => ({
         remove: vi.fn()
     }
 }));
-vi.mock('../../../../services/jsonStorage', () => ({ default: vi.fn() }));
+// jsonStorage removed
 vi.mock('../../../../services/watchState', () => ({
     watchState: { isLoggedIn: false }
 }));

@@ -141,7 +141,7 @@ export function addFriendship(id) {
                 }
                 ref.$friendNumber = ++state.friendNumber;
                 configRepository.setInt(
-                    `VRCX-0_friendNumber_${userStore.currentUser.id}`,
+                    `friendNumber_${userStore.currentUser.id}`,
                     state.friendNumber
                 );
                 friendStore.addFriend(id, ref.state);

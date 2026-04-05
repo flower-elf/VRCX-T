@@ -572,7 +572,7 @@ export function saveCurrentUserGroups() {
         });
     }
     configRepository.setString(
-        `VRCX-0_currentUserGroups_${userStore.currentUser.id}`,
+        `currentUserGroups_${userStore.currentUser.id}`,
         JSON.stringify(groups)
     );
 }
@@ -586,7 +586,7 @@ export async function loadCurrentUserGroups(userId, groups) {
     const groupStore = useGroupStore();
     const savedGroups = JSON.parse(
         await configRepository.getString(
-            `VRCX-0_currentUserGroups_${userId}`,
+            `currentUserGroups_${userId}`,
             '[]'
         )
     );

@@ -71,7 +71,7 @@ export const useAvatarProviderStore = defineStore('AvatarProvider', () => {
                     avatarRemoteDatabaseProvider
                 );
             }
-            await configRepository.remove('VRCX-0_avatarRemoteDatabaseProvider');
+            await configRepository.remove('avatarRemoteDatabaseProvider');
             await configRepository.setString(
                 'VRCX-0_avatarRemoteDatabaseProviderList',
                 JSON.stringify(avatarRemoteDatabaseProviderList.value)

@@ -1,6 +1,5 @@
 // @ts-nocheck
 import configRepository from '../services/config.js';
-import vrcxJsonStorage from '../services/jsonStorage.js';
 
 /** @type {Map<string, {resolve: Function, reject: Function}>} */
 const pendingRequests = new Map();
@@ -102,7 +101,7 @@ export async function initInteropApi() {
     window.AssetBundleManager = createServiceProxy('AssetBundleManager');
 
     await configRepository.init();
-    new vrcxJsonStorage(VRCXStorage);
 
     AppApi.SetUserAgent();
 }
+

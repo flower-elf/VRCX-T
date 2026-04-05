@@ -82,9 +82,7 @@ vi.mock('../../../services/database', () => ({
     )
 }));
 
-vi.mock('../../../services/jsonStorage', () => ({
-    default: vi.fn()
-}));
+// jsonStorage removed
 
 vi.mock('../../../services/watchState', () => ({
     watchState: { isLoggedIn: false }

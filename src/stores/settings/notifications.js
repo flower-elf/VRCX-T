@@ -132,21 +132,21 @@ export const useNotificationsSettingsStore = defineStore(
                 notificationTimeoutConfig,
                 notificationLayoutConfig
             ] = await Promise.all([
-                configRepository.getString('VRCX-0_overlayToast', 'Game Running'),
-                configRepository.getBool('VRCX-0_xsNotifications', true),
-                configRepository.getBool('VRCX-0_ovrtHudNotifications', true),
-                configRepository.getBool('VRCX-0_ovrtWristNotifications', false),
-                configRepository.getBool('VRCX-0_imageNotifications', true),
-                configRepository.getString('VRCX-0_desktopToast', 'Never'),
-                configRepository.getBool('VRCX-0_afkDesktopToast', false),
-                configRepository.getString('VRCX-0_notificationTTS', 'Never'),
-                configRepository.getBool('VRCX-0_notificationTTSNickName', false),
+                configRepository.getString('overlayToast', 'Game Running'),
+                configRepository.getBool('xsNotifications', true),
+                configRepository.getBool('ovrtHudNotifications', true),
+                configRepository.getBool('ovrtWristNotifications', false),
+                configRepository.getBool('imageNotifications', true),
+                configRepository.getString('desktopToast', 'Never'),
+                configRepository.getBool('afkDesktopToast', false),
+                configRepository.getString('notificationTTS', 'Never'),
+                configRepository.getBool('notificationTTSNickName', false),
                 configRepository.getString(
                     'sharedFeedFilters',
                     JSON.stringify(sharedFeedFiltersDefaults)
                 ),
-                configRepository.getString('VRCX-0_notificationTTSVoice', '0'),
-                configRepository.getString('VRCX-0_notificationTimeout', '3000'),
+                configRepository.getString('notificationTTSVoice', '0'),
+                configRepository.getString('notificationTimeout', '3000'),
                 configRepository.getString(
                     'VRCX-0_notificationLayout',
                     'notification-center'
@@ -180,7 +180,7 @@ export const useNotificationsSettingsStore = defineStore(
 
         function setOverlayToast(value) {
             overlayToast.value = value;
-            configRepository.setString('VRCX-0_overlayToast', value);
+            configRepository.setString('overlayToast', value);
         }
         function setXsNotifications() {
             xsNotifications.value = !xsNotifications.value;
@@ -216,7 +216,7 @@ export const useNotificationsSettingsStore = defineStore(
          */
         function setDesktopToast(value) {
             desktopToast.value = value;
-            configRepository.setString('VRCX-0_desktopToast', value);
+            configRepository.setString('desktopToast', value);
         }
         function setAfkDesktopToast() {
             afkDesktopToast.value = !afkDesktopToast.value;
@@ -230,7 +230,7 @@ export const useNotificationsSettingsStore = defineStore(
          */
         function setNotificationTTS(value) {
             notificationTTS.value = value;
-            configRepository.setString('VRCX-0_notificationTTS', value);
+            configRepository.setString('notificationTTS', value);
         }
         function setNotificationTTSNickName() {
             notificationTTSNickName.value = !notificationTTSNickName.value;
@@ -329,7 +329,7 @@ export const useNotificationsSettingsStore = defineStore(
         async function saveNotificationTTS(value) {
             speechSynthesis.cancel();
             if (
-                (await configRepository.getString('VRCX-0_notificationTTS')) ===
+                (await configRepository.getString('notificationTTS')) ===
                     'Never' &&
                 value !== 'Never'
             ) {
@@ -376,7 +376,7 @@ export const useNotificationsSettingsStore = defineStore(
          */
         function setNotificationLayout(value) {
             notificationLayout.value = value;
-            configRepository.setString('VRCX-0_notificationLayout', value);
+            configRepository.setString('notificationLayout', value);
         }
 
         function promptNotificationTimeout() {

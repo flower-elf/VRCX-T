@@ -1,30 +1,17 @@
-// Mock router to avoid transitive i18n.global error from columns.jsx
-vi.mock('../../plugins/router.js', () => ({
-    router: { beforeEach: vi.fn(), push: vi.fn() },
-    initRouter: vi.fn()
-}));
+import { toDbKey, toLegacyDbKey } from '../configKeys.js';
 
-import { transformKey } from '../config.js';
-
-describe('transformKey', () => {
-    test('lowercases and prefixes with config:', () => {
-        expect(transformKey('Foo')).toBe('config:foo');
+describe('toDbKey', () => {
+    test('converts key name to db format with vrcx-0 prefix', () => {
+        expect(toDbKey('appLanguage')).toBe('config:vrcx-0_applanguage');
     });
 
     test('handles already lowercase key', () => {
-        expect(transformKey('bar')).toBe('config:bar');
+        expect(toDbKey('bar')).toBe('config:vrcx-0_bar');
     });
+});
 
-    test('handles key with mixed case and numbers', () => {
-        expect(transformKey('MyKey123')).toBe('config:mykey123');
-    });
-
-    test('handles empty string', () => {
-        expect(transformKey('')).toBe('config:');
-    });
-
-    test('converts non-string values via String()', () => {
-        expect(transformKey(42)).toBe('config:42');
-        expect(transformKey(null)).toBe('config:null');
+describe('toLegacyDbKey', () => {
+    test('converts key name to legacy db format without -0', () => {
+        expect(toLegacyDbKey('appLanguage')).toBe('config:vrcx_applanguage');
     });
 });

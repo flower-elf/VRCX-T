@@ -161,7 +161,7 @@ export const usePhotonStore = defineStore('Photon', () => {
             chatboxUserBlacklistConfig,
             chatboxKeywordBlacklistConfig
         ] = await Promise.all([
-            configRepository.getBool('VRCX-0_PhotonEventOverlay', false),
+            configRepository.getBool('PhotonEventOverlay', false),
             configRepository.getString(
                 'VRCX-0_PhotonEventOverlayFilter',
                 'Everyone'
@@ -170,19 +170,19 @@ export const usePhotonStore = defineStore('Photon', () => {
                 'VRCX-0_photonEventTypeOverlayFilter',
                 '[]'
             ),
-            configRepository.getBool('VRCX-0_TimeoutHudOverlay', false),
+            configRepository.getBool('TimeoutHudOverlay', false),
             configRepository.getString(
                 'VRCX-0_TimeoutHudOverlayFilter',
                 'Everyone'
             ),
-            configRepository.getInt('VRCX-0_photonLobbyTimeoutThreshold', 6000),
+            configRepository.getInt('photonLobbyTimeoutThreshold', 6000),
             configRepository.getString(
                 'VRCX-0_photonOverlayMessageTimeout',
                 (6000).toString()
             ),
-            configRepository.getString('VRCX-0_photonEventTypeFilter', '[]'),
-            configRepository.getString('VRCX-0_chatboxUserBlacklist'),
-            configRepository.getString('VRCX-0_chatboxBlacklist')
+            configRepository.getString('photonEventTypeFilter', '[]'),
+            configRepository.getString('chatboxUserBlacklist'),
+            configRepository.getString('chatboxBlacklist')
         ]);
 
         photonEventOverlay.value = photonEventOverlayConfig;
@@ -249,7 +249,7 @@ export const usePhotonStore = defineStore('Photon', () => {
 
     function setPhotonLoggingEnabled() {
         photonLoggingEnabled.value = !photonLoggingEnabled.value;
-        configRepository.setBool('VRCX-0_photonLoggingEnabled', true);
+        configRepository.setBool('photonLoggingEnabled', true);
     }
     function setPhotonEventOverlay() {
         photonEventOverlay.value = !photonEventOverlay.value;
@@ -275,7 +275,7 @@ export const usePhotonStore = defineStore('Photon', () => {
     }
     function setTimeoutHudOverlay(value) {
         timeoutHudOverlay.value = !timeoutHudOverlay.value;
-        configRepository.setBool('VRCX-0_TimeoutHudOverlay', value);
+        configRepository.setBool('TimeoutHudOverlay', value);
     }
     function setTimeoutHudOverlayFilter(value) {
         timeoutHudOverlayFilter.value = value;

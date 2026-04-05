@@ -629,22 +629,22 @@
      *
      */
     function saveFriendsGroupStates() {
-        configRepository.setBool('VRCX-0_isFriendsGroupMe', isFriendsGroupMe.value);
-        configRepository.setBool('VRCX-0_isFriendsGroupFavorites', isVIPFriends.value);
-        configRepository.setBool('VRCX-0_isFriendsGroupOnline', isOnlineFriends.value);
-        configRepository.setBool('VRCX-0_isFriendsGroupActive', isActiveFriends.value);
-        configRepository.setBool('VRCX-0_isFriendsGroupOffline', isOfflineFriends.value);
+        configRepository.setBool('isFriendsGroupMe', isFriendsGroupMe.value);
+        configRepository.setBool('isFriendsGroupFavorites', isVIPFriends.value);
+        configRepository.setBool('isFriendsGroupOnline', isOnlineFriends.value);
+        configRepository.setBool('isFriendsGroupActive', isActiveFriends.value);
+        configRepository.setBool('isFriendsGroupOffline', isOfflineFriends.value);
     }
 
     /**
      *
      */
     async function loadFriendsGroupStates() {
-        isFriendsGroupMe.value = await configRepository.getBool('VRCX-0_isFriendsGroupMe', true);
-        isVIPFriends.value = await configRepository.getBool('VRCX-0_isFriendsGroupFavorites', true);
-        isOnlineFriends.value = await configRepository.getBool('VRCX-0_isFriendsGroupOnline', true);
-        isActiveFriends.value = await configRepository.getBool('VRCX-0_isFriendsGroupActive', false);
-        isOfflineFriends.value = await configRepository.getBool('VRCX-0_isFriendsGroupOffline', true);
+        isFriendsGroupMe.value = await configRepository.getBool('isFriendsGroupMe', true);
+        isVIPFriends.value = await configRepository.getBool('isFriendsGroupFavorites', true);
+        isOnlineFriends.value = await configRepository.getBool('isFriendsGroupOnline', true);
+        isActiveFriends.value = await configRepository.getBool('isFriendsGroupActive', false);
+        isOfflineFriends.value = await configRepository.getBool('isFriendsGroupOffline', true);
         isSidebarGroupByInstanceCollapsed.value = await configRepository.getBool(
             'VRCX-0_sidebarGroupByInstanceCollapsed',
             false
@@ -656,7 +656,7 @@
      */
     function toggleSwitchGroupByInstanceCollapsed() {
         isSidebarGroupByInstanceCollapsed.value = !isSidebarGroupByInstanceCollapsed.value;
-        configRepository.setBool('VRCX-0_sidebarGroupByInstanceCollapsed', isSidebarGroupByInstanceCollapsed.value);
+        configRepository.setBool('sidebarGroupByInstanceCollapsed', isSidebarGroupByInstanceCollapsed.value);
     }
 
     /**

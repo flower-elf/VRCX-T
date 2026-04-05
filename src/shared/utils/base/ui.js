@@ -265,7 +265,7 @@ function changeAppThemeStyle(themeMode) {
     if (!themeConfig) {
         // fallback to system
         console.error('Invalid theme mode:', themeMode);
-        configRepository.setString('VRCX-0_ThemeMode', 'system');
+        configRepository.setString('ThemeMode', 'system');
         themeMode = systemIsDarkMode() ? 'dark' : 'light';
         themeConfig = THEME_CONFIG[themeMode];
     }

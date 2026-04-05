@@ -46,7 +46,7 @@ export const useFeedStore = defineStore('Feed', () => {
 
     async function init() {
         feedTable.value.filter = JSON.parse(
-            await configRepository.getString('VRCX-0_feedTableFilters', '[]')
+            await configRepository.getString('feedTableFilters', '[]')
         );
         feedTable.value.vip = await configRepository.getBool(
             'VRCX-0_feedTableVIPFilter',
