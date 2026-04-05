@@ -5,8 +5,8 @@
     "keywords": [
         "VRChat"
     ],
-    "license": "MIT",
-    "author": "VRCX Team",
+    "license": "GPL-3.0-only",
+    "author": "Map1en",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Map1en/VRCX-0"
