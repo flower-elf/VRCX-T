@@ -66,12 +66,23 @@ namespace VRCX_0
 
                 var coreWebView = Browser.CoreWebView2;
 
-                // Map virtual host to local html folder
-                var htmlFolder = Path.Combine(Program.BaseDirectory, "html");
-                coreWebView.SetVirtualHostNameToFolderMapping(
-                    "vrcx-0.local",
-                    htmlFolder,
-                    CoreWebView2HostResourceAccessKind.Allow);
+                if (!Program.LaunchDebug)
+                {
+                    // Map virtual host to local html folder for packaged builds
+                    var htmlFolder = Path.Combine(Program.BaseDirectory, "html");
+                    var indexHtml = Path.Combine(htmlFolder, "index.html");
+                    if (!Directory.Exists(htmlFolder) || !File.Exists(indexHtml))
+                    {
+                        throw new DirectoryNotFoundException(
+                            $"Frontend output folder not found: {htmlFolder}. " +
+                            "Run `npm run prod` or `build-scripts/build-all.ps1` before starting VRCX-0.");
+                    }
+
+                    coreWebView.SetVirtualHostNameToFolderMapping(
+                        "vrcx-0.local",
+                        htmlFolder,
+                        CoreWebView2HostResourceAccessKind.Allow);
+                }
 
                 // Map virtual host to AppData folder (for custom.css / custom.js)
                 coreWebView.SetVirtualHostNameToFolderMapping(
