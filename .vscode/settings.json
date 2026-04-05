@@ -4,8 +4,22 @@
     "i18n-ally.sourceLanguage": "en",
     "i18n-ally.indent": 4,
     "oxc.fmt.configPath": ".oxfmtrc.json",
-    "editor.defaultFormatter": "oxc.oxc-vscode",
     "editor.formatOnSave": true,
+    "[javascript]": {
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    },
+    "[vue]": {
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    },
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit"
     },
