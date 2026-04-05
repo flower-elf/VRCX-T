@@ -5,9 +5,6 @@ declare global {
     const VERSION: string;
     const NIGHTLY: boolean;
 
-    const WINDOWS: boolean;
-    const LINUX: boolean;
-
     interface Window {
         $pinia: any;
         $vr: any;
@@ -35,47 +32,6 @@ declare global {
                 methodName: any,
                 args: any
             ) => Promise<any>;
-        };
-        electron: {
-            getArch: () => Promise<string>;
-            getClipboardText: () => Promise<string>;
-            getNoUpdater: () => Promise<boolean>;
-            setTrayIconNotification: (notify: boolean) => Promise<void>;
-            openFileDialog: () => Promise<string>;
-            openDirectoryDialog: () => Promise<string>;
-            desktopNotification: (
-                displayName: string,
-                body?: string,
-                image?: string
-            ) => Promise<void>;
-            onWindowPositionChanged: (
-                Function: (
-                    event: any,
-                    position: { x: number; y: number }
-                ) => void
-            ) => void;
-            onWindowSizeChanged: (
-                Function: (
-                    event: any,
-                    size: { width: number; height: number }
-                ) => void
-            ) => void;
-            onWindowStateChange: (
-                Function: (event: any, state: { windowState: any }) => void
-            ) => void;
-            onBrowserFocus: (Function: (event: any) => void) => void;
-            restartApp: () => Promise<void>;
-            getOverlayWindow: () => Promise<boolean>;
-            updateVr: (
-                active: bool,
-                hmdOverlay: bool,
-                wristOverlay: bool,
-                menuButton: bool,
-                overlayHand: int
-            ) => Promise<void>;
-            ipcRenderer: {
-                on(channel: String, func: (...args: unknown[]) => void);
-            };
         };
     }
 
@@ -123,14 +79,12 @@ declare global {
 
     const SQLite: {
         Execute: (sql: string, args: string) => Promise<any[]>;
-        ExecuteJson: (sql: string, args: string) => Promise<string>;
         ExecuteNonQuery: (sql: string, args: string) => Promise<Number>;
     };
 
     const LogWatcher: {
         Get(): Promise<Array<[string, string, string, ...any[]]>>;
         SetDateTill(date: string): Promise<void>;
-        GetLogLines(): Array<any>;
         Reset(): Promise<void>;
     };
 
@@ -261,7 +215,6 @@ declare global {
         HasVRChatRegistryFolder(): Promise<boolean>;
         DeleteVRChatRegistryFolder(): Promise<void>;
         ReadVrcRegJsonFile(filepath: string): Promise<string>;
-        GetVRChatRegistryJson: () => Promise<string>;
 
         // Image Functions
         PopulateImageHosts(json: string): Promise<void>;
@@ -372,7 +325,6 @@ declare global {
         GetCookies(): Promise<string>;
         SetCookies(cookie: string): Promise<void>;
         Execute(options: any): Promise<{ Item1: number; Item2: string }>;
-        ExecuteJson(requestJson: string): Promise<string>;
     };
 
     const AssetBundleManager: {

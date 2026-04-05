@@ -16,10 +16,8 @@ using NLog;
 using SixLabors.ImageSharp;
 using Timer = System.Threading.Timer;
 
-#if !LINUX
 using CefSharp;
 using System.Windows.Forms;
-#endif
 
 namespace VRCX
 {
@@ -47,10 +45,6 @@ namespace VRCX
         // leave this as public, private makes nodeapi angry
         public WebApi()
         {
-#if LINUX
-            if (Instance == null)
-                Instance = this;
-#endif
             CookieContainer = new CookieContainer();
             _timer = new Timer(TimerCallback, null, -1, -1);
         }
@@ -122,9 +116,7 @@ namespace VRCX
                 VRCXStorage.Instance.Save();
                 const string message =
                     "The proxy server URI you used is invalid.\nVRCX will close, please correct the proxy URI.";
-#if !LINUX
                 System.Windows.Forms.MessageBox.Show(message, "Invalid Proxy URI", MessageBoxButtons.OK, MessageBoxIcon.Error);
-#endif
                 Logger.Error(message);
                 Environment.Exit(0);
             }
@@ -138,9 +130,7 @@ namespace VRCX
 
         public void ClearCookies()
         {
-#if !LINUX
             Cef.GetGlobalCookieManager().DeleteCookies();
-#endif
             CookieContainer = new CookieContainer();
             InitializeHttpClient();
             _cookieDirty = true;
@@ -368,17 +358,6 @@ namespace VRCX
 
             request.Content = content;
             return request;
-        }
-
-        public async Task<string> ExecuteJson(string options)
-        {
-            var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(options);
-            var result = await Execute(data);
-            return System.Text.Json.JsonSerializer.Serialize(new
-            {
-                status = result.Item1,
-                message = result.Item2
-            });
         }
 
         public async Task<Tuple<int, string>> Execute(IDictionary<string, object> options)

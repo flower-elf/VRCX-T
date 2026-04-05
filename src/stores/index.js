@@ -1,6 +1,4 @@
 import { createPinia } from 'pinia';
-
-import { getSentry, isSentryOptedIn } from '../plugins';
 import { useAdvancedSettingsStore } from './settings/advanced';
 import { useActivityStore } from './activity';
 import { useAppearanceSettingsStore } from './settings/appearance';
@@ -42,85 +40,7 @@ import { useWorldStore } from './world';
 import { useWristOverlaySettingsStore } from './settings/wristOverlay';
 
 export const pinia = createPinia();
-
-async function registerSentryPiniaPlugin() {
-    if (!NIGHTLY) return;
-    if (!(await isSentryOptedIn())) return;
-
-    const Sentry = await getSentry();
-
-    pinia.use(
-        Sentry.createSentryPiniaPlugin({
-            stateTransformer: (state) => ({
-                ...state,
-                Auth: null,
-                Feed: null,
-                Favorite: null,
-                Friend: null,
-                User: {
-                    // @ts-ignore
-                    ...state.User,
-                    currentUser: null,
-                    subsetOfLanguages: null,
-                    languageDialog: {
-                        // @ts-ignore
-                        ...state.User.languageDialog,
-                        languages: null
-                    }
-                },
-                GameLog: {
-                    // @ts-ignore
-                    ...state.GameLog,
-                    gameLogTable: null
-                },
-                Notification: {
-                    // @ts-ignore
-                    ...state.Notification,
-                    notificationTable: null
-                },
-                Moderation: {
-                    // @ts-ignore
-                    ...state.Moderation,
-                    playerModerationTable: null,
-                    cachedPlayerModerations: null,
-                    cachedPlayerModerationsUserIds: null
-                },
-                Photon: null,
-                SharedFeed: {
-                    // @ts-ignore
-                    ...state.SharedFeed,
-                    sharedFeedData: null
-                },
-                Group: {
-                    // @ts-ignore
-                    ...state.Group,
-                    groupInstances: null,
-                    inGameGroupOrder: null
-                },
-                Avatar: {
-                    // @ts-ignore
-                    ...state.Avatar,
-                    avatarHistory: null
-                },
-                Gallery: {
-                    // @ts-ignore
-                    ...state.Gallery,
-                    emojiTable: null,
-                    galleryTable: null,
-                    instanceStickersCache: null,
-                    inventoryTable: null,
-                    printTable: null,
-                    stickerTable: null,
-                    VRCPlusIconsTable: null
-                }
-            })
-        })
-    );
-}
-
-export async function initPiniaPlugins() {
-    await registerSentryPiniaPlugin();
-}
+export async function initPiniaPlugins() {}
 
 export function createGlobalStores() {
     return {

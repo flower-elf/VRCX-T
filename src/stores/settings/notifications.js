@@ -338,12 +338,7 @@ export const useNotificationsSettingsStore = defineStore(
         }
 
         function getTTSVoiceName() {
-            let voices;
-            if (WINDOWS) {
-                voices = speechSynthesis.getVoices();
-            } else {
-                voices = TTSvoices.value;
-            }
+            const voices = speechSynthesis.getVoices();
             if (voices.length === 0) {
                 return '';
             }
@@ -355,12 +350,7 @@ export const useNotificationsSettingsStore = defineStore(
 
         async function changeTTSVoice(index) {
             setNotificationTTSVoice(index);
-            let voices;
-            if (WINDOWS) {
-                voices = speechSynthesis.getVoices();
-            } else {
-                voices = TTSvoices.value;
-            }
+            const voices = speechSynthesis.getVoices();
             if (voices.length === 0) {
                 return;
             }
@@ -371,19 +361,6 @@ export const useNotificationsSettingsStore = defineStore(
 
         function updateTTSVoices() {
             TTSvoices.value = speechSynthesis.getVoices();
-            if (LINUX) {
-                const voices = speechSynthesis.getVoices();
-                let uniqueVoices = [];
-                voices.forEach((voice) => {
-                    if (!uniqueVoices.some((v) => v.lang === voice.lang)) {
-                        uniqueVoices.push(voice);
-                    }
-                });
-                uniqueVoices = uniqueVoices.filter((v) =>
-                    v.lang.startsWith('en')
-                );
-                TTSvoices.value = uniqueVoices;
-            }
         }
         async function saveNotificationTTS(value) {
             speechSynthesis.cancel();

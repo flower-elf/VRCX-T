@@ -50,17 +50,6 @@ class SQLiteService {
 
     async execute(callback, sql, args = null) {
         try {
-            if (LINUX) {
-                if (args) {
-                    args = new Map(Object.entries(args));
-                }
-                var json = await SQLite.ExecuteJson(sql, args);
-                var items = JSON.parse(json);
-                items.forEach((item) => {
-                    callback(item);
-                });
-                return;
-            }
             var data = await SQLite.Execute(sql, args);
             data.forEach((row) => {
                 callback(row);
@@ -72,9 +61,6 @@ class SQLiteService {
 
     async executeNonQuery(sql, args = null) {
         try {
-            if (LINUX && args) {
-                args = new Map(Object.entries(args));
-            }
             return await SQLite.ExecuteNonQuery(sql, args);
         } catch (e) {
             this.handleSQLiteError(e);

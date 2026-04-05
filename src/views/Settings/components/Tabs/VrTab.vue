@@ -26,60 +26,45 @@
                 </Select>
             </SettingsItem>
 
-            <template v-if="!isLinux">
-                <SettingsItem
-                    :label="
-                        t('view.settings.notifications.notifications.steamvr_notifications.xsoverlay_notifications')
-                    ">
-                    <Switch
-                        :model-value="xsNotifications"
-                        @update:modelValue="
-                            setXsNotifications();
-                            saveOpenVROption();
-                        " />
-                </SettingsItem>
-            </template>
-            <template v-else>
-                <SettingsItem
-                    :label="t('view.settings.notifications.notifications.steamvr_notifications.wayvr_notifications')">
-                    <Switch
-                        :model-value="xsNotifications"
-                        @update:modelValue="
-                            setXsNotifications();
-                            saveOpenVROption();
-                        " />
-                </SettingsItem>
-            </template>
+            <SettingsItem
+                :label="
+                    t('view.settings.notifications.notifications.steamvr_notifications.xsoverlay_notifications')
+                ">
+                <Switch
+                    :model-value="xsNotifications"
+                    @update:modelValue="
+                        setXsNotifications();
+                        saveOpenVROption();
+                    " />
+            </SettingsItem>
 
-            <template v-if="!isLinux">
-                <SettingsItem
-                    :label="
-                        t(
-                            'view.settings.notifications.notifications.steamvr_notifications.ovrtoolkit_hud_notifications'
-                        )
-                    ">
-                    <Switch
-                        :model-value="ovrtHudNotifications"
-                        @update:modelValue="
-                            setOvrtHudNotifications();
-                            saveOpenVROption();
-                        " />
-                </SettingsItem>
+            <SettingsItem
+                :label="
+                    t(
+                        'view.settings.notifications.notifications.steamvr_notifications.ovrtoolkit_hud_notifications'
+                    )
+                ">
+                <Switch
+                    :model-value="ovrtHudNotifications"
+                    @update:modelValue="
+                        setOvrtHudNotifications();
+                        saveOpenVROption();
+                    " />
+            </SettingsItem>
 
-                <SettingsItem
-                    :label="
-                        t(
-                            'view.settings.notifications.notifications.steamvr_notifications.ovrtoolkit_wrist_notifications'
-                        )
-                    ">
-                    <Switch
-                        :model-value="ovrtWristNotifications"
-                        @update:modelValue="
-                            setOvrtWristNotifications();
-                            saveOpenVROption();
-                        " />
-                </SettingsItem>
-            </template>
+            <SettingsItem
+                :label="
+                    t(
+                        'view.settings.notifications.notifications.steamvr_notifications.ovrtoolkit_wrist_notifications'
+                    )
+                ">
+                <Switch
+                    :model-value="ovrtWristNotifications"
+                    @update:modelValue="
+                        setOvrtWristNotifications();
+                        saveOpenVROption();
+                    " />
+            </SettingsItem>
         </SettingsGroup>
 
         <!-- VR Notifications -->
@@ -277,7 +262,7 @@
 
     const isNotificationPositionDialogVisible = ref(false);
     const feedFiltersDialogMode = ref('');
-    const isLinux = computed(() => LINUX);
+
 
     const notificationOpacityValue = computed({
         get: () => [notificationOpacity.value],

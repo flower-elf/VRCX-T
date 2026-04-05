@@ -46,14 +46,6 @@
     "librsync.net": {
         "license": "MIT"
     },
-    "Microsoft.JavaScript.NodeApi": {
-        "license": "MIT",
-        "projectUrl": "https://github.com/microsoft/node-api-dotnet"
-    },
-    "Microsoft.JavaScript.NodeApi.Generator": {
-        "license": "MIT",
-        "projectUrl": "https://github.com/microsoft/node-api-dotnet"
-    },
     "Microsoft.Toolkit.Uwp.Notifications": {
         "license": "MIT",
         "projectUrl": "https://github.com/CommunityToolkit/WindowsCommunityToolkit"

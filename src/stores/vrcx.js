@@ -96,46 +96,6 @@ export const useVrcxStore = defineStore('Vrcx', () => {
      */
     async function init() {
         try {
-            if (LINUX) {
-                try {
-                    window.electron.ipcRenderer.on(
-                        'launch-command',
-                        (command) => {
-                            if (command) {
-                                eventLaunchCommand(command);
-                            }
-                        }
-                    );
-
-                    window.electron.onWindowPositionChanged(
-                        (event, position) => {
-                            state.locationX = position.x;
-                            state.locationY = position.y;
-                            debounce(saveVRCXWindowOption, 300)();
-                        }
-                    );
-
-                    window.electron.onWindowSizeChanged((event, size) => {
-                        state.sizeWidth = size.width;
-                        state.sizeHeight = size.height;
-                        debounce(saveVRCXWindowOption, 300)();
-                    });
-
-                    window.electron.onWindowStateChange((event, newState) => {
-                        state.windowState = newState.toString();
-                        debounce(saveVRCXWindowOption, 300)();
-                    });
-
-                    window.electron.onBrowserFocus(() => {
-                        vrcStatusStore.onBrowserFocus();
-                    });
-                } catch (err) {
-                    console.error(
-                        'Failed to register Linux IPC handlers:',
-                        err
-                    );
-                }
-            }
 
             state.databaseVersion = await configRepository.getInt(
                 'VRCX_databaseVersion',
@@ -374,13 +334,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
      *
      */
     async function saveVRCXWindowOption() {
-        if (LINUX) {
-            VRCXStorage.Set('VRCX_LocationX', state.locationX.toString());
-            VRCXStorage.Set('VRCX_LocationY', state.locationY.toString());
-            VRCXStorage.Set('VRCX_SizeWidth', state.sizeWidth.toString());
-            VRCXStorage.Set('VRCX_SizeHeight', state.sizeHeight.toString());
-            VRCXStorage.Set('VRCX_WindowState', state.windowState);
-        }
+        // Window position/size is managed by C# on Windows
     }
 
     /**
@@ -593,25 +547,6 @@ export const useVrcxStore = defineStore('Vrcx', () => {
             const crashMessage = command.replace('crash/', '');
             console.error('VRCX recovered from crash:', crashMessage);
 
-            if (advancedSettingsStore.sentryErrorReporting) {
-                try {
-                    import('@sentry/vue').then((Sentry) => {
-                        Sentry.withScope((scope) => {
-                            scope.setLevel('fatal');
-                            scope.setTag('reason', 'crash-recovery');
-                            scope.setContext('session', {
-                                sessionTime: performance.now() / 1000 / 60
-                            });
-                            Sentry.captureMessage(
-                                `crash message: ${crashMessage}`
-                            );
-                        });
-                    });
-                } catch (error) {
-                    console.error('Error setting up Sentry feedback:', error);
-                }
-            }
-
             toast.success(t('message.crash.vrcx_reload'));
             return;
         }
@@ -728,12 +663,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
     async function backupVrcRegistry(name) {
         let regJson;
         try {
-            if (WINDOWS) {
-                regJson = await AppApi.GetVRChatRegistry();
-            } else {
-                regJson = await AppApi.GetVRChatRegistryJson();
-                regJson = JSON.parse(regJson);
-            }
+            regJson = await AppApi.GetVRChatRegistry();
         } catch (e) {
             console.error('Failed to get VRChat registry for backup:', e);
             return;

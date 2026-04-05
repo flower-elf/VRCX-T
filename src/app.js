@@ -5,8 +5,7 @@ import {
     i18n,
     initComponents,
     initPlugins,
-    initRouter,
-    initSentry
+    initRouter
 } from './plugins';
 import { initPiniaPlugins, pinia } from './stores';
 import { queryClient } from './queries';
@@ -23,6 +22,5 @@ const app = createApp(App);
 app.use(pinia).use(i18n).use(VueQueryPlugin, { queryClient });
 initComponents(app);
 initRouter(app);
-await initSentry(app);
 
 app.mount('#root');

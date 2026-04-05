@@ -183,18 +183,6 @@ export const useVrStore = defineStore('Vr', () => {
         if (!newState.active) {
             gameStore.setIsHmdAfk(false);
         }
-
-        if (LINUX) {
-            window.electron.updateVr(
-                newState.active,
-                newState.hmdOverlay,
-                newState.wristOverlay,
-                newState.menuButton,
-                newState.overlayHand
-            );
-
-            vrInit(); // sometimes this runs before the overlay is ready
-        }
     }
 
     return {

@@ -71,7 +71,7 @@
                 </Dialog>
             </SettingsItem>
 
-            <SettingsItem v-if="!isLinux" :label="t('view.settings.appearance.appearance.zoom')">
+            <SettingsItem :label="t('view.settings.appearance.appearance.zoom')">
                 <NumberField
                     v-model="zoomLevel"
                     :step="1"
@@ -590,7 +590,6 @@
     }
 
     const zoomLevel = ref(100);
-    const isLinux = computed(() => LINUX);
     let cleanupWheel = null;
 
     onBeforeUnmount(() => {

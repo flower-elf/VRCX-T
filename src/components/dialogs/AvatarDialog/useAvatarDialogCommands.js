@@ -104,24 +104,12 @@ export function useAvatarDialogCommands(
                 (async () => {
                     const base64Body = await readFileAsBase64(blob);
                     const base64File = await resizeImageToFitLimits(base64Body);
-                    if (LINUX) {
-                        const args =
-                            await avatarRequest.uploadAvatarImage(base64File);
-                        const fileUrl =
-                            args.json.versions[args.json.versions.length - 1]
-                                .file.url;
-                        await avatarRequest.saveAvatar({
-                            id: avatarDialog.value.id,
-                            imageUrl: fileUrl
-                        });
-                    } else {
-                        await uploadImageLegacy('avatar', {
-                            entityId: avatarDialog.value.id,
-                            imageUrl: avatarDialog.value.ref.imageUrl,
-                            base64File,
-                            blob
-                        });
-                    }
+                    await uploadImageLegacy('avatar', {
+                        entityId: avatarDialog.value.id,
+                        imageUrl: avatarDialog.value.ref.imageUrl,
+                        base64File,
+                        blob
+                    });
                 })()
             );
             toast.success(t('message.upload.success'));

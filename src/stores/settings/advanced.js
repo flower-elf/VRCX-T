@@ -70,8 +70,6 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
     const saveInstanceEmoji = ref(false);
     const vrcRegistryAutoBackup = ref(true);
     const vrcRegistryAskRestore = ref(true);
-    const sentryErrorReporting = ref(false);
-
     watch(
         () => watchState.isLoggedIn,
         () => {
@@ -117,8 +115,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
             notificationOpacityConfig,
             saveInstanceEmojiConfig,
             vrcRegistryAutoBackupConfig,
-            vrcRegistryAskRestoreConfig,
-            sentryErrorReportingConfig
+            vrcRegistryAskRestoreConfig
         ] = await Promise.all([
             configRepository.getBool('enablePrimaryPassword', false),
             configRepository.getString('VRCX_bioLanguage'),
@@ -166,8 +163,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
             configRepository.getFloat('VRCX_notificationOpacity', 100),
             configRepository.getBool('VRCX_saveInstanceEmoji', false),
             configRepository.getBool('VRCX_vrcRegistryAutoBackup', true),
-            configRepository.getBool('VRCX_vrcRegistryAskRestore', true),
-            configRepository.getString('VRCX_SentryEnabled', '')
+            configRepository.getBool('VRCX_vrcRegistryAskRestore', true)
         ]);
 
         if (!bioLanguageConfig || !languageCodes.includes(bioLanguageConfig)) {
@@ -214,18 +210,8 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         saveInstanceEmoji.value = saveInstanceEmojiConfig;
         vrcRegistryAutoBackup.value = vrcRegistryAutoBackupConfig;
         vrcRegistryAskRestore.value = vrcRegistryAskRestoreConfig;
-        sentryErrorReporting.value = sentryErrorReportingConfig === 'true';
 
         handleSetAppLauncherSettings();
-
-        setTimeout(() => {
-            if (
-                VRCXUpdaterStore.branch === 'Nightly' &&
-                sentryErrorReportingConfig === ''
-            ) {
-                checkSentryConsent();
-            }
-        }, 2000);
     }
 
     initAdvancedSettings();
@@ -669,62 +655,6 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         );
     }
 
-    async function checkSentryConsent() {
-        modalStore
-            .confirm({
-                description: t(
-                    'view.settings.advanced.advanced.anonymous_error_reporting.consent_description'
-                ),
-                title: t(
-                    'view.settings.advanced.advanced.anonymous_error_reporting.consent_title'
-                )
-            })
-            .then(async ({ ok }) => {
-                if (!ok) return;
-                modalStore
-                    .confirm({
-                        description: t(
-                            'view.settings.advanced.advanced.anonymous_error_reporting.enabled_restart_description'
-                        ),
-                        title: t('confirm.restart_required_title'),
-                        confirmText: t('confirm.restart_now'),
-                        cancelText: t('confirm.restart_later')
-                    })
-                    .then(async ({ ok }) => {
-                        if (!ok) return;
-
-                        sentryErrorReporting.value = true;
-                        configRepository.setBool('VRCX_SentryEnabled', true);
-
-                        VRCXUpdaterStore.restartVRCX(false);
-                    });
-            });
-    }
-
-    async function setSentryErrorReporting() {
-        if (VRCXUpdaterStore.branch !== 'Nightly') return;
-
-        modalStore
-            .confirm({
-                description: t(
-                    'view.settings.advanced.advanced.anonymous_error_reporting.disabled_restart_description'
-                ),
-                title: t('confirm.restart_required_title'),
-                confirmText: t('confirm.restart_now'),
-                cancelText: t('confirm.restart_later')
-            })
-            .then(async ({ ok }) => {
-                if (!ok) return;
-
-                sentryErrorReporting.value = !sentryErrorReporting.value;
-                await configRepository.setBool(
-                    'VRCX_SentryEnabled',
-                    sentryErrorReporting.value
-                );
-                VRCXUpdaterStore.restartVRCX(false);
-            });
-    }
-
     async function getSqliteTableSizes() {
         const [
             gps,
@@ -1029,9 +959,6 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
     }
 
     async function openUGCFolder() {
-        if (LINUX && ugcFolderPath.value == null) {
-            resetUGCFolder();
-        }
         await AppApi.OpenUGCPhotosFolder(ugcFolderPath.value);
     }
 
@@ -1042,12 +969,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         }
 
         state.folderSelectorDialogVisible = true;
-        let newFolder = '';
-        if (WINDOWS) {
-            newFolder = await AppApi.OpenFolderSelectorDialog(oldPath);
-        } else {
-            newFolder = await window.electron.openDirectoryDialog();
-        }
+        const newFolder = await AppApi.OpenFolderSelectorDialog(oldPath);
 
         state.folderSelectorDialogVisible = false;
         return newFolder;
@@ -1140,7 +1062,6 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         saveInstanceEmoji,
         vrcRegistryAutoBackup,
         vrcRegistryAskRestore,
-        sentryErrorReporting,
 
         setEnablePrimaryPassword,
         setEnablePrimaryPasswordConfigRepository,
@@ -1192,8 +1113,6 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         setSaveInstanceEmoji,
         setVrcRegistryAutoBackup,
         setVrcRegistryAskRestore,
-        setSentryErrorReporting,
-        checkSentryConsent,
         askDeleteAllScreenshotMetadata
     };
 });

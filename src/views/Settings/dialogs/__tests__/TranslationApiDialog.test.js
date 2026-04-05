@@ -70,7 +70,7 @@ vi.mock('vue-sonner', () => ({
 
 vi.mock('../../../../localization', () => ({
     getLanguageName: (code) => `Language_${code}`,
-    languageCodes: ['en', 'ja', 'ko', 'zh-CN', 'fr']
+    languageCodes: ['en', 'ja', 'ko', 'zh-CN', 'zh-TW']
 }));
 
 import TranslationApiDialog from '../TranslationApiDialog.vue';
@@ -387,7 +387,7 @@ describe('TranslationApiDialog.vue', () => {
 
             expect(mocks.translateText).toHaveBeenCalledWith(
                 'Hello world',
-                'fr',
+                'zh-TW',
                 expect.objectContaining({
                     type: 'openai'
                 })

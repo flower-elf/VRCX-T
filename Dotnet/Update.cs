@@ -8,9 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 
-#if !LINUX
 using System.Windows.Forms;
-#endif
 
 namespace VRCX
 {
@@ -23,9 +21,6 @@ namespace VRCX
         private static readonly HttpClient httpClient;
         private static CancellationToken _cancellationToken;
         public static int UpdateProgress;
-        private static string AppImagePath = string.Empty;
-        private static string AppImagePathOld = string.Empty;
-
         static Update()
         {
             var httpClientHandler = new HttpClientHandler();
@@ -34,16 +29,6 @@ namespace VRCX
 
             httpClient = new HttpClient(httpClientHandler);
             httpClient.DefaultRequestHeaders.Add("User-Agent", Program.Version);
-        }
-
-        public void Init(string appImagePath = "")
-        {
-            if (string.IsNullOrEmpty(appImagePath))
-                return;
-
-            AppImagePath = appImagePath;
-            AppImagePathOld = appImagePath + ".old";
-            logger.Info($"AppImagePath: {AppImagePath}");
         }
 
         public static void Check()
@@ -86,9 +71,7 @@ namespace VRCX
             {
                 var message = $"Failed to install the update: {e.Message}";
                 logger.Info(message);
-#if !LINUX
                 MessageBox.Show(message, "Update failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-#endif
             }
         }
 
@@ -112,9 +95,7 @@ namespace VRCX
             {
                 var message = $"Failed to download and install the Visual C++ Redistributable: {e.Message}";
                 logger.Info(message);
-#if !LINUX
                 MessageBox.Show(message, "Update failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-#endif
             }
         }
 
@@ -222,31 +203,9 @@ namespace VRCX
                 logger.Info("Hash check passed");
             }
 
-            if (string.IsNullOrEmpty(AppImagePath))
-            {
-                // Windows
-                if (File.Exists(UpdateExecutable))
-                    File.Delete(UpdateExecutable);
-                File.Move(TempDownload, UpdateExecutable);
-            }
-            else
-            {
-                // Linux
-                if (File.Exists(AppImagePathOld))
-                    File.Delete(AppImagePathOld);
-                File.Move(AppImagePath, AppImagePathOld);
-                File.Move(TempDownload, AppImagePath);
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "chmod",
-                        Arguments = $"+x {AppImagePath}"
-                    }
-                };
-                process.Start();
-                await process.WaitForExitAsync();
-            }
+            if (File.Exists(UpdateExecutable))
+                File.Delete(UpdateExecutable);
+            File.Move(TempDownload, UpdateExecutable);
 
             UpdateProgress = 0;
             _cancellationToken = CancellationToken.None;

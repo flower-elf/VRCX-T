@@ -347,10 +347,6 @@ export const useUiStore = defineStore('Ui', () => {
 
         if (trayIconNotify.value !== newState || force) {
             trayIconNotify.value = newState;
-            if (LINUX) {
-                window.electron.setTrayIconNotification(trayIconNotify.value);
-                return;
-            }
             AppApi.SetTrayIconNotification(trayIconNotify.value);
         }
     }

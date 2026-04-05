@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 
 import fs from 'node:fs';
 
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import { browserslistToTargets } from 'lightningcss';
 
 import browserslist from 'browserslist';
@@ -93,14 +93,6 @@ function getAssetFilename({ name }) {
 }
 
 export default defineConfig(({ mode }) => {
-    const { SENTRY_AUTH_TOKEN: sentryAuthToken } = loadEnv(
-        mode,
-        process.cwd(),
-        ''
-    );
-
-    const buildAndUploadSourceMaps = !!sentryAuthToken;
-
     const version = fs
         .readFileSync(new URL('../Version', import.meta.url), 'utf-8')
         .trim();
@@ -116,23 +108,7 @@ export default defineConfig(({ mode }) => {
             vueJsx({
                 tsTransform: 'built-in'
             }),
-            tailwindcss(),
-            buildAndUploadSourceMaps &&
-                import('@sentry/vite-plugin').then(({ sentryVitePlugin }) =>
-                    sentryVitePlugin({
-                        authToken: sentryAuthToken,
-                        project: 'vrcx-web',
-                        release: {
-                            name: version
-                        },
-                        sourcemaps: {
-                            assets: './build/html/**',
-                            filesToDeleteAfterUpload:
-                                './build/html/**/*.js.map',
-                            ignore: []
-                        }
-                    })
-                )
+            tailwindcss()
         ],
         resolve: {
             alias: {
@@ -164,8 +140,6 @@ export default defineConfig(({ mode }) => {
             ]
         },
         define: {
-            LINUX: JSON.stringify(process.env.PLATFORM === 'linux'),
-            WINDOWS: JSON.stringify(process.env.PLATFORM === 'windows'),
             VERSION: JSON.stringify(version),
             NIGHTLY: JSON.stringify(nightly)
         },
@@ -181,7 +155,7 @@ export default defineConfig(({ mode }) => {
             copyPublicDir: true,
             reportCompressedSize: false,
             chunkSizeWarningLimit: 5000,
-            sourcemap: buildAndUploadSourceMaps ? 'hidden' : false,
+            sourcemap: false,
             assetsInlineLimit(filePath) {
                 if (isFont(filePath)) return 0;
                 if (filePath.endsWith('.json')) return 0;

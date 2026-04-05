@@ -3,11 +3,11 @@
         <ButtonGroup class="shadow-lg rounded-lg">
             <Button variant="outline" size="sm" :disabled="prevDisabled" @click="$emit('prev')">
                 <ArrowLeft />
-                <Kbd class="ml-1">{{ isMac ? '⌥' : 'Alt' }}</Kbd>
+                <Kbd class="ml-1">Alt</Kbd>
                 <Kbd>←</Kbd>
             </Button>
             <Button variant="outline" size="sm" :disabled="nextDisabled" @click="$emit('next')">
-                <Kbd class="ml-1">{{ isMac ? '⌥' : 'Alt' }}</Kbd>
+                <Kbd class="ml-1">Alt</Kbd>
                 <Kbd>→</Kbd>
                 <ArrowRight />
             </Button>
@@ -20,8 +20,6 @@
     import { Button } from '@/components/ui/button';
     import { ButtonGroup } from '@/components/ui/button-group';
     import { Kbd } from '@/components/ui/kbd';
-
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 
     defineProps({
         show: { type: Boolean, default: false },

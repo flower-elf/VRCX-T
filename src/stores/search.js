@@ -94,14 +94,10 @@ export const useSearchStore = defineStore('Search', () => {
 
     async function directAccessPaste() {
         let cbText = '';
-        if (LINUX) {
-            cbText = await window.electron.getClipboardText();
-        } else {
-            cbText = await AppApi.GetClipboard().catch((e) => {
-                console.log(e);
-                return '';
-            });
-        }
+        cbText = await AppApi.GetClipboard().catch((e) => {
+            console.log(e);
+            return '';
+        });
 
         let trimemd = cbText.trim();
         if (!directAccessParse(trimemd)) {

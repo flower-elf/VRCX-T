@@ -9,9 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using NLog;
 
-#if !LINUX
 using CefSharp;
-#endif
 
 namespace VRCX
 {
@@ -32,7 +30,6 @@ namespace VRCX
         private Thread? m_Thread;
         private DateTime tillDate;
         public bool VrcClosedGracefully;
-        private readonly ConcurrentQueue<string> m_LogQueue = new ConcurrentQueue<string>(); // for electron
         private static readonly Regex CleanId = new("[^a-zA-Z0-9_\\-~:()]", RegexOptions.Compiled);
         private static readonly Regex CleanLocation = new("[/]", RegexOptions.Compiled);
 
@@ -290,12 +287,8 @@ namespace VRCX
                 if (!m_FirstRun)
                 {
                     var logLine = JsonSerializer.Serialize(item);
-#if LINUX
-                    m_LogQueue.Enqueue(logLine);
-#else
                     if (MainForm.Instance != null && MainForm.Instance.Browser != null)
                         MainForm.Instance.Browser.ExecuteScriptAsync("window?.$pinia?.gameLog.addGameLogEvent", logLine);
-#endif
                 }
 
                 m_LogList.Add(item);
@@ -304,16 +297,6 @@ namespace VRCX
             {
                 m_LogListLock.ExitWriteLock();
             }
-        }
-
-        public List<string> GetLogLines()
-        {
-            // for electron
-            var logLines = new List<string>();
-            while (m_LogQueue.TryDequeue(out var logLine))
-                logLines.Add(logLine);
-
-            return logLines;
         }
 
         private string ConvertLogTimeToISO8601(string line)

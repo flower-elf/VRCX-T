@@ -667,21 +667,12 @@
                 (async () => {
                     const base64Body = await readFileAsBase64(blob);
                     const base64File = await resizeImageToFitLimits(base64Body);
-                    if (typeof LINUX !== 'undefined' && LINUX) {
-                        const args = await avatarRequest.uploadAvatarImage(base64File);
-                        const fileUrl = args.json.versions[args.json.versions.length - 1].file.url;
-                        await avatarRequest.saveAvatar({
-                            id: avatarRef.id,
-                            imageUrl: fileUrl
-                        });
-                    } else {
-                        await uploadImageLegacy('avatar', {
-                            entityId: avatarRef.id,
-                            imageUrl: avatarRef.imageUrl,
-                            base64File,
-                            blob
-                        });
-                    }
+                    await uploadImageLegacy('avatar', {
+                        entityId: avatarRef.id,
+                        imageUrl: avatarRef.imageUrl,
+                        base64File,
+                        blob
+                    });
                 })()
             );
             toast.success(t('message.upload.success'));

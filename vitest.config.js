@@ -9,8 +9,7 @@ export default defineConfig({
     plugins: [vue(), vueJsx()],
     define: {
         NIGHTLY: JSON.stringify(false),
-        WINDOWS: JSON.stringify(true),
-        LINUX: JSON.stringify(false)
+        WINDOWS: JSON.stringify(true)
     },
     test: {
         globals: true,

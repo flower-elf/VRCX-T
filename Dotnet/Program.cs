@@ -6,10 +6,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
-#if !LINUX
 using System.Windows.Forms;
 using VRCX.Overlay;
-#endif
 
 namespace VRCX
 {
@@ -119,18 +117,11 @@ namespace VRCX
             });
         }
 
-#if !LINUX
         [STAThread]
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
         private static void Main()
         {
             BrowserSubprocess.Start();
-            if (Wine.GetIfWine())
-            {
-                MessageBox.Show(
-                    "VRCX Cef has detected Wine.\nPlease switch to our native Electron build for Linux.",
-                    "Wine Detected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
             try
             {
                 Run();
@@ -233,7 +224,6 @@ namespace VRCX
             logger.Info("Args: {0}", JsonSerializer.Serialize(StartupArgs.Args));
             if (!string.IsNullOrEmpty(StartupArgs.LaunchArguments.LaunchCommand))
                 logger.Info("Launch Command: {0}", StartupArgs.LaunchArguments.LaunchCommand);
-            logger.Debug("Wine detection: {0}", Wine.GetIfWine());
             
             IPCServer.Instance.Init();
             SQLite.Instance.Init();
@@ -261,46 +251,5 @@ namespace VRCX
             SQLite.Instance.Exit();
             ProcessMonitor.Instance.Exit();
         }
-#else
-        public static VRCXVRInterface VRCXVRInstance;
-        
-        public static void PreInit(string version, string[] args)
-        {
-            Version = version;
-            StartupArgs.ArgsCheck(args);
-            SetProgramDirectories();
-        }
-
-        public static void Init()
-        {
-            ConfigureLogger();
-            Update.Check();
-
-            logger.Info("{0} Starting...", Version);
-            logger.Info("Args: {0}", JsonSerializer.Serialize(StartupArgs.Args));
-            if (!string.IsNullOrEmpty(StartupArgs.LaunchArguments.LaunchCommand))
-                logger.Info("Launch Command: {0}", StartupArgs.LaunchArguments.LaunchCommand);
-
-            AppApiInstance = new AppApiElectron();
-            
-            VRCXVRInstance = new VRCXVRElectron();
-            VRCXVRInstance.Init();
-        }
-#endif
     }
-
-#if LINUX
-    public class ProgramElectron
-    {
-        public void PreInit(string version, string[] args)
-        {
-            Program.PreInit(version, args);
-        }
-
-        public void Init()
-        {
-            Program.Init();
-        }
-    }
-#endif
 }

@@ -10,7 +10,7 @@
                     <span class="search-text flex-1 min-w-0 text-left text-sm text-muted-foreground truncate">{{
                         t('side_panel.search_placeholder')
                     }}</span>
-                    <Kbd class="search-kbd shrink-0">{{ isMac ? '⌘' : 'Ctrl' }}</Kbd>
+                    <Kbd class="search-kbd shrink-0">Ctrl</Kbd>
                     <Kbd class="search-kbd shrink-0">K</Kbd>
                 </button>
             </div>
@@ -357,9 +357,7 @@
     const quickSearchStore = useQuickSearchStore();
     const { t } = useI18n();
 
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-
-    // Keyboard shortcut: Ctrl+K (Windows) / ⌘K (Mac)
+    // Keyboard shortcut: Ctrl+K
     const keys = useMagicKeys();
     whenever(keys['Meta+k'], () => openQuickSearch());
     whenever(keys['Ctrl+k'], () => openQuickSearch());

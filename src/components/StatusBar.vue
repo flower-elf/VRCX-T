@@ -34,7 +34,7 @@
                         </TooltipWrapper>
 
                         <TooltipWrapper
-                            v-if="!isMacOS && visibility.steamvr"
+                            v-if="visibility.steamvr"
                             :content="
                                 gameStore.isSteamVRRunning
                                     ? t('status_bar.steamvr_running')
@@ -52,7 +52,7 @@
                         </TooltipWrapper>
 
                         <HoverCard
-                            v-if="!isMacOS && visibility.vrchat"
+                            v-if="visibility.vrchat"
                             v-model:open="gameHoverOpen"
                             :open-delay="50"
                             :close-delay="50">
@@ -259,7 +259,6 @@
 
             <ContextMenuContent>
                 <ContextMenuCheckboxItem
-                    v-if="!isMacOS"
                     :model-value="visibility.vrchat"
                     @select.prevent
                     @update:model-value="toggleVisibility('vrchat')">
@@ -272,7 +271,6 @@
                     {{ t('status_bar.servers') }}
                 </ContextMenuCheckboxItem>
                 <ContextMenuCheckboxItem
-                    v-if="!isMacOS"
                     :model-value="visibility.steamvr"
                     @select.prevent
                     @update:model-value="toggleVisibility('steamvr')">
@@ -297,7 +295,6 @@
                     {{ t('status_bar.app_uptime_short') }}
                 </ContextMenuCheckboxItem>
                 <ContextMenuCheckboxItem
-                    v-if="!isMacOS"
                     :model-value="visibility.zoom"
                     @select.prevent
                     @update:model-value="toggleVisibility('zoom')">
@@ -387,7 +384,7 @@
 
     const { t } = useI18n();
 
-    const isMacOS = computed(() => navigator.platform.includes('Mac'));
+
 
     const gameStore = useGameStore();
     const userStore = useUserStore();
@@ -668,9 +665,7 @@
     const zoomEditing = ref(false);
     const zoomInputRef = ref(null);
 
-    if (!isMacOS.value) {
-        initZoom();
-    }
+    initZoom();
 
     /**
      *

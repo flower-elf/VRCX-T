@@ -80,33 +80,25 @@
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.general.application.header')">
-            <SettingsItem v-if="!isLinux" :label="t('view.settings.general.application.startup')">
+            <SettingsItem :label="t('view.settings.general.application.startup')">
                 <Switch :model-value="isStartAtWindowsStartup" @update:modelValue="setIsStartAtWindowsStartup" />
             </SettingsItem>
 
-            <SettingsItem v-if="!isLinux" :label="t('view.settings.general.application.minimized')">
-                <Switch :model-value="isStartAsMinimizedState" @update:modelValue="setIsStartAsMinimizedState" />
-            </SettingsItem>
-            <SettingsItem
-                v-else
-                :label="t('view.settings.general.application.minimized')"
-                :description="t('view.settings.general.application.startup_linux')">
+            <SettingsItem :label="t('view.settings.general.application.minimized')">
                 <Switch :model-value="isStartAsMinimizedState" @update:modelValue="setIsStartAsMinimizedState" />
             </SettingsItem>
 
-            <SettingsItem v-if="!isMacOS" :label="t('view.settings.general.application.tray')">
+            <SettingsItem :label="t('view.settings.general.application.tray')">
                 <Switch :model-value="isCloseToTray" @update:modelValue="setIsCloseToTray" />
             </SettingsItem>
 
             <SettingsItem
-                v-if="!isLinux"
                 :label="t('view.settings.general.application.disable_gpu_acceleration')"
                 :description="t('view.settings.general.application.disable_gpu_acceleration_tooltip')">
                 <Switch :model-value="disableGpuAcceleration" @update:modelValue="setDisableGpuAcceleration" />
             </SettingsItem>
 
             <SettingsItem
-                v-if="!isLinux"
                 :label="t('view.settings.general.application.disable_vr_overlay_gpu_acceleration')"
                 :description="t('view.settings.general.application.disable_gpu_acceleration_tooltip')">
                 <Switch
@@ -197,10 +189,7 @@
     const { setAutoUpdateVRCX, checkForVRCXUpdate, showVRCXUpdateDialog, showChangeLogDialog } = vrcxUpdaterStore;
 
     const ossDialog = ref(false);
-    const isLinux = computed(() => LINUX);
-    const isMacOS = computed(() => {
-        return navigator.platform.indexOf('Mac') > -1;
-    });
+
 
     const OpenSourceSoftwareNoticeDialog = defineAsyncComponent(
         () => import('../../dialogs/OpenSourceSoftwareNoticeDialog.vue')

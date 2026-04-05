@@ -28,8 +28,6 @@ export default defineConfig([
                 AppApiVr: 'readonly',
                 WebApi: 'readonly',
                 AssetBundleManager: 'readonly',
-                WINDOWS: 'readonly',
-                LINUX: 'readonly',
                 VERSION: 'readonly',
                 NIGHTLY: 'readonly',
                 webApiService: 'readonly',
@@ -42,7 +40,6 @@ export default defineConfig([
         files: [
             '**/webpack.*.js',
             '**/jest.config.js',
-            'src-electron/*.js',
             'src/localization/*.js',
             'src/shared/utils/localizationHelperCLI.js'
         ],

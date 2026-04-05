@@ -485,10 +485,6 @@ export const useAppearanceSettingsStore = defineStore(
                 console.warn('No user colour data found');
                 return;
             }
-            if (LINUX) {
-                // @ts-ignore
-                dictObject = Object.fromEntries(dictObject);
-            }
             for (const [userId, hue] of Object.entries(dictObject)) {
                 const ref = userStore.cachedUsers.get(userId);
                 if (typeof ref !== 'undefined') {

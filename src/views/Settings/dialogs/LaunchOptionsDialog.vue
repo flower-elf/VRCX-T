@@ -20,20 +20,18 @@
                 placeholder="e.g. --fps=144 --enable-sdk-log-levels"
                 input-class="resize-none" />
 
-            <template v-if="!isLinux">
-                <div class="text-sm">
-                    {{ t('dialog.launch_options.path_override') }}
-                </div>
+            <div class="text-sm">
+                {{ t('dialog.launch_options.path_override') }}
+            </div>
 
-                <InputGroupTextareaField
-                    v-model="launchOptionsDialog.vrcLaunchPathOverride"
-                    placeholder="C:\Program Files (x86)\Steam\steamapps\common\VRChat"
-                    :rows="1"
-                    class="mb-4"
-                    spellcheck="false"
-                    data-gramm="false"
-                    input-class="resize-none min-h-0" />
-            </template>
+            <InputGroupTextareaField
+                v-model="launchOptionsDialog.vrcLaunchPathOverride"
+                placeholder="C:\Program Files (x86)\Steam\steamapps\common\VRChat"
+                :rows="1"
+                class="mb-4"
+                spellcheck="false"
+                data-gramm="false"
+                input-class="resize-none min-h-0" />
 
             <DialogFooter>
                 <div class="flex items-center justify-between w-full">
@@ -84,7 +82,7 @@
         vrcLaunchPathOverride: ''
     });
 
-    const isLinux = computed(() => LINUX);
+
 
     function init() {
         configRepository

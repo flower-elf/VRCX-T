@@ -6,11 +6,6 @@
     "oxc.fmt.configPath": ".oxfmtrc.json",
     "editor.defaultFormatter": "oxc.oxc-vscode",
     "editor.formatOnSave": true,
-    "omnisharp.enableRoslynAnalyzers": true,
-    "omnisharp.useModernNet": false,
-    "[csharp]": {
-        "editor.defaultFormatter": "ms-dotnettools.csharp"
-    },
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit"
     },

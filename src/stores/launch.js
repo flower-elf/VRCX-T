@@ -148,7 +148,7 @@ export const useLaunchStore = defineStore('Launch', () => {
             args.push('--no-vr');
         }
         try {
-            if (vrcLaunchPathOverride && !LINUX) {
+            if (vrcLaunchPathOverride) {
                 const result = await AppApi.StartGameFromPath(
                     vrcLaunchPathOverride,
                     args.join(' ')

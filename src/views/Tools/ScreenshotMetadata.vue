@@ -139,17 +139,17 @@
                     }}</span>
                 </div>
                 <div class="shrink-0 flex items-center justify-center h-[50px]">
-                    <ButtonGroup class="shadow-lg rounded-lg">
-                        <Button variant="outline" size="sm" @click="navigatePrev">
-                            <ArrowLeft />
-                            <Kbd class="ml-1">{{ isMac ? '⌥' : 'Alt' }}</Kbd>
-                            <Kbd>←</Kbd>
-                        </Button>
-                        <Button variant="outline" size="sm" @click="navigateNext">
-                            <Kbd class="ml-1">{{ isMac ? '⌥' : 'Alt' }}</Kbd>
-                            <Kbd>→</Kbd>
-                            <ArrowRight />
-                        </Button>
+                <ButtonGroup class="shadow-lg rounded-lg">
+                    <Button variant="outline" size="sm" @click="navigatePrev">
+                        <ArrowLeft />
+                        <Kbd class="ml-1">Alt</Kbd>
+                        <Kbd>←</Kbd>
+                    </Button>
+                    <Button variant="outline" size="sm" @click="navigateNext">
+                        <Kbd class="ml-1">Alt</Kbd>
+                        <Kbd>→</Kbd>
+                        <ArrowRight />
+                    </Button>
                     </ButtonGroup>
                 </div>
             </div>
@@ -274,8 +274,6 @@
 
     const router = useRouter();
     const { t } = useI18n();
-
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 
     const { showFullscreenImageDialog, handleGalleryImageAdd } = useGalleryStore();
     const { currentlyDroppingFile } = storeToRefs(useVrcxStore());
@@ -501,15 +499,11 @@
     async function getAndDisplayScreenshotFromFile() {
         let filePath = '';
 
-        if (LINUX) {
-            filePath = await window.electron.openFileDialog();
-        } else {
-            filePath = await AppApi.OpenFileSelectorDialog(
-                await AppApi.GetVRChatPhotosLocation(),
-                '.png',
-                'PNG Files (*.png)|*.png'
-            );
-        }
+        filePath = await AppApi.OpenFileSelectorDialog(
+            await AppApi.GetVRChatPhotosLocation(),
+            '.png',
+            'PNG Files (*.png)|*.png'
+        );
 
         if (filePath === '') {
             return;
@@ -753,4 +747,3 @@
         }
     }
 </script>
-

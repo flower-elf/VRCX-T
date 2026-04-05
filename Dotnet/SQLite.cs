@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
-using System.Text.Json.Nodes;
 using System.Threading;
-using System.Text.Json;
 
 namespace VRCX
 {
@@ -26,9 +24,6 @@ namespace VRCX
 
         public void Init()
         {
-#if LINUX
-            Instance = this;
-#endif
             var dataSource = Program.ConfigLocation;
             var jsonDataSource = VRCXStorage.Instance.Get("VRCX_DatabaseLocation");
             if (!string.IsNullOrEmpty(jsonDataSource))
@@ -43,13 +38,6 @@ namespace VRCX
         {
             m_Connection.Close();
             m_Connection.Dispose();
-        }
-
-        // for Electron
-        public string ExecuteJson(string sql, IDictionary<string, object>? args = null)
-        {
-            var result = Execute(sql, args);
-            return JsonSerializer.Serialize(result);
         }
 
         public object[][] Execute(string sql, IDictionary<string, object>? args = null)

@@ -63,33 +63,31 @@
             </SettingsItem>
         </SettingsGroup>
 
-        <template v-if="!isLinux">
-            <SettingsGroup :title="t('view.settings.advanced.advanced.app_launcher.header')">
-                <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.folder')">
-                    <Button size="sm" variant="outline" @click="openShortcutFolder()">{{
-                        t('view.settings.advanced.advanced.app_launcher.folder')
-                    }}</Button>
-                </SettingsItem>
+        <SettingsGroup :title="t('view.settings.advanced.advanced.app_launcher.header')">
+            <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.folder')">
+                <Button size="sm" variant="outline" @click="openShortcutFolder()">{{
+                    t('view.settings.advanced.advanced.app_launcher.folder')
+                }}</Button>
+            </SettingsItem>
 
-                <SettingsItem
-                    :label="t('view.settings.advanced.advanced.remote_database.enable')"
-                    :description="t('view.settings.advanced.advanced.app_launcher.folder_tooltip')">
-                    <Switch :model-value="enableAppLauncher" @update:modelValue="setEnableAppLauncher" />
-                </SettingsItem>
+            <SettingsItem
+                :label="t('view.settings.advanced.advanced.remote_database.enable')"
+                :description="t('view.settings.advanced.advanced.app_launcher.folder_tooltip')">
+                <Switch :model-value="enableAppLauncher" @update:modelValue="setEnableAppLauncher" />
+            </SettingsItem>
 
-                <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.auto_close')">
-                    <Switch
-                        :model-value="enableAppLauncherAutoClose"
-                        @update:modelValue="setEnableAppLauncherAutoClose" />
-                </SettingsItem>
+            <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.auto_close')">
+                <Switch
+                    :model-value="enableAppLauncherAutoClose"
+                    @update:modelValue="setEnableAppLauncherAutoClose" />
+            </SettingsItem>
 
-                <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.run_process_once')">
-                    <Switch
-                        :model-value="enableAppLauncherRunProcessOnce"
-                        @update:modelValue="setEnableAppLauncherRunProcessOnce" />
-                </SettingsItem>
-            </SettingsGroup>
-        </template>
+            <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.run_process_once')">
+                <Switch
+                    :model-value="enableAppLauncherRunProcessOnce"
+                    @update:modelValue="setEnableAppLauncherRunProcessOnce" />
+            </SettingsItem>
+        </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.advanced.advanced.launch_commands.header')">
             <SettingsItem
@@ -365,16 +363,6 @@
                 show-icon />
         </SettingsGroup>
 
-        <template v-if="branch === 'Nightly'">
-            <SettingsGroup :title="t('view.settings.advanced_groups.nightly.header')">
-                <SettingsItem
-                    :label="t('view.settings.advanced.advanced.anonymous_error_reporting.header')"
-                    :description="t('view.settings.advanced.advanced.anonymous_error_reporting.description')">
-                    <Switch :model-value="sentryErrorReporting" @update:modelValue="setSentryErrorReporting()" />
-                </SettingsItem>
-            </SettingsGroup>
-        </template>
-
         <RegistryBackupDialog />
         <PhotonSettings v-if="photonLoggingEnabled" />
     </div>
@@ -442,8 +430,6 @@
     const { cachedInstances } = useInstanceStore();
 
     const { photonLoggingEnabled } = storeToRefs(usePhotonStore());
-    const { branch } = storeToRefs(useVRCXUpdaterStore());
-
     const { isDarkMode } = storeToRefs(useAppearanceSettingsStore());
 
     const {
@@ -459,8 +445,7 @@
         gameLogDisabled,
         sqliteTableSizes,
         avatarAutoCleanup,
-        purgeInProgress,
-        sentryErrorReporting
+        purgeInProgress
     } = storeToRefs(advancedSettingsStore);
 
     const {
@@ -475,8 +460,7 @@
         getSqliteTableSizes,
         setAvatarAutoCleanup,
         purgeAvatarFeedData,
-        promptAutoClearVRCXCacheFrequency,
-        setSentryErrorReporting
+        promptAutoClearVRCXCacheFrequency
     } = advancedSettingsStore;
 
     const configTreeData = ref({});
@@ -493,7 +477,7 @@
         cachedInstances: 0
     });
 
-    const isLinux = computed(() => LINUX);
+
 
     function handlePurge() {
         const days = selectedPurgePeriod.value === 'all' ? null : parseInt(selectedPurgePeriod.value, 10);

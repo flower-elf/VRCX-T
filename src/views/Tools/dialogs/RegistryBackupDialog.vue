@@ -206,51 +206,13 @@
     /**
      *
      */
-    async function openJsonFileSelectorDialogElectron() {
-        return new Promise((resolve) => {
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = '.json';
-            fileInput.style.display = 'none';
-            document.body.appendChild(fileInput);
-
-            fileInput.onchange = function (event) {
-                const target = /** @type {HTMLInputElement | null} */ (event.target);
-                const file = target?.files?.[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function () {
-                        fileInput.remove();
-                        resolve(reader.result);
-                    };
-                    reader.readAsText(file);
-                } else {
-                    fileInput.remove();
-                    resolve(null);
-                }
-            };
-
-            fileInput.click();
-        });
-    }
-
-    /**
-     *
-     */
     async function restoreVrcRegistryFromFile() {
         const filePath = await AppApi.OpenFileSelectorDialog(null, '.json', 'JSON Files (*.json)|*.json');
-        if (WINDOWS) {
-            if (filePath === '') {
-                return;
-            }
+        if (filePath === '') {
+            return;
         }
 
-        let json;
-        if (LINUX) {
-            json = await openJsonFileSelectorDialogElectron();
-        } else {
-            json = await AppApi.ReadVrcRegJsonFile(filePath);
-        }
+        const json = await AppApi.ReadVrcRegJsonFile(filePath);
 
         try {
             const data = JSON.parse(json);

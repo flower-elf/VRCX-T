@@ -8,10 +8,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 
-#if !LINUX
 using System.Windows.Forms;
 using CefSharp.Internals;
-#endif
 
 namespace VRCX
 {
@@ -37,9 +35,7 @@ namespace VRCX
                 {
                     var message =
                         "Move your \"VRCX.sqlite3\" into a folder then specify the folder in the launch parameter e.g.\n--config=\"C:\\VRCX\\\"";
-#if !LINUX
                     MessageBox.Show(message, "--config is now a directory", MessageBoxButtons.OK, MessageBoxIcon.Error);
-#endif
                     Console.WriteLine(message);
                     Environment.Exit(0);
                 }
@@ -47,7 +43,6 @@ namespace VRCX
                 Program.AppDataDirectory = LaunchArguments.ConfigDirectory;
             }
 
-#if !LINUX
             var disableClosing = LaunchArguments.IsUpgrade || // we're upgrading, allow it
                                         !string.IsNullOrEmpty(CommandLineArgsParser.GetArgumentValue(args, CefSharpArguments.SubProcessTypeArgument)); // we're launching a subprocess, allow it
 
@@ -58,7 +53,6 @@ namespace VRCX
                 Thread.Sleep(10);
                 Environment.Exit(0);
             }
-#endif
         }
 
         private static VrcxLaunchArguments ParseArgs(string[] args)
@@ -81,8 +75,8 @@ namespace VRCX
                 if (arg.StartsWith(VrcxLaunchArguments.LaunchCommandPrefix) && arg.Length > VrcxLaunchArguments.LaunchCommandPrefix.Length)
                     arguments.LaunchCommand = arg.Substring(VrcxLaunchArguments.LaunchCommandPrefix.Length);
 
-                if (arg.StartsWith(VrcxLaunchArguments.LinuxLaunchCommandPrefix) && arg.Length > VrcxLaunchArguments.LinuxLaunchCommandPrefix.Length)
-                    arguments.LaunchCommand = arg.Substring(VrcxLaunchArguments.LinuxLaunchCommandPrefix.Length);
+                if (arg.StartsWith(VrcxLaunchArguments.ProtocolLaunchCommandPrefix) && arg.Length > VrcxLaunchArguments.ProtocolLaunchCommandPrefix.Length)
+                    arguments.LaunchCommand = arg.Substring(VrcxLaunchArguments.ProtocolLaunchCommandPrefix.Length);
 
                 if (arg.StartsWith(VrcxLaunchArguments.ConfigDirectoryPrefix) && arg.Length > VrcxLaunchArguments.ConfigDirectoryPrefix.Length)
                     arguments.ConfigDirectory = arg.Substring(VrcxLaunchArguments.ConfigDirectoryPrefix.Length + 1);
@@ -108,7 +102,7 @@ namespace VRCX
             public bool IsOverlay { get; set; } = false;
 
             public const string LaunchCommandPrefix = "/uri=vrcx://";
-            public const string LinuxLaunchCommandPrefix = "vrcx://";
+            public const string ProtocolLaunchCommandPrefix = "vrcx://";
             public string LaunchCommand { get; set; } = null;
 
             public const string ConfigDirectoryPrefix = "--config";

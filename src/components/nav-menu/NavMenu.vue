@@ -45,7 +45,7 @@
                                                     <span
                                                         v-if="item.action === 'direct-access' && !isCollapsed"
                                                         class="nav-shortcut-hint ml-auto inline-flex items-center gap-2">
-                                                        <Kbd>{{ isMac ? '⌘' : 'Ctrl' }}</Kbd>
+                                                        <Kbd>Ctrl</Kbd>
                                                         <Kbd>D</Kbd>
                                                     </span>
                                                 </SidebarMenuButton>
@@ -209,7 +209,6 @@
 
     const { t, locale } = useI18n();
     const router = useRouter();
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 
     const VRCXUpdaterStore = useVRCXUpdaterStore();
     const { pendingVRCXUpdate, pendingVRCXInstall, appVersion } = storeToRefs(VRCXUpdaterStore);
@@ -295,7 +294,7 @@
         return () =>
             h('span', { class: 'inline-flex items-center gap-1' }, [
                 label,
-                h(Kbd, () => (isMac ? '⌘' : 'Ctrl')),
+                h(Kbd, () => 'Ctrl'),
                 h(Kbd, () => 'D')
             ]);
     };

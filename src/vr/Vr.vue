@@ -1513,7 +1513,6 @@
 
     let isUnmounted = false;
     let updateStatsLoopTimeoutId = null;
-    let updateVrElectronLoopTimeoutId = null;
     let cleanHudFeedLoopTimeoutId = null;
 
     onMounted(() => {
@@ -1535,15 +1534,12 @@
         window.$vr.trackingResultToClass = trackingResultToClass;
         window.$vr.updateFeedLength = updateFeedLength;
         window.$vr.updateStatsLoop = updateStatsLoop;
-        window.$vr.updateVrElectronLoop = updateVrElectronLoop;
         window.$vr.cleanHudFeedLoop = cleanHudFeedLoop;
         window.$vr.cleanHudFeed = cleanHudFeed;
 
         window.$vr.vrState = vrState;
 
-        if (LINUX) {
-            updateVrElectronLoop();
-        }
+
         refreshCustomScript();
         updateStatsLoop();
         setDatetimeFormat();
@@ -1559,10 +1555,6 @@
         if (updateStatsLoopTimeoutId !== null) {
             workerTimers.clearTimeout(updateStatsLoopTimeoutId);
             updateStatsLoopTimeoutId = null;
-        }
-        if (updateVrElectronLoopTimeoutId !== null) {
-            workerTimers.clearTimeout(updateVrElectronLoopTimeoutId);
-            updateVrElectronLoopTimeoutId = null;
         }
         if (cleanHudFeedLoopTimeoutId !== null) {
             workerTimers.clearTimeout(cleanHudFeedLoopTimeoutId);
@@ -1835,33 +1827,7 @@
         updateStatsLoopTimeoutId = workerTimers.setTimeout(() => updateStatsLoop(), 500);
     }
 
-    /**
-     *
-     */
-    async function updateVrElectronLoop() {
-        try {
-            const overlayQueue = await AppApiVr.GetExecuteVrOverlayFunctionQueue();
-            if (overlayQueue) {
-                overlayQueue.forEach((item) => {
-                    // item[0] is the function name, item[1] is already an object
-                    const fullFunctionName = item[0];
-                    const jsonArg = item[1];
 
-                    if (typeof window.$vr === 'object' && typeof window.$vr[fullFunctionName] === 'function') {
-                        window.$vr[fullFunctionName](jsonArg);
-                    } else {
-                        console.error(`$vr.${fullFunctionName} is not defined or is not a function`);
-                    }
-                });
-            }
-        } catch (err) {
-            console.error(err);
-        }
-        if (isUnmounted) {
-            return;
-        }
-        updateVrElectronLoopTimeoutId = workerTimers.setTimeout(() => updateVrElectronLoop(), 500);
-    }
 
     /**
      *
