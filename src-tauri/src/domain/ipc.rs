@@ -101,7 +101,7 @@ fn accept_one(
             8192,
             8192,
             0,
-            std::ptr::null() as *const windows_sys::Win32::Security::SECURITY_ATTRIBUTES,
+            std::ptr::null(),
         )
     };
 
@@ -112,7 +112,7 @@ fn accept_one(
     let connected = unsafe {
         ConnectNamedPipe(
             handle,
-            std::ptr::null_mut() as *mut windows_sys::Win32::System::IO::OVERLAPPED,
+            std::ptr::null_mut(),
         )
     };
     if connected == 0 {
@@ -124,7 +124,7 @@ fn accept_one(
     }
 
     use std::os::windows::io::FromRawHandle;
-    let pipe_file = unsafe { std::fs::File::from_raw_handle(handle as *mut std::ffi::c_void) };
+    let pipe_file = unsafe { std::fs::File::from_raw_handle(handle) };
     let client_arc = Arc::new(Mutex::new(Some(pipe_file)));
 
     clients.lock().unwrap().push(client_arc.clone());
@@ -222,7 +222,7 @@ fn open_pipe_client(pipe_path: &str, timeout: std::time::Duration) -> Option<std
                 wide.as_ptr(),
                 GENERIC_READ | GENERIC_WRITE,
                 0,
-                std::ptr::null() as *const windows_sys::Win32::Security::SECURITY_ATTRIBUTES,
+                std::ptr::null(),
                 OPEN_EXISTING,
                 0,
                 std::ptr::null_mut() as HANDLE,
@@ -231,9 +231,7 @@ fn open_pipe_client(pipe_path: &str, timeout: std::time::Duration) -> Option<std
 
         if handle != INVALID_HANDLE_VALUE {
             use std::os::windows::io::FromRawHandle;
-            return Some(unsafe {
-                std::fs::File::from_raw_handle(handle as *mut std::ffi::c_void)
-            });
+            return Some(unsafe { std::fs::File::from_raw_handle(handle) });
         }
 
         if std::time::Instant::now() >= deadline {

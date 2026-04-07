@@ -51,6 +51,8 @@ impl AppState {
             app_data,
         };
 
+        try_copy_legacy_vrcx_data(&paths)?;
+
         let storage = StorageService::new(&paths.config_file)?;
 
         let db_path = storage
@@ -88,4 +90,44 @@ impl AppState {
             auto_launch,
         })
     }
+}
+
+fn try_copy_legacy_vrcx_data(paths: &AppPaths) -> Result<(), AppError> {
+    if paths.db_file.exists() || paths.config_file.exists() {
+        return Ok(());
+    }
+
+    let Some(base_app_data) = std::env::var_os("APPDATA")
+        .map(PathBuf::from)
+        .or_else(dirs::config_dir)
+    else {
+        return Ok(());
+    };
+
+    let legacy_dir = base_app_data.join("VRCX");
+    if !legacy_dir.exists() {
+        return Ok(());
+    }
+
+    copy_if_exists(legacy_dir.join("VRCX.sqlite3"), paths.db_file.clone())?;
+    copy_if_exists(
+        legacy_dir.join("VRCX.sqlite3-shm"),
+        paths.app_data.join("VRCX-0.sqlite3-shm"),
+    )?;
+    copy_if_exists(
+        legacy_dir.join("VRCX.sqlite3-wal"),
+        paths.app_data.join("VRCX-0.sqlite3-wal"),
+    )?;
+    copy_if_exists(legacy_dir.join("VRCX.json"), paths.config_file.clone())?;
+
+    Ok(())
+}
+
+fn copy_if_exists(from: PathBuf, to: PathBuf) -> Result<(), AppError> {
+    if !from.exists() || to.exists() {
+        return Ok(());
+    }
+
+    std::fs::copy(&from, &to)?;
+    Ok(())
 }
