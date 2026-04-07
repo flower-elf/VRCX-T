@@ -1,3 +1,8 @@
+## 2026.04.07-beta.1
+
+- Migrate from C# WebView2 to Tauri.
+- Most core features are working. Some system-level integrations still need further testing.
+
 ## 2026.04.05-beta.1
 
 First version after forking from VRCX.
