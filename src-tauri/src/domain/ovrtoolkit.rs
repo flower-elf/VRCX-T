@@ -67,7 +67,7 @@ impl OvrToolkit {
         }
 
         let sender = self.sender.clone();
-        tokio::spawn(async move {
+        tauri::async_runtime::spawn(async move {
             if let Err(e) = send_with_persistent_conn(sender, messages).await {
                 tracing::error!("[OVRToolkit] send error: {e}");
             }
@@ -83,7 +83,7 @@ async fn connect_ws() -> Result<WsSender, String> {
 
     let (write, read) = ws_stream.split();
 
-    tokio::spawn(async move {
+    tauri::async_runtime::spawn(async move {
         let mut read = read;
         while read.next().await.is_some() {}
     });
