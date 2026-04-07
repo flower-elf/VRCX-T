@@ -2705,10 +2705,16 @@
             "loading": "Searching for avatar using search providers"
         },
         "database": {
+            "migration_found_title": "Existing VRCX database detected",
+            "migration_found_description": "An existing VRCX database was found on this computer. Would you like to migrate it to VRCX-0? The original VRCX data will not be modified.",
+            "migration_start": "Migrate",
+            "migration_skip": "Skip",
+            "migration_restarting_title": "Migrating data",
+            "migration_restarting": "VRCX-0 will restart to complete the migration...",
             "upgrade_complete": "Database upgrade complete",
             "upgrade_in_progress_title": "Database upgrade in progress",
-            "upgrade_in_progress_description": "Updating database from version {from} to {to}. Please do not close VRCX.",
-            "upgrade_in_progress_initializing": "Initializing database upgrade. Please do not close VRCX.",
+            "upgrade_in_progress_description": "Updating database from version {from} to {to}. Please do not close VRCX-0.",
+            "upgrade_in_progress_initializing": "Initializing database upgrade. Please do not close VRCX-0.",
             "upgrade_in_progress_wait": "User actions are temporarily blocked until the upgrade finishes.",
             "upgrade_failed_title": "Database upgrade failed",
             "upgrade_failed_description": "Database upgrade failed. Check the console for details.",

@@ -559,6 +559,40 @@ pub fn app__check_for_update_exe(state: State<'_, AppState>) -> bool {
 }
 
 #[tauri::command]
+pub fn app__check_legacy_vrcx_available(state: State<'_, AppState>) -> bool {
+    state.legacy_vrcx_available
+}
+
+#[tauri::command]
+pub fn app__request_legacy_migration(
+    app_handle: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<bool, AppError> {
+    #[cfg(debug_assertions)]
+    {
+        tracing::warn!("app__request_legacy_migration: dev mode does not auto-restart or persist migration flag");
+        let _ = (app_handle, state);
+        Ok(false)
+    }
+
+    #[cfg(not(debug_assertions))]
+    {
+        let flag_path = state.paths.app_data.join("pending_vrcx_migration");
+        let exe =
+            std::env::current_exe().map_err(|e| AppError::Custom(format!("current exe: {e}")))?;
+        std::fs::write(&flag_path, b"1")?;
+        std::process::Command::new(&exe)
+            .spawn()
+            .map_err(|e| {
+                let _ = std::fs::remove_file(&flag_path);
+                AppError::Custom(format!("restart: {e}"))
+            })?;
+        app_handle.exit(0);
+        Ok(true)
+    }
+}
+
+#[tauri::command]
 pub fn app__get_clipboard() -> Result<String, AppError> {
     let mut clipboard =
         arboard::Clipboard::new().map_err(|e| AppError::Custom(format!("clipboard: {e}")))?;

@@ -105,6 +105,8 @@ pub fn run() {
             api::app::app__set_tray_icon_notification,
             api::app::app__restart_application,
             api::app::app__check_for_update_exe,
+            api::app::app__check_legacy_vrcx_available,
+            api::app::app__request_legacy_migration,
             api::app::app__get_clipboard,
             api::app::app__copy_image_to_clipboard,
             api::app::app__set_startup,
