@@ -148,7 +148,7 @@ export const useNotificationsSettingsStore = defineStore(
                 configRepository.getString('notificationTTSVoice', '0'),
                 configRepository.getString('notificationTimeout', '3000'),
                 configRepository.getString(
-                    'VRCX-0_notificationLayout',
+                    'VRCX_notificationLayout',
                     'notification-center'
                 )
             ]);
@@ -185,28 +185,28 @@ export const useNotificationsSettingsStore = defineStore(
         function setXsNotifications() {
             xsNotifications.value = !xsNotifications.value;
             configRepository.setBool(
-                'VRCX-0_xsNotifications',
+                'VRCX_xsNotifications',
                 xsNotifications.value
             );
         }
         function setOvrtHudNotifications() {
             ovrtHudNotifications.value = !ovrtHudNotifications.value;
             configRepository.setBool(
-                'VRCX-0_ovrtHudNotifications',
+                'VRCX_ovrtHudNotifications',
                 ovrtHudNotifications.value
             );
         }
         function setOvrtWristNotifications() {
             ovrtWristNotifications.value = !ovrtWristNotifications.value;
             configRepository.setBool(
-                'VRCX-0_ovrtWristNotifications',
+                'VRCX_ovrtWristNotifications',
                 ovrtWristNotifications.value
             );
         }
         function setImageNotifications() {
             imageNotifications.value = !imageNotifications.value;
             configRepository.setBool(
-                'VRCX-0_imageNotifications',
+                'VRCX_imageNotifications',
                 imageNotifications.value
             );
         }
@@ -221,7 +221,7 @@ export const useNotificationsSettingsStore = defineStore(
         function setAfkDesktopToast() {
             afkDesktopToast.value = !afkDesktopToast.value;
             configRepository.setBool(
-                'VRCX-0_afkDesktopToast',
+                'VRCX_afkDesktopToast',
                 afkDesktopToast.value
             );
         }
@@ -235,7 +235,7 @@ export const useNotificationsSettingsStore = defineStore(
         function setNotificationTTSNickName() {
             notificationTTSNickName.value = !notificationTTSNickName.value;
             configRepository.setBool(
-                'VRCX-0_notificationTTSNickName',
+                'VRCX_notificationTTSNickName',
                 notificationTTSNickName.value
             );
         }
@@ -296,7 +296,7 @@ export const useNotificationsSettingsStore = defineStore(
         function setNotificationTTSVoice(index) {
             notificationTTSVoice.value = index;
             configRepository.setString(
-                'VRCX-0_notificationTTSVoice',
+                'VRCX_notificationTTSVoice',
                 notificationTTSVoice.value.toString()
             );
         }
@@ -366,7 +366,7 @@ export const useNotificationsSettingsStore = defineStore(
             if (isNaN(ms) || ms < 0) return;
             notificationTimeout.value = ms;
             configRepository.setString(
-                'VRCX-0_notificationTimeout',
+                'VRCX_notificationTimeout',
                 ms.toString()
             );
         }
@@ -397,7 +397,7 @@ export const useNotificationsSettingsStore = defineStore(
                             Number(value) * 1000
                         );
                         await configRepository.setString(
-                            'VRCX-0_notificationTimeout',
+                            'VRCX_notificationTimeout',
                             notificationTimeout.value.toString()
                         );
                     }

@@ -69,7 +69,7 @@ export const useWristOverlaySettingsStore = defineStore(
         function setHidePrivateFromFeed() {
             hidePrivateFromFeed.value = !hidePrivateFromFeed.value;
             configRepository.setBool(
-                'VRCX-0_hidePrivateFromFeed',
+                'VRCX_hidePrivateFromFeed',
                 hidePrivateFromFeed.value
             );
             sharedFeed.loadSharedFeed();
@@ -96,7 +96,7 @@ export const useWristOverlaySettingsStore = defineStore(
         function setVrBackgroundEnabled() {
             vrBackgroundEnabled.value = !vrBackgroundEnabled.value;
             configRepository.setBool(
-                'VRCX-0_vrBackgroundEnabled',
+                'VRCX_vrBackgroundEnabled',
                 vrBackgroundEnabled.value
             );
         }
@@ -107,28 +107,28 @@ export const useWristOverlaySettingsStore = defineStore(
         function setHideDevicesFromFeed() {
             hideDevicesFromFeed.value = !hideDevicesFromFeed.value;
             configRepository.setBool(
-                'VRCX-0_hideDevicesFromFeed',
+                'VRCX_hideDevicesFromFeed',
                 hideDevicesFromFeed.value
             );
         }
         function setVrOverlayCpuUsage() {
             vrOverlayCpuUsage.value = !vrOverlayCpuUsage.value;
             configRepository.setBool(
-                'VRCX-0_vrOverlayCpuUsage',
+                'VRCX_vrOverlayCpuUsage',
                 vrOverlayCpuUsage.value
             );
         }
         function setHideUptimeFromFeed() {
             hideUptimeFromFeed.value = !hideUptimeFromFeed.value;
             configRepository.setBool(
-                'VRCX-0_hideUptimeFromFeed',
+                'VRCX_hideUptimeFromFeed',
                 hideUptimeFromFeed.value
             );
         }
         function setPcUptimeOnFeed() {
             pcUptimeOnFeed.value = !pcUptimeOnFeed.value;
             configRepository.setBool(
-                'VRCX-0_pcUptimeOnFeed',
+                'VRCX_pcUptimeOnFeed',
                 pcUptimeOnFeed.value
             );
         }

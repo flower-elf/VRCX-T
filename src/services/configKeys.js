@@ -4,8 +4,7 @@
  * Every config key lives here. Adding a new setting =
  * add one line to this file + use it anywhere via configRepository.
  *
- * DB storage format: "config:vrcx-0_{key_lowercase}"
- * Legacy format:     "config:vrcx_{key_lowercase}"  (auto-migrated on first read)
+ * DB storage format: "config:vrcx_{key_lowercase}"
  */
 
 export const ConfigKeys = {
@@ -211,23 +210,12 @@ export const ConfigKeys = {
 };
 
 /** DB key prefix */
-export const DB_KEY_PREFIX = 'config:vrcx-0_';
-
-/** Legacy DB key prefix (auto-migrated on first read) */
-export const LEGACY_DB_KEY_PREFIX = 'config:vrcx_';
+export const DB_KEY_PREFIX = 'config:vrcx_';
 
 /**
  * Schema name → DB key
- * e.g. "appLanguage" → "config:vrcx-0_applanguage"
+ * e.g. "appLanguage" → "config:vrcx_applanguage"
  */
 export function toDbKey(name) {
     return `${DB_KEY_PREFIX}${name.toLowerCase()}`;
-}
-
-/**
- * Schema name → legacy DB key (without -0)
- * e.g. "appLanguage" → "config:vrcx_applanguage"
- */
-export function toLegacyDbKey(name) {
-    return `${LEGACY_DB_KEY_PREFIX}${name.toLowerCase()}`;
 }

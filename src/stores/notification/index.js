@@ -172,7 +172,7 @@ export const useNotificationStore = defineStore('Notification', () => {
     async function init() {
         notificationTable.value.filters[0].value = JSON.parse(
             await configRepository.getString(
-                'VRCX-0_notificationTableFilters',
+                'VRCX_notificationTableFilters',
                 '[]'
             )
         );

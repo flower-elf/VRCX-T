@@ -7,7 +7,7 @@
                 :label="t('view.settings.advanced.photon.event_hud.enable')"
                 :value="photonEventOverlay"
                 :tooltip="t('view.settings.advanced.photon.event_hud.enable_tooltip')"
-                @change="saveEventOverlay('VRCX-0_PhotonEventOverlay')"></simple-switch>
+                @change="saveEventOverlay('VRCX_PhotonEventOverlay')"></simple-switch>
         </div>
         <div class="options-container-item">
             <span class="name">{{ t('view.settings.advanced.photon.event_hud.filter') }}</span>
@@ -64,7 +64,7 @@
             :label="t('view.settings.advanced.photon.timeout_hud.enable')"
             :value="timeoutHudOverlay"
             :tooltip="t('view.settings.advanced.photon.timeout_hud.enable_tooltip')"
-            @change="saveEventOverlay('VRCX-0_TimeoutHudOverlay')"></simple-switch>
+            @change="saveEventOverlay('VRCX_TimeoutHudOverlay')"></simple-switch>
         <div class="options-container-item">
             <span class="name">{{ t('view.settings.advanced.photon.timeout_hud.filter') }}</span>
             <ToggleGroup

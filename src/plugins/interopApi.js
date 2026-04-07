@@ -209,7 +209,7 @@ export async function initInteropApi() {
     AppApi.SetUserAgent();
 
     const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
-    const saved = await configRepository.getString('VRCX-0_ZoomLevel', null);
+    const saved = await configRepository.getString('VRCX_ZoomLevel', null);
     if (saved) {
         const step = Number(saved) / 10 - 10;
         await getCurrentWebviewWindow().setZoom(Math.pow(1.2, step));

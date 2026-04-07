@@ -151,7 +151,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
 
     async function hasVersionChanged() {
         const lastVersion = await configRepository.getString(
-            'VRCX-0_lastVRCXVersion',
+            'VRCX_lastVRCXVersion',
             ''
         );
         return lastVersion !== currentVersion.value;
@@ -159,7 +159,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
 
     async function markCurrentVersionAsSeen() {
         await configRepository.setString(
-            'VRCX-0_lastVRCXVersion',
+            'VRCX_lastVRCXVersion',
             currentVersion.value
         );
     }
@@ -177,7 +177,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             return false;
         }
         const lastVersion = await configRepository.getString(
-            'VRCX-0_lastVRCXVersion',
+            'VRCX_lastVRCXVersion',
             ''
         );
         return Boolean(lastVersion) && lastVersion !== currentVersion.value;

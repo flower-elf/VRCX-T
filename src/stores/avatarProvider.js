@@ -28,7 +28,7 @@ export const useAvatarProviderStore = defineStore('AvatarProvider', () => {
     async function initAvatarProviderState() {
         avatarRemoteDatabaseProviderList.value = JSON.parse(
             await configRepository.getString(
-                'VRCX-0_avatarRemoteDatabaseProviderList',
+                'VRCX_avatarRemoteDatabaseProviderList',
                 '[ "https://api.avtrdb.com/v3/avatar/search/vrcx" ]'
             )
         );
@@ -47,20 +47,20 @@ export const useAvatarProviderStore = defineStore('AvatarProvider', () => {
         ) {
             avatarRemoteDatabaseProviderList.value = newList;
             await configRepository.setString(
-                'VRCX-0_avatarRemoteDatabaseProviderList',
+                'VRCX_avatarRemoteDatabaseProviderList',
                 JSON.stringify(newList)
             );
         }
 
         if (
             await configRepository.getString(
-                'VRCX-0_avatarRemoteDatabaseProvider'
+                'VRCX_avatarRemoteDatabaseProvider'
             )
         ) {
             // move existing provider to new list
             const avatarRemoteDatabaseProvider =
                 await configRepository.getString(
-                    'VRCX-0_avatarRemoteDatabaseProvider'
+                    'VRCX_avatarRemoteDatabaseProvider'
                 );
             if (
                 !avatarRemoteDatabaseProviderList.value.includes(
@@ -73,7 +73,7 @@ export const useAvatarProviderStore = defineStore('AvatarProvider', () => {
             }
             await configRepository.remove('avatarRemoteDatabaseProvider');
             await configRepository.setString(
-                'VRCX-0_avatarRemoteDatabaseProviderList',
+                'VRCX_avatarRemoteDatabaseProviderList',
                 JSON.stringify(avatarRemoteDatabaseProviderList.value)
             );
         }
@@ -114,7 +114,7 @@ export const useAvatarProviderStore = defineStore('AvatarProvider', () => {
         avatarRemoteDatabaseProviderList.value =
             avatarRemoteDatabaseProviderList.value.filter(Boolean);
         await configRepository.setString(
-            'VRCX-0_avatarRemoteDatabaseProviderList',
+            'VRCX_avatarRemoteDatabaseProviderList',
             JSON.stringify(avatarRemoteDatabaseProviderList.value)
         );
         if (avatarRemoteDatabaseProviderList.value.length > 0) {

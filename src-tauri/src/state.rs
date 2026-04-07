@@ -56,7 +56,7 @@ impl AppState {
         let storage = StorageService::new(&paths.config_file)?;
 
         let db_path = storage
-            .get("VRCX-0_DatabaseLocation")
+            .get("VRCX_DatabaseLocation")
             .filter(|s| !s.is_empty())
             .map(PathBuf::from)
             .unwrap_or_else(|| paths.db_file.clone());

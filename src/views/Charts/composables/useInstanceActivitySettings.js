@@ -18,15 +18,15 @@ export function useInstanceActivitySettings() {
             ] = await Promise.all([
                 configRepository.getInt('InstanceActivityBarWidth', 25),
                 configRepository.getBool(
-                    'VRCX-0_InstanceActivityDetailVisible',
+                    'VRCX_InstanceActivityDetailVisible',
                     true
                 ),
                 configRepository.getBool(
-                    'VRCX-0_InstanceActivitySoloInstanceVisible',
+                    'VRCX_InstanceActivitySoloInstanceVisible',
                     true
                 ),
                 configRepository.getBool(
-                    'VRCX-0_InstanceActivityNoFriendInstanceVisible',
+                    'VRCX_InstanceActivityNoFriendInstanceVisible',
                     true
                 )
             ]);
@@ -43,7 +43,7 @@ export function useInstanceActivitySettings() {
     function changeBarWidth(value, onSettingsChange) {
         barWidth.value = value;
         configRepository
-            .setInt('VRCX-0_InstanceActivityBarWidth', value)
+            .setInt('VRCX_InstanceActivityBarWidth', value)
             .finally(() => {
                 if (onSettingsChange) onSettingsChange();
             });
@@ -52,7 +52,7 @@ export function useInstanceActivitySettings() {
     function changeIsDetailInstanceVisible(value, onSettingsChange) {
         isDetailVisible.value = value;
         configRepository
-            .setBool('VRCX-0_InstanceActivityDetailVisible', value)
+            .setBool('VRCX_InstanceActivityDetailVisible', value)
             .finally(() => {
                 if (onSettingsChange) onSettingsChange();
             });
@@ -61,7 +61,7 @@ export function useInstanceActivitySettings() {
     function changeIsSoloInstanceVisible(value, onSettingsChange) {
         isSoloInstanceVisible.value = value;
         configRepository
-            .setBool('VRCX-0_InstanceActivitySoloInstanceVisible', value)
+            .setBool('VRCX_InstanceActivitySoloInstanceVisible', value)
             .finally(() => {
                 if (onSettingsChange) onSettingsChange();
             });
@@ -70,7 +70,7 @@ export function useInstanceActivitySettings() {
     function changeIsNoFriendInstanceVisible(value, onSettingsChange) {
         isNoFriendInstanceVisible.value = value;
         configRepository
-            .setBool('VRCX-0_InstanceActivityNoFriendInstanceVisible', value)
+            .setBool('VRCX_InstanceActivityNoFriendInstanceVisible', value)
             .finally(() => {
                 if (onSettingsChange) onSettingsChange();
             });

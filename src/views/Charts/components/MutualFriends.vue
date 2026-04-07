@@ -567,7 +567,7 @@
     const graphMeta = ref(new Map());
     const isRefreshingNode = ref(false);
 
-    const EXCLUDED_FRIENDS_KEY = 'VRCX-0_MutualGraphExcludedFriends';
+    const EXCLUDED_FRIENDS_KEY = 'VRCX_MutualGraphExcludedFriends';
     const excludedFriendIds = useLocalStorage(EXCLUDED_FRIENDS_KEY, []);
 
     watch(excludedFriendIds, async () => {

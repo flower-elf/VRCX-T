@@ -592,7 +592,7 @@
     }
 
     const zoomLevel = ref(100);
-    const ZOOM_KEY = 'VRCX-0_ZoomLevel';
+    const ZOOM_KEY = 'VRCX_ZoomLevel';
     let cleanupWheel = null;
 
     onBeforeUnmount(() => {

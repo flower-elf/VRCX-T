@@ -21,10 +21,10 @@ describe('useGameStore', () => {
         vi.clearAllMocks();
         configRepository.getBool.mockResolvedValue(true);
         configRepository.getString.mockImplementation((key, defaultValue) => {
-            if (key === 'VRCX-0_lastGameSessionMs') {
+            if (key === 'VRCX_lastGameSessionMs') {
                 return Promise.resolve('7200000');
             }
-            if (key === 'VRCX-0_lastGameOfflineAt') {
+            if (key === 'VRCX_lastGameOfflineAt') {
                 return Promise.resolve('1700000000000');
             }
             return Promise.resolve(defaultValue ?? null);

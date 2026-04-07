@@ -31,7 +31,7 @@ pub struct WebClient {
 
 impl WebClient {
     pub fn new(storage: &StorageService, db: &DatabaseService) -> Result<Self, AppError> {
-        let proxy_url = storage.get("VRCX-0_ProxyServer").filter(|s| !s.is_empty());
+        let proxy_url = storage.get("VRCX_ProxyServer").filter(|s| !s.is_empty());
 
         let cookie_store = reqwest_cookie_store::CookieStore::default();
         let jar = Arc::new(CookieStoreMutex::new(cookie_store));

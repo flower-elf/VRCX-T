@@ -15,7 +15,7 @@ import { textToHex } from './string';
 
 import configRepository from '../../../services/config.js';
 
-const THEME_COLOR_STORAGE_KEY = 'VRCX-0_themeColor';
+const THEME_COLOR_STORAGE_KEY = 'VRCX_themeColor';
 const THEME_COLOR_STYLE_ID = 'app-theme-color-style';
 const THEME_MODE_STYLE_ID = 'app-theme-mode-style';
 const DEFAULT_THEME_COLOR_KEY = 'default';
@@ -472,7 +472,7 @@ function changeHtmlLangAttribute(language) {
 
 async function getThemeMode(configRepository) {
     const initThemeMode = await configRepository.getString(
-        'VRCX-0_ThemeMode',
+        'VRCX_ThemeMode',
         'system'
     );
 

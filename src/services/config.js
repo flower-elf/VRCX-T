@@ -1,12 +1,11 @@
 import sqliteService from './sqlite.js';
-import { ConfigKeys, toDbKey, toLegacyDbKey } from './configKeys.js';
+import { ConfigKeys, toDbKey } from './configKeys.js';
 
 /**
  * ConfigRepository — centralized config access with batch loading.
  *
  * On init(), all configs are loaded into memory (single SELECT).
  * Reads are instant Map lookups. Writes update the Map + async DB write.
- * Legacy keys (config:vrcx_*) are auto-migrated to config:vrcx-0_* on first access.
  */
 class ConfigRepository {
     /** @type {Map<string, string>} dbKey → raw string value */
@@ -18,7 +17,6 @@ class ConfigRepository {
             'CREATE TABLE IF NOT EXISTS configs (`key` TEXT PRIMARY KEY, `value` TEXT)'
         );
 
-        // Batch load everything into memory
         await sqliteService.execute(
             (row) => {
                 if (row[0] != null && row[1] != null) {
@@ -28,51 +26,7 @@ class ConfigRepository {
             'SELECT key, value FROM configs'
         );
 
-        // Run legacy key migration (config:vrcx_* → config:vrcx-0_*)
-        await this.#migrateLegacyKeys();
-
         this.#loaded = true;
-    }
-
-    /**
-     * Migrate any legacy keys found in cache to new format.
-     * Writes new key, deletes old key, both in cache and DB.
-     */
-    async #migrateLegacyKeys() {
-        const migrations = [];
-
-        for (const name of Object.keys(ConfigKeys)) {
-            const newKey = toDbKey(name);
-            const legacyKey = toLegacyDbKey(name);
-
-            if (legacyKey === newKey) continue;
-            if (this.#cache.has(newKey)) continue; // already migrated
-
-            const legacyValue = this.#cache.get(legacyKey);
-            if (legacyValue !== undefined) {
-                // Schedule migration
-                migrations.push({ name, newKey, legacyKey, value: legacyValue });
-            }
-        }
-
-        for (const { newKey, legacyKey, value } of migrations) {
-            // Write new key
-            this.#cache.set(newKey, value);
-            await sqliteService.executeNonQuery(
-                'INSERT OR REPLACE INTO configs (key, value) VALUES (@key, @value)',
-                { '@key': newKey, '@value': value }
-            );
-            // Delete legacy key
-            this.#cache.delete(legacyKey);
-            await sqliteService.executeNonQuery(
-                'DELETE FROM configs WHERE key = @key',
-                { '@key': legacyKey }
-            );
-        }
-
-        if (migrations.length > 0) {
-            console.log(`[ConfigRepository] Migrated ${migrations.length} legacy keys`);
-        }
     }
 
     // ─── Key resolution ─────────────────────────────────────
@@ -81,23 +35,22 @@ class ConfigRepository {
      * Resolve a user-facing key name to the internal DB key.
      *
      * Accepts:
-     *   - Plain name: "appLanguage" → "config:vrcx-0_applanguage"
-     *   - Prefixed:   "VRCX-0_appLanguage" → "config:vrcx-0_applanguage"
-     *   - Dynamic:    "friendLogInit_usr_xxx" → "config:vrcx-0_friendloginit_usr_xxx"
+     *   - Plain name: "appLanguage" → "config:vrcx_applanguage"
+     *   - Prefixed:   "VRCX_appLanguage" → "config:vrcx_applanguage"
+     *   - Dynamic:    "friendLogInit_usr_xxx" → "config:vrcx_friendloginit_usr_xxx"
      *   - Legacy full: "config:..." → passthrough
      */
     #resolveKey(key) {
         if (key.startsWith('config:')) return key;
-        const stripped = key.startsWith('VRCX-0_') ? key.slice(7) : key;
-        return `config:vrcx-0_${stripped.toLowerCase()}`;
+        const stripped = key.startsWith('VRCX_') ? key.slice(5) : key;
+        return `config:vrcx_${stripped.toLowerCase()}`;
     }
 
     /**
      * Look up default from ConfigKeys schema.
      */
     #getSchemaDefault(key) {
-        // Try exact match first
-        const stripped = key.startsWith('VRCX-0_') ? key.slice(7) : key;
+        const stripped = key.startsWith('VRCX_') ? key.slice(5) : key;
         const schema = ConfigKeys[stripped];
         return schema?.default ?? null;
     }
@@ -137,7 +90,6 @@ class ConfigRepository {
             return raw === 'true';
         }
 
-        // Explicit default > schema default
         if (defaultValue !== undefined) return defaultValue;
         return this.#getSchemaDefault(key);
     }

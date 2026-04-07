@@ -18,7 +18,7 @@ import configRepository from '../services/config';
 export async function initUi() {
     try {
         const language = await configRepository.getString(
-            'VRCX-0_appLanguage',
+            'VRCX_appLanguage',
             'en'
         );
         // @ts-ignore

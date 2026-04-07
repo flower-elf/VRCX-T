@@ -71,10 +71,10 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
             recentActionCooldownMinutesConfig
         ] = await Promise.all([
             configRepository.getBool('StartAtWindowsStartup', false),
-            VRCXStorage.Get('VRCX-0_StartAsMinimizedState'),
-            VRCXStorage.Get('VRCX-0_CloseToTray'),
+            VRCXStorage.Get('VRCX_StartAsMinimizedState'),
+            VRCXStorage.Get('VRCX_CloseToTray'),
             configRepository.getBool('CloseToTray'),
-            VRCXStorage.Get('VRCX-0_DisableGpuAcceleration'),
+            VRCXStorage.Get('VRCX_DisableGpuAcceleration'),
             configRepository.getString('localFavoriteFriendsGroups', '[]'),
             configRepository.getBool('udonExceptionLogging', false),
             configRepository.getBool('logResourceLoad', false),
@@ -83,25 +83,25 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
             configRepository.getInt('autoLoginDelaySeconds', 0),
             configRepository.getBool('autoStateChangeEnabled', false),
             configRepository.getString(
-                'VRCX-0_autoStateChangeAloneStatus',
+                'VRCX_autoStateChangeAloneStatus',
                 'join me'
             ),
             configRepository.getString(
-                'VRCX-0_autoStateChangeCompanyStatus',
+                'VRCX_autoStateChangeCompanyStatus',
                 'busy'
             ),
             configRepository.getString(
-                'VRCX-0_autoStateChangeInstanceTypes',
+                'VRCX_autoStateChangeInstanceTypes',
                 '[]'
             ),
             configRepository.getBool('autoStateChangeNoFriends', false),
             configRepository.getBool(
-                'VRCX-0_autoStateChangeAloneDescEnabled',
+                'VRCX_autoStateChangeAloneDescEnabled',
                 false
             ),
             configRepository.getString('autoStateChangeAloneDesc', ''),
             configRepository.getBool(
-                'VRCX-0_autoStateChangeCompanyDescEnabled',
+                'VRCX_autoStateChangeCompanyDescEnabled',
                 false
             ),
             configRepository.getString('autoStateChangeCompanyDesc', ''),
@@ -120,7 +120,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
             isCloseToTray.value = isCloseToTrayConfigBoolConfig;
 
             await VRCXStorage.Set(
-                'VRCX-0_CloseToTray',
+                'VRCX_CloseToTray',
                 isCloseToTray.value.toString()
             );
             await configRepository.remove('CloseToTray');
@@ -167,7 +167,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setIsStartAtWindowsStartup() {
         isStartAtWindowsStartup.value = !isStartAtWindowsStartup.value;
         configRepository.setBool(
-            'VRCX-0_StartAtWindowsStartup',
+            'VRCX_StartAtWindowsStartup',
             isStartAtWindowsStartup.value
         );
         AppApi.SetStartup(isStartAtWindowsStartup.value);
@@ -175,18 +175,18 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setIsStartAsMinimizedState() {
         isStartAsMinimizedState.value = !isStartAsMinimizedState.value;
         VRCXStorage.Set(
-            'VRCX-0_StartAsMinimizedState',
+            'VRCX_StartAsMinimizedState',
             isStartAsMinimizedState.value.toString()
         );
     }
     function setIsCloseToTray() {
         isCloseToTray.value = !isCloseToTray.value;
-        VRCXStorage.Set('VRCX-0_CloseToTray', isCloseToTray.value.toString());
+        VRCXStorage.Set('VRCX_CloseToTray', isCloseToTray.value.toString());
     }
     function setDisableGpuAcceleration() {
         disableGpuAcceleration.value = !disableGpuAcceleration.value;
         VRCXStorage.Set(
-            'VRCX-0_DisableGpuAcceleration',
+            'VRCX_DisableGpuAcceleration',
             disableGpuAcceleration.value.toString()
         );
     }
@@ -196,7 +196,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setLocalFavoriteFriendsGroups(value) {
         localFavoriteFriendsGroups.value = value;
         configRepository.setString(
-            'VRCX-0_localFavoriteFriendsGroups',
+            'VRCX_localFavoriteFriendsGroups',
             JSON.stringify(value)
         );
         friendStore.updateLocalFavoriteFriends();
@@ -204,7 +204,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setUdonExceptionLogging() {
         udonExceptionLogging.value = !udonExceptionLogging.value;
         configRepository.setBool(
-            'VRCX-0_udonExceptionLogging',
+            'VRCX_udonExceptionLogging',
             udonExceptionLogging.value
         );
     }
@@ -219,7 +219,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setAutoLoginDelayEnabled() {
         autoLoginDelayEnabled.value = !autoLoginDelayEnabled.value;
         configRepository.setBool(
-            'VRCX-0_autoLoginDelayEnabled',
+            'VRCX_autoLoginDelayEnabled',
             autoLoginDelayEnabled.value
         );
     }
@@ -229,7 +229,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
             ? 0
             : Math.min(10, Math.max(0, parsed));
         configRepository.setInt(
-            'VRCX-0_autoLoginDelaySeconds',
+            'VRCX_autoLoginDelaySeconds',
             autoLoginDelaySeconds.value
         );
     }
@@ -253,7 +253,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setAutoStateChangeEnabled() {
         autoStateChangeEnabled.value = !autoStateChangeEnabled.value;
         configRepository.setBool(
-            'VRCX-0_autoStateChangeEnabled',
+            'VRCX_autoStateChangeEnabled',
             autoStateChangeEnabled.value
         );
     }
@@ -263,7 +263,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setAutoStateChangeAloneStatus(value) {
         autoStateChangeAloneStatus.value = value;
         configRepository.setString(
-            'VRCX-0_autoStateChangeAloneStatus',
+            'VRCX_autoStateChangeAloneStatus',
             autoStateChangeAloneStatus.value
         );
     }
@@ -273,21 +273,21 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setAutoStateChangeCompanyStatus(value) {
         autoStateChangeCompanyStatus.value = value;
         configRepository.setString(
-            'VRCX-0_autoStateChangeCompanyStatus',
+            'VRCX_autoStateChangeCompanyStatus',
             autoStateChangeCompanyStatus.value
         );
     }
     function setAutoStateChangeInstanceTypes(value) {
         autoStateChangeInstanceTypes.value = value;
         configRepository.setString(
-            'VRCX-0_autoStateChangeInstanceTypes',
+            'VRCX_autoStateChangeInstanceTypes',
             JSON.stringify(autoStateChangeInstanceTypes.value)
         );
     }
     function setAutoStateChangeNoFriends() {
         autoStateChangeNoFriends.value = !autoStateChangeNoFriends.value;
         configRepository.setBool(
-            'VRCX-0_autoStateChangeNoFriends',
+            'VRCX_autoStateChangeNoFriends',
             autoStateChangeNoFriends.value
         );
     }
@@ -295,7 +295,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
         autoStateChangeAloneDescEnabled.value =
             !autoStateChangeAloneDescEnabled.value;
         configRepository.setBool(
-            'VRCX-0_autoStateChangeAloneDescEnabled',
+            'VRCX_autoStateChangeAloneDescEnabled',
             autoStateChangeAloneDescEnabled.value
         );
     }
@@ -305,7 +305,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setAutoStateChangeAloneDesc(value) {
         autoStateChangeAloneDesc.value = value;
         configRepository.setString(
-            'VRCX-0_autoStateChangeAloneDesc',
+            'VRCX_autoStateChangeAloneDesc',
             autoStateChangeAloneDesc.value
         );
     }
@@ -313,7 +313,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
         autoStateChangeCompanyDescEnabled.value =
             !autoStateChangeCompanyDescEnabled.value;
         configRepository.setBool(
-            'VRCX-0_autoStateChangeCompanyDescEnabled',
+            'VRCX_autoStateChangeCompanyDescEnabled',
             autoStateChangeCompanyDescEnabled.value
         );
     }
@@ -323,7 +323,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setAutoStateChangeCompanyDesc(value) {
         autoStateChangeCompanyDesc.value = value;
         configRepository.setString(
-            'VRCX-0_autoStateChangeCompanyDesc',
+            'VRCX_autoStateChangeCompanyDesc',
             autoStateChangeCompanyDesc.value
         );
     }
@@ -333,7 +333,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setAutoStateChangeGroups(value) {
         autoStateChangeGroups.value = value;
         configRepository.setString(
-            'VRCX-0_autoStateChangeGroups',
+            'VRCX_autoStateChangeGroups',
             JSON.stringify(autoStateChangeGroups.value)
         );
     }
@@ -344,7 +344,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setAutoAcceptInviteRequests(value) {
         autoAcceptInviteRequests.value = value;
         configRepository.setString(
-            'VRCX-0_autoAcceptInviteRequests',
+            'VRCX_autoAcceptInviteRequests',
             autoAcceptInviteRequests.value
         );
     }
@@ -355,7 +355,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     function setAutoAcceptInviteGroups(value) {
         autoAcceptInviteGroups.value = value;
         configRepository.setString(
-            'VRCX-0_autoAcceptInviteGroups',
+            'VRCX_autoAcceptInviteGroups',
             JSON.stringify(autoAcceptInviteGroups.value)
         );
     }
@@ -391,7 +391,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
     }
 
     async function persistProxyServer() {
-        await VRCXStorage.Set('VRCX-0_ProxyServer', vrcxStore.proxyServer);
+        await VRCXStorage.Set('VRCX_ProxyServer', vrcxStore.proxyServer);
         await VRCXStorage.Flush();
     }
 
@@ -399,7 +399,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
         recentActionCooldownEnabled.value =
             !recentActionCooldownEnabled.value;
         configRepository.setBool(
-            'VRCX-0_recentActionCooldownEnabled',
+            'VRCX_recentActionCooldownEnabled',
             recentActionCooldownEnabled.value
         );
     }
@@ -413,7 +413,7 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
             ? 60
             : Math.min(1440, Math.max(1, parsed));
         configRepository.setInt(
-            'VRCX-0_recentActionCooldownMinutes',
+            'VRCX_recentActionCooldownMinutes',
             recentActionCooldownMinutes.value
         );
     }
