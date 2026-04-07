@@ -535,20 +535,21 @@ pub fn app__restart_application(
             "app__restart_application ignored in dev build; restart VRCX manually"
         );
         let _ = app_handle;
-        return Ok(());
+        Ok(())
     }
 
     #[cfg(not(debug_assertions))]
     {
-    let exe = std::env::current_exe().map_err(|e| AppError::Custom(format!("current exe: {e}")))?;
-    let mut cmd = std::process::Command::new(&exe);
-    if is_upgrade.unwrap_or(false) {
-        cmd.arg("--upgrade");
-    }
-    cmd.spawn()
-        .map_err(|e| AppError::Custom(format!("restart: {e}")))?;
-    app_handle.exit(0);
-    Ok(())
+        let exe =
+            std::env::current_exe().map_err(|e| AppError::Custom(format!("current exe: {e}")))?;
+        let mut cmd = std::process::Command::new(&exe);
+        if is_upgrade.unwrap_or(false) {
+            cmd.arg("--upgrade");
+        }
+        cmd.spawn()
+            .map_err(|e| AppError::Custom(format!("restart: {e}")))?;
+        app_handle.exit(0);
+        Ok(())
     }
 }
 
@@ -1352,7 +1353,7 @@ pub fn app__set_vrchat_registry_key(
                 )));
             }
         }
-        return Ok(true);
+        Ok(true)
     }
     #[cfg(not(target_os = "windows"))]
     {
@@ -1403,7 +1404,7 @@ pub fn app__get_vrchat_registry(
                 result.insert(name, entry);
             }
         }
-        return Ok(result);
+        Ok(result)
     }
     #[cfg(not(target_os = "windows"))]
     {

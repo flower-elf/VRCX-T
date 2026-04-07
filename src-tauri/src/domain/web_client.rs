@@ -128,7 +128,9 @@ impl WebClient {
         let store = self.jar.lock().unwrap();
         let mut json = Vec::new();
         #[allow(deprecated)]
-        store.save_incl_expired_and_nonpersistent_json(&mut json).ok()?;
+        store
+            .save_incl_expired_and_nonpersistent_json(&mut json)
+            .ok()?;
         Some(B64.encode(json))
     }
 
@@ -154,10 +156,7 @@ impl WebClient {
                     e.name, e.value, e.domain, e.path
                 );
                 store
-                    .insert_raw(
-                        &RawCookie::parse(&cookie_str).unwrap(),
-                        &url,
-                    )
+                    .insert_raw(&RawCookie::parse(&cookie_str).unwrap(), &url)
                     .ok();
             }
         }

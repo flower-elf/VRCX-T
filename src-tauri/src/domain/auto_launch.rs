@@ -236,7 +236,7 @@ fn shell_execute_and_get_pid(path: &str) -> Result<Option<u32>, String> {
 
     #[allow(non_snake_case)]
     #[repr(C)]
-    struct SHELLEXECUTEINFOW {
+    struct ShellExecuteInfoW {
         cbSize: u32,
         fMask: u32,
         hwnd: isize,
@@ -255,7 +255,7 @@ fn shell_execute_and_get_pid(path: &str) -> Result<Option<u32>, String> {
     }
     const SEE_MASK_NOCLOSEPROCESS: u32 = 0x40;
     extern "system" {
-        fn ShellExecuteExW(info: *mut SHELLEXECUTEINFOW) -> i32;
+        fn ShellExecuteExW(info: *mut ShellExecuteInfoW) -> i32;
     }
 
     let wide_path: Vec<u16> = std::ffi::OsStr::new(path)
@@ -268,8 +268,8 @@ fn shell_execute_and_get_pid(path: &str) -> Result<Option<u32>, String> {
         .chain(std::iter::once(0))
         .collect();
 
-    let mut info: SHELLEXECUTEINFOW = unsafe { mem::zeroed() };
-    info.cbSize = mem::size_of::<SHELLEXECUTEINFOW>() as u32;
+    let mut info: ShellExecuteInfoW = unsafe { mem::zeroed() };
+    info.cbSize = mem::size_of::<ShellExecuteInfoW>() as u32;
     info.fMask = SEE_MASK_NOCLOSEPROCESS;
     info.lpVerb = verb.as_ptr();
     info.lpFile = wide_path.as_ptr();
