@@ -398,6 +398,7 @@
     import { computed, onBeforeUnmount, ref, watch } from 'vue';
     import { CheckIcon, ChevronDown } from 'lucide-vue-next';
     import { useAppearanceSettingsStore, useVrStore } from '@/stores';
+    import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 
     import { Switch } from '@/components/ui/switch';
     import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -411,6 +412,7 @@
     import PresetColorPicker from '@/components/PresetColorPicker.vue';
     import TableLimitsDialog from '@/components/dialogs/TableLimitsDialog.vue';
     import { saveSortFavoritesOption } from '@/coordinators/favoriteCoordinator';
+    import configRepository from '@/services/config';
 
     import SettingsGroup from '../SettingsGroup.vue';
     import SettingsItem from '../SettingsItem.vue';
@@ -590,6 +592,7 @@
     }
 
     const zoomLevel = ref(100);
+    const ZOOM_KEY = 'VRCX-0_ZoomLevel';
     let cleanupWheel = null;
 
     onBeforeUnmount(() => {
@@ -684,29 +687,38 @@
      *
      */
     async function initGetZoomLevel() {
+        const saved = await configRepository.getString(ZOOM_KEY, null);
+        if (saved !== null) {
+            zoomLevel.value = Number(saved);
+            await applyZoom(zoomLevel.value);
+        }
+
         const handleWheel = (event) => {
             if (event.ctrlKey) {
-                getZoomLevel();
+                void getZoomLevel();
             }
         };
         window.addEventListener('wheel', handleWheel);
         cleanupWheel = () => {
             window.removeEventListener('wheel', handleWheel);
         };
-        getZoomLevel();
     }
 
-    /**
-     *
-     */
     async function getZoomLevel() {
-        zoomLevel.value = ((await AppApi.GetZoom()) + 10) * 10;
+        const saved = await configRepository.getString(ZOOM_KEY, null);
+        if (saved !== null) {
+            zoomLevel.value = Number(saved);
+        }
     }
 
-    /**
-     *
-     */
-    function setZoomLevel() {
-        AppApi.SetZoom(zoomLevel.value / 10 - 10);
+    async function applyZoom(displayValue) {
+        const step = displayValue / 10 - 10;
+        const factor = Math.pow(1.2, step);
+        await getCurrentWebviewWindow().setZoom(factor);
+    }
+
+    async function setZoomLevel() {
+        await applyZoom(zoomLevel.value);
+        await configRepository.setString(ZOOM_KEY, String(zoomLevel.value));
     }
 </script>

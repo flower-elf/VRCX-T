@@ -92,13 +92,11 @@ function getAssetFilename({ name }) {
     return 'assets/i18n/[name][extname]';
 }
 
-export default defineConfig(({ mode }) => {
-    const version = fs
-        .readFileSync(new URL('../Version', import.meta.url), 'utf-8')
-        .trim();
-
-    const nightly =
-        mode === 'development' || version.split('-').at(-1).length === 7;
+export default defineConfig(() => {
+    const tauriConf = JSON.parse(
+        fs.readFileSync(new URL('../src-tauri/tauri.conf.json', import.meta.url), 'utf-8')
+    );
+    const version = tauriConf.version;
 
     return {
         base: '',
@@ -122,7 +120,7 @@ export default defineConfig(({ mode }) => {
                     customMedia: true
                 },
                 errorRecovery: true,
-                targets: browserslistToTargets(browserslist('Chrome 145'))
+                targets: browserslistToTargets(browserslist('Chrome 125'))
             }
         },
         optimizeDeps: {
@@ -140,15 +138,14 @@ export default defineConfig(({ mode }) => {
             ]
         },
         define: {
-            VERSION: JSON.stringify(version),
-            NIGHTLY: JSON.stringify(nightly)
+            VERSION: JSON.stringify(version)
         },
         server: {
             port: 9000,
             strictPort: true
         },
         build: {
-            target: 'chrome145',
+            target: 'chrome111',
             outDir: '../build/html',
             license: true,
             emptyOutDir: true,
