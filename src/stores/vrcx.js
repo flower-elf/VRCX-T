@@ -73,6 +73,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
     });
     const databaseUpgradeState = ref({
         visible: false,
+        phase: 'confirm',
         fromVersion: 0,
         toVersion: 0
     });
@@ -91,91 +92,91 @@ export const useVrcxStore = defineStore('Vrcx', () => {
     const proxyServer = ref('');
     const appStartAt = Date.now();
 
-    /**
-     *
-     */
     async function init() {
+        let shouldResolveDatabaseInit = true;
         try {
-
-            state.databaseVersion = await configRepository.getInt(
-                'VRCX_databaseVersion',
-                0
-            );
-            const databaseUpgradeSucceeded = await updateDatabaseVersion();
-            if (!databaseUpgradeSucceeded) {
+            const legacyAvailable = await AppApi.CheckLegacyVrcxAvailable();
+            if (legacyAvailable) {
+                databaseUpgradeState.value = {
+                    visible: true,
+                    phase: 'confirm',
+                    fromVersion: 0,
+                    toVersion: 0
+                };
+                shouldResolveDatabaseInit = false;
                 return;
             }
 
-            clearVRCXCacheFrequency.value = await configRepository.getInt(
-                'VRCX_clearVRCXCacheFrequency',
-                172800
-            );
-
-            if (!(await VRCXStorage.Get('VRCX_DatabaseLocation'))) {
-                await VRCXStorage.Set('VRCX_DatabaseLocation', '');
-            }
-            if (!(await VRCXStorage.Get('VRCX_ProxyServer'))) {
-                await VRCXStorage.Set('VRCX_ProxyServer', '');
-            }
-            if ((await VRCXStorage.Get('VRCX_DisableGpuAcceleration')) === '') {
-                await VRCXStorage.Set('VRCX_DisableGpuAcceleration', 'false');
-            }
-            proxyServer.value = await VRCXStorage.Get('VRCX_ProxyServer');
-            state.locationX = parseInt(
-                await VRCXStorage.Get('VRCX_LocationX'),
-                10
-            );
-            state.locationY = parseInt(
-                await VRCXStorage.Get('VRCX_LocationY'),
-                10
-            );
-            state.sizeWidth = parseInt(
-                await VRCXStorage.Get('VRCX_SizeWidth'),
-                10
-            );
-            state.sizeHeight = parseInt(
-                await VRCXStorage.Get('VRCX_SizeHeight'),
-                10
-            );
-            state.windowState = await VRCXStorage.Get('VRCX_WindowState');
-
-            maxTableSize.value = await configRepository.getInt(
-                'VRCX_maxTableSize_v2',
-                DEFAULT_MAX_TABLE_SIZE
-            );
-            database.setMaxTableSize(maxTableSize.value);
-
-            searchLimit.value = await configRepository.getInt(
-                'VRCX_searchLimit',
-                DEFAULT_SEARCH_LIMIT
-            );
-            if (searchLimit.value < SEARCH_LIMIT_MIN) {
-                searchLimit.value = SEARCH_LIMIT_MIN;
-            }
-            if (searchLimit.value > SEARCH_LIMIT_MAX) {
-                searchLimit.value = SEARCH_LIMIT_MAX;
-            }
-            database.setSearchTableSize(searchLimit.value);
-
-            refreshCustomScript();
-            databaseReadyForAutoLogin.value = true;
+            await runFullInit();
         } finally {
-            resolveDatabaseInit();
+            if (shouldResolveDatabaseInit) {
+                resolveDatabaseInit();
+            }
         }
+    }
+
+    async function runFullInit() {
+        state.databaseVersion = await configRepository.getInt(
+            'VRCX_databaseVersion',
+            0
+        );
+        const databaseUpgradeSucceeded = await updateDatabaseVersion();
+        if (!databaseUpgradeSucceeded) {
+            return;
+        }
+
+        clearVRCXCacheFrequency.value = await configRepository.getInt(
+            'VRCX_clearVRCXCacheFrequency',
+            172800
+        );
+
+        if (!(await VRCXStorage.Get('VRCX_DatabaseLocation'))) {
+            await VRCXStorage.Set('VRCX_DatabaseLocation', '');
+        }
+        if (!(await VRCXStorage.Get('VRCX_ProxyServer'))) {
+            await VRCXStorage.Set('VRCX_ProxyServer', '');
+        }
+        if ((await VRCXStorage.Get('VRCX_DisableGpuAcceleration')) === '') {
+            await VRCXStorage.Set('VRCX_DisableGpuAcceleration', 'false');
+        }
+        proxyServer.value = await VRCXStorage.Get('VRCX_ProxyServer');
+        state.locationX = parseInt(await VRCXStorage.Get('VRCX_LocationX'), 10);
+        state.locationY = parseInt(await VRCXStorage.Get('VRCX_LocationY'), 10);
+        state.sizeWidth = parseInt(await VRCXStorage.Get('VRCX_SizeWidth'), 10);
+        state.sizeHeight = parseInt(await VRCXStorage.Get('VRCX_SizeHeight'), 10);
+        state.windowState = await VRCXStorage.Get('VRCX_WindowState');
+
+        maxTableSize.value = await configRepository.getInt(
+            'VRCX_maxTableSize_v2',
+            DEFAULT_MAX_TABLE_SIZE
+        );
+        database.setMaxTableSize(maxTableSize.value);
+
+        searchLimit.value = await configRepository.getInt(
+            'VRCX_searchLimit',
+            DEFAULT_SEARCH_LIMIT
+        );
+        if (searchLimit.value < SEARCH_LIMIT_MIN) {
+            searchLimit.value = SEARCH_LIMIT_MIN;
+        }
+        if (searchLimit.value > SEARCH_LIMIT_MAX) {
+            searchLimit.value = SEARCH_LIMIT_MAX;
+        }
+        database.setSearchTableSize(searchLimit.value);
+
+        refreshCustomScript();
+        databaseReadyForAutoLogin.value = true;
     }
 
     resetSearchIndexOnLogin();
     init();
 
-    /**
-     *
-     */
     async function updateDatabaseVersion() {
-        // requires dbVars.userPrefix to be already set
         const databaseVersion = 16;
         if (state.databaseVersion < databaseVersion) {
             databaseUpgradeState.value = {
                 visible: state.databaseVersion > 0,
+                phase: 'running',
                 fromVersion: state.databaseVersion,
                 toVersion: databaseVersion
             };
@@ -193,7 +194,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
                 await database.fixCancelFriendRequestTypo(); // fix CancelFriendRequst typo
                 await database.fixBrokenGameLogDisplayNames(); // fix gameLog display names "DisplayName (userId)"
                 await database.upgradeDatabaseVersion(); // update database version
-                await database.vacuum(); // succ
+                await database.vacuum();
                 await database.optimize();
                 await configRepository.setInt(
                     'VRCX_databaseVersion',
@@ -217,6 +218,42 @@ export const useVrcxStore = defineStore('Vrcx', () => {
             }
         }
         return true;
+    }
+
+
+
+    async function confirmLegacyMigration() {
+        databaseUpgradeState.value.phase = 'restarting';
+        try {
+            const willRestart = await AppApi.RequestLegacyMigration();
+            if (willRestart) {
+                return;
+            }
+
+            databaseUpgradeState.value = {
+                visible: true,
+                phase: 'confirm',
+                fromVersion: 0,
+                toVersion: 0
+            };
+        } catch (err) {
+            console.error('Legacy migration request failed:', err);
+            databaseUpgradeState.value.visible = false;
+            try {
+                await runFullInit();
+            } finally {
+                resolveDatabaseInit();
+            }
+        }
+    }
+
+    async function skipLegacyMigration() {
+        databaseUpgradeState.value.visible = false;
+        try {
+            await runFullInit();
+        } finally {
+            resolveDatabaseInit();
+        }
     }
 
     async function waitForDatabaseInit() {
@@ -778,6 +815,8 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         ipcEvent,
         backupVrcRegistry,
         updateDatabaseVersion,
+        confirmLegacyMigration,
+        skipLegacyMigration,
         waitForDatabaseInit
     };
 });
