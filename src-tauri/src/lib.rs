@@ -3,9 +3,50 @@ mod domain;
 mod error;
 mod state;
 
+use std::borrow::Cow;
+
+use tauri::http::{header::CONTENT_TYPE, Request, Response, StatusCode};
 use tauri::Manager;
 
 use state::AppState;
+
+fn screenshot_protocol_response(request: Request<Vec<u8>>) -> Response<Cow<'static, [u8]>> {
+    let path = match percent_encoding::percent_decode_str(&request.uri().path()[1..])
+        .decode_utf8()
+    {
+        Ok(path) => path.into_owned(),
+        Err(_) => {
+            return Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .body(Vec::new().into())
+                .unwrap();
+        }
+    };
+
+    let path_buf = std::path::PathBuf::from(&path);
+    let is_png = path_buf
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("png"));
+
+    if !is_png || !path_buf.is_file() {
+        return Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .body(Vec::new().into())
+            .unwrap();
+    }
+
+    match std::fs::read(&path_buf) {
+        Ok(bytes) => Response::builder()
+            .header(CONTENT_TYPE, "image/png")
+            .body(bytes.into())
+            .unwrap(),
+        Err(_) => Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .body(Vec::new().into())
+            .unwrap(),
+    }
+}
 
 pub fn run() {
     tracing_subscriber::fmt()
@@ -20,6 +61,14 @@ pub fn run() {
     app_state.update_manager.check_and_install_update();
 
     tauri::Builder::default()
+        .register_asynchronous_uri_scheme_protocol(
+            "vrcx-img",
+            |_ctx, request, responder| {
+                tauri::async_runtime::spawn_blocking(move || {
+                    responder.respond(screenshot_protocol_response(request));
+                });
+            },
+        )
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())

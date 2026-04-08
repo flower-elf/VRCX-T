@@ -5881,6 +5881,7 @@ dependencies = [
  "hex",
  "image",
  "open",
+ "percent-encoding",
  "quick-xml 0.37.5",
  "reqwest",
  "reqwest_cookie_store",

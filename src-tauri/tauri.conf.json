@@ -11,6 +11,11 @@
   },
   "app": {
     "withGlobalTauri": true,
+    "security": {
+      "csp": {
+        "img-src": ["'self'", "vrcx-img:", "http://vrcx-img.localhost", "data:", "blob:"]
+      }
+    },
     "windows": [
       {
         "title": "VRCX-0",

@@ -254,7 +254,7 @@
 
 <script setup>
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-    import { invoke } from '@tauri-apps/api/core';
+    import { convertFileSrc, invoke } from '@tauri-apps/api/core';
     import { useMagicKeys, whenever } from '@vueuse/core';
     import { onMounted, onUnmounted, reactive, ref, computed } from 'vue';
     import { useGalleryStore, useUserStore, useVrcxStore } from '@/stores';
@@ -269,7 +269,6 @@
         formatDateFilter,
         parseVrchatScreenshotDateFromFileName
     } from '@/shared/utils';
-    import { bytesToObjectUrl } from '@/shared/utils/binary';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
@@ -278,29 +277,14 @@
     import { lookupUser } from '@/coordinators/userCoordinator';
 
     const screenshotImageUrl = ref('');
-    let _prevBlobUrl = '';
+    let screenshotImageVersion = 0;
 
-    async function loadScreenshotImage(filePath) {
-        if (_prevBlobUrl) {
-            URL.revokeObjectURL(_prevBlobUrl);
-            _prevBlobUrl = '';
-        }
-        screenshotImageUrl.value = '';
-        if (!filePath) return;
-        try {
-            const bytes = await invoke('app__get_file_bytes', { path: filePath });
-            if (!bytes?.length) return;
-            const url = bytesToObjectUrl(new Uint8Array(bytes), 'image/png');
-            _prevBlobUrl = url;
-            screenshotImageUrl.value = url;
-        } catch (e) {
-            console.error('Failed to load screenshot image:', e);
-        }
+    function loadScreenshotImage(filePath) {
+        screenshotImageVersion += 1;
+        screenshotImageUrl.value = filePath
+            ? `${convertFileSrc(filePath, 'vrcx-img')}?v=${screenshotImageVersion}`
+            : '';
     }
-
-    onUnmounted(() => {
-        if (_prevBlobUrl) URL.revokeObjectURL(_prevBlobUrl);
-    });
 
     const router = useRouter();
     const { t } = useI18n();
@@ -773,7 +757,7 @@
             D.metadata.dateTime = Date.parse(metadata.creationDate);
         }
 
-        await loadScreenshotImage(D.metadata.filePath);
+        loadScreenshotImage(D.metadata.filePath);
 
         if (fullscreenImageDialog.value.visible) {
             showFullscreenImageDialog(screenshotImageUrl.value);

@@ -4,7 +4,7 @@ version = "2026.4.7"
 edition = "2021"
 
 [dependencies]
-tauri = { version = "2", features = ["tray-icon", "image-ico"] }
+tauri = { version = "2", features = [ "tray-icon", "image-ico"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
@@ -33,6 +33,7 @@ futures-util = "0.3"
 quick-xml = "0.37"
 walkdir = "2"
 tauri-plugin-window-state = "2.4.1"
+percent-encoding = "2.3.1"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59", features = [

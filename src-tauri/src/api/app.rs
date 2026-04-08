@@ -939,24 +939,26 @@ pub fn app__get_extra_screenshot_data(
         .unwrap_or_default();
     result.insert("fileName".into(), serde_json::json!(file_name));
 
-    if let Some(parent) = p.parent() {
-        if let Ok(entries) = std::fs::read_dir(parent) {
-            let mut pngs: Vec<String> = entries
-                .filter_map(|e| e.ok())
-                .filter(|e| {
-                    e.path()
-                        .extension()
-                        .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
-                })
-                .map(|e| e.path().to_string_lossy().into_owned())
-                .collect();
-            pngs.sort();
-            if let Some(idx) = pngs.iter().position(|f| f == &path) {
-                if idx > 0 {
-                    result.insert("previousFilePath".into(), serde_json::json!(pngs[idx - 1]));
-                }
-                if idx + 1 < pngs.len() {
-                    result.insert("nextFilePath".into(), serde_json::json!(pngs[idx + 1]));
+    if _carousel_cache {
+        if let Some(parent) = p.parent() {
+            if let Ok(entries) = std::fs::read_dir(parent) {
+                let mut pngs: Vec<String> = entries
+                    .filter_map(|e| e.ok())
+                    .filter(|e| {
+                        e.path()
+                            .extension()
+                            .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
+                    })
+                    .map(|e| e.path().to_string_lossy().into_owned())
+                    .collect();
+                pngs.sort();
+                if let Some(idx) = pngs.iter().position(|f| f == &path) {
+                    if idx > 0 {
+                        result.insert("previousFilePath".into(), serde_json::json!(pngs[idx - 1]));
+                    }
+                    if idx + 1 < pngs.len() {
+                        result.insert("nextFilePath".into(), serde_json::json!(pngs[idx + 1]));
+                    }
                 }
             }
         }
