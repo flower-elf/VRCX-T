@@ -48,6 +48,7 @@ import { resetSearchIndexOnLogin } from '../coordinators/searchIndexCoordinator'
 import { watchState } from '../services/watchState';
 
 import configRepository from '../services/config';
+import * as workerTimers from 'worker-timers';
 
 const SCREENSHOT_METADATA_FALLBACK_LOCATION_MAX_AGE_MS = 15 * 60 * 1000;
 
@@ -63,10 +64,10 @@ export const useVrcxStore = defineStore('Vrcx', () => {
     const searchStore = useSearchStore();
     const avatarProviderStore = useAvatarProviderStore();
     const gameLogStore = useGameLogStore();
-    const updateLoopStore = useUpdateLoopStore();
     const vrcStatusStore = useVrcStatusStore();
     const { t } = useI18n();
     const modalStore = useModalStore();
+    let ipcTimeoutId = null;
 
     const state = reactive({
         databaseVersion: 0,
@@ -279,6 +280,26 @@ export const useVrcxStore = defineStore('Vrcx', () => {
      */
     function setIpcEnabled(value) {
         ipcEnabled.value = value;
+    }
+
+    function clearIpcTimeout() {
+        if (ipcTimeoutId !== null) {
+            workerTimers.clearTimeout(ipcTimeoutId);
+            ipcTimeoutId = null;
+        }
+    }
+
+    function resetIpcState() {
+        clearIpcTimeout();
+        ipcEnabled.value = false;
+    }
+
+    function scheduleIpcTimeout(timeoutMs = 60000) {
+        clearIpcTimeout();
+        ipcTimeoutId = workerTimers.setTimeout(() => {
+            ipcTimeoutId = null;
+            ipcEnabled.value = false;
+        }, timeoutMs);
     }
 
     /**
@@ -630,7 +651,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
                     photonStore.setPhotonLoggingEnabled();
                 }
                 ipcEnabled.value = true;
-                updateLoopStore.setIpcTimeout(60); // 30 seconds
+                scheduleIpcTimeout();
                 break;
             case 'MsgPing':
                 if (AppDebug.debugIPC) {
@@ -653,6 +674,9 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         () => watchState.isLoggedIn,
         (isLoggedIn) => {
             isRegistryBackupDialogVisible.value = false;
+            if (!isLoggedIn) {
+                resetIpcState();
+            }
         },
         { flush: 'sync' }
     );
@@ -902,6 +926,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         proxyServer,
         setProxyServer,
         setIpcEnabled,
+        resetIpcState,
         setClearVRCXCacheFrequency,
         setMaxTableSize,
         setSearchLimit,

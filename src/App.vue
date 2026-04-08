@@ -46,7 +46,7 @@
 
     if (typeof window !== 'undefined') {
         window.$pinia = store;
-        // Register C# backend push event handlers
+        // Register backend push event handlers
         onBackendEvent('addGameLogEvent', (json) => addGameLogEvent(json));
         onBackendEvent('updateIsGameRunning', (data) =>
             runUpdateIsGameRunningFlow(data.isGameRunning, data.isSteamVRRunning)
