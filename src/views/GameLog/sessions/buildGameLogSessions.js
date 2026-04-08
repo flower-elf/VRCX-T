@@ -14,7 +14,25 @@ function findSegmentIndex(eventEpoch, segmentsAsc) {
     for (let i = segmentsAsc.length - 1; i >= 0; i--) {
         if (segmentsAsc[i].epoch <= target) return i;
     }
-    return 0;
+    return -1;
+}
+
+function findMatchingSegmentIndex(event, segmentsAsc, locationMap) {
+    const eventEpoch = toEpoch(event.created_at);
+    const target = eventEpoch + TOLERANCE_MS;
+    const candidates = event.location ? locationMap.get(event.location) : null;
+
+    if (candidates && candidates.length > 0) {
+        for (let j = candidates.length - 1; j >= 0; j--) {
+            const idx = candidates[j];
+            if (segmentsAsc[idx].epoch <= target) {
+                return idx;
+            }
+        }
+        return -1;
+    }
+
+    return findSegmentIndex(eventEpoch, segmentsAsc);
 }
 
 function toMember(e) {
@@ -160,27 +178,14 @@ export function buildGameLogSessions(locationSegments, flatEvents) {
 
     if (dedupedEvents && dedupedEvents.length > 0) {
         for (const event of dedupedEvents) {
-            const eventEpoch = toEpoch(event.created_at);
-            const candidates = event.location
-                ? locationMap.get(event.location)
-                : null;
-            let idx;
+            const idx = findMatchingSegmentIndex(
+                event,
+                segmentsAsc,
+                locationMap
+            );
 
-            if (candidates && candidates.length > 0) {
-                idx = candidates[0];
-                if (candidates.length > 1) {
-                    for (let j = candidates.length - 1; j >= 0; j--) {
-                        if (
-                            segmentsAsc[candidates[j]].epoch <=
-                            eventEpoch + TOLERANCE_MS
-                        ) {
-                            idx = candidates[j];
-                            break;
-                        }
-                    }
-                }
-            } else {
-                idx = findSegmentIndex(eventEpoch, segmentsAsc);
+            if (idx === -1) {
+                continue;
             }
 
             segmentsAsc[idx].events.push({ ...event });

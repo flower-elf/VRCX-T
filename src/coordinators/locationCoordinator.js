@@ -103,11 +103,15 @@ export async function runSetCurrentUserLocationFlow(
     if (isRealInstance(location)) {
         const dt = new Date().toJSON();
         const L = parseLocation(location);
+        const worldName = await getWorldName(L.worldId);
+        const groupName = await getGroupName(L.groupId);
 
         locationStore.setLastLocation({
-            ...locationStore.lastLocation,
+            date: Date.now(),
             location,
-            date: Date.now()
+            name: worldName,
+            playerList: new Map(),
+            friendList: new Map()
         });
 
         const entry = {
@@ -115,8 +119,8 @@ export async function runSetCurrentUserLocationFlow(
             type: 'Location',
             location,
             worldId: L.worldId,
-            worldName: await getWorldName(L.worldId),
-            groupName: await getGroupName(L.groupId),
+            worldName,
+            groupName,
             time: 0
         };
         database.addGamelogLocationToDatabase(entry);
@@ -129,9 +133,11 @@ export async function runSetCurrentUserLocationFlow(
         instanceStore.applyGroupDialogInstances();
     } else {
         locationStore.setLastLocation({
-            ...locationStore.lastLocation,
+            name: '',
             location: '',
-            date: null
+            date: null,
+            playerList: new Map(),
+            friendList: new Map()
         });
     }
 }
