@@ -296,10 +296,12 @@ const gameLog = {
         await sqliteService.execute(
             (row) => {
                 if (typeof row[0] === 'number') {
-                    ref.timeSpent += row[0];
+                    ref.timeSpent = row[0];
                 }
             },
-            `SELECT time FROM gamelog_location WHERE world_id = @worldId`,
+            `SELECT COALESCE(SUM(time), 0)
+             FROM gamelog_location
+             WHERE world_id = @worldId`,
             {
                 '@worldId': worldId
             }
@@ -423,10 +425,13 @@ const gameLog = {
         await sqliteService.execute(
             (row) => {
                 if (typeof row[0] === 'number') {
-                    ref.timeSpent += row[0];
+                    ref.timeSpent = row[0];
                 }
             },
-            `SELECT time FROM gamelog_join_leave WHERE (type = 'OnPlayerLeft') AND (user_id = @userId OR display_name = @displayName)`,
+            `SELECT COALESCE(SUM(time), 0)
+             FROM gamelog_join_leave
+             WHERE type = 'OnPlayerLeft'
+               AND (user_id = @userId OR display_name = @displayName)`,
             {
                 '@userId': input.id,
                 '@displayName': input.displayName
@@ -436,8 +441,6 @@ const gameLog = {
     },
 
     async getUserStats(input, inCurrentWorld) {
-        var i = 0;
-        var instances = new Set();
         var ref = {
             timeSpent: 0,
             lastSeen: '',
@@ -445,28 +448,61 @@ const gameLog = {
             userId: input.id,
             previousDisplayNames: new Map()
         };
+        const count = inCurrentWorld ? 2 : 1;
         await sqliteService.execute(
             (row) => {
-                if (typeof row[2] === 'number') {
-                    ref.timeSpent += row[2];
-                }
-                i++;
-                if (i === 1 || (inCurrentWorld && i === 2)) {
+                if (row[0]) {
                     ref.lastSeen = row[0];
                 }
-                instances.add(row[3]);
-                if (input.displayName !== row[4]) {
-                    ref.previousDisplayNames.set(row[4], row[0]);
+            },
+            `SELECT created_at
+             FROM gamelog_join_leave
+             WHERE user_id = @userId OR display_name = @displayName
+             ORDER BY id DESC
+             LIMIT @count`,
+            {
+                '@userId': input.id,
+                '@displayName': input.displayName,
+                '@count': count
+            }
+        );
+        await sqliteService.execute(
+            (row) => {
+                if (typeof row[0] === 'number') {
+                    ref.timeSpent = row[0];
+                }
+                if (typeof row[1] === 'number') {
+                    ref.joinCount = row[1];
                 }
             },
-            `SELECT created_at, user_id, time, location, display_name FROM gamelog_join_leave WHERE user_id = @userId OR display_name = @displayName ORDER BY id DESC`,
+            `SELECT
+                COALESCE(SUM(CASE WHEN type = 'OnPlayerLeft' THEN time ELSE 0 END), 0),
+                COUNT(DISTINCT NULLIF(location, ''))
+             FROM gamelog_join_leave
+             WHERE user_id = @userId OR display_name = @displayName`,
             {
                 '@userId': input.id,
                 '@displayName': input.displayName
             }
         );
-        instances.delete('');
-        ref.joinCount = instances.size;
+        await sqliteService.execute(
+            (row) => {
+                if (row[0] && row[1] && input.displayName !== row[0]) {
+                    ref.previousDisplayNames.set(row[0], row[1]);
+                }
+            },
+            `SELECT display_name, MAX(created_at)
+             FROM gamelog_join_leave
+             WHERE user_id = @userId
+               AND display_name != ''
+               AND display_name != @displayName
+             GROUP BY display_name
+             ORDER BY MAX(created_at) DESC`,
+            {
+                '@userId': input.id,
+                '@displayName': input.displayName
+            }
+        );
         return ref;
     },
 
