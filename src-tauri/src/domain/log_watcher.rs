@@ -143,10 +143,6 @@ fn update(
 
         let ctx = contexts.entry(name.clone()).or_insert_with(LogContext::new);
 
-        if ctx.length == meta.len() {
-            continue;
-        }
-        ctx.length = meta.len();
 
         parse_log(
             inner,
@@ -1409,7 +1405,6 @@ fn parse_udon_exception(
 
 struct LogContext {
     position: u64,
-    length: u64,
     recent_world_name: String,
     location_destination: String,
     video_errors: HashSet<String>,
@@ -1422,7 +1417,6 @@ impl LogContext {
     fn new() -> Self {
         Self {
             position: 0,
-            length: 0,
             recent_world_name: String::new(),
             location_destination: String::new(),
             video_errors: HashSet::with_capacity(50),
