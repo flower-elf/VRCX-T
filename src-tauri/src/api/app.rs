@@ -380,6 +380,54 @@ pub async fn app__open_folder_selector_dialog(
 }
 
 #[tauri::command]
+pub async fn app__save_vrc_reg_json_file(
+    app_handle: AppHandle,
+    default_path: Option<String>,
+    default_name: String,
+    json: String,
+) -> Result<String, AppError> {
+    use tauri_plugin_dialog::DialogExt;
+
+    let mut builder = app_handle.dialog().file();
+
+    if let Some(ref path) = default_path {
+        let p = PathBuf::from(path);
+        if p.is_dir() {
+            builder = builder.set_directory(p);
+        } else if let Some(parent) = p.parent() {
+            if parent.is_dir() {
+                builder = builder.set_directory(parent);
+            }
+        }
+    }
+
+    if !default_name.trim().is_empty() {
+        builder = builder.set_file_name(&default_name);
+    }
+
+    builder = builder.add_filter("JSON Files", &["json"]);
+
+    let result = builder.blocking_save_file();
+
+    match result {
+        Some(file_path) => {
+            let path = match file_path {
+                tauri_plugin_dialog::FilePath::Path(p) => p,
+                other => PathBuf::from(other.to_string()),
+            };
+
+            if let Some(parent) = path.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+
+            std::fs::write(&path, json)?;
+            Ok(path.to_string_lossy().to_string())
+        }
+        None => Ok(String::new()),
+    }
+}
+
+#[tauri::command]
 pub fn app__quit_game() -> Result<i32, AppError> {
     use sysinfo::System;
     let mut sys = System::new();

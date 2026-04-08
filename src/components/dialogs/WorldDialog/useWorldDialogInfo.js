@@ -94,6 +94,21 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
     });
 
     const worldDialogPlatformCreatedAt = computed(() => {
+        const fileAnalysis = worldDialog.value.fileAnalysis || {};
+        const fileAnalysisPlatforms = Object.entries(fileAnalysis);
+        if (fileAnalysisPlatforms.length > 0) {
+            const newest = {};
+            for (const [platform, analysis] of fileAnalysisPlatforms) {
+                if (!analysis?.created_at) {
+                    continue;
+                }
+                newest[platform] = analysis.created_at;
+            }
+            if (Object.keys(newest).length > 0) {
+                return newest;
+            }
+        }
+
         const { ref } = worldDialog.value;
         if (!ref.unityPackages) {
             return null;
@@ -117,6 +132,19 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
             }
         }
         return newest;
+    });
+
+    const worldDialogLastUpdatedAt = computed(() => {
+        const platformDates = worldDialogPlatformCreatedAt.value;
+        if (platformDates && Object.keys(platformDates).length > 0) {
+            return Object.values(platformDates).reduce((latest, current) => {
+                if (!latest) {
+                    return current;
+                }
+                return new Date(current) > new Date(latest) ? current : latest;
+            }, '');
+        }
+        return worldDialog.value.ref.updated_at;
     });
 
     /**
@@ -190,6 +218,7 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
         timeSpent,
         worldDialogPlatform,
         worldDialogPlatformCreatedAt,
+        worldDialogLastUpdatedAt,
         onWorldMemoChange,
         copyWorldId,
         copyWorldUrl,
