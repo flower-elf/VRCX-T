@@ -27,6 +27,8 @@ export const useWorldStore = defineStore('World', () => {
         lastVisit: '',
         visitCount: 0,
         timeSpent: 0,
+        worldStatsLoaded: false,
+        worldStatsLoading: false,
         isPC: false,
         isQuest: false,
         isIos: false,

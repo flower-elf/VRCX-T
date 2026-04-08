@@ -1,11 +1,13 @@
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import {
     commaNumber,
     compareUnityVersion,
     formatDateFilter,
+    parseLocation,
     timeToText
 } from '../../../shared/utils';
 import { database } from '../../../services/database';
+import { useLocationStore } from '../../../stores';
 
 /**
  * Composable for WorldDialogInfoTab computed properties and actions.
@@ -17,6 +19,8 @@ import { database } from '../../../services/database';
  * @returns {object} info composable API
  */
 export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
+    const locationStore = useLocationStore();
+
     const memo = computed({
         get() {
             return worldDialog.value.memo;
@@ -146,6 +150,59 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
         }
         return worldDialog.value.ref.updated_at;
     });
+
+    async function ensureWorldStatsLoaded() {
+        const dialog = worldDialog.value;
+        if (
+            !dialog.visible ||
+            dialog.activeTab !== 'Info' ||
+            !dialog.id ||
+            dialog.worldStatsLoaded ||
+            dialog.worldStatsLoading
+        ) {
+            return;
+        }
+
+        dialog.worldStatsLoading = true;
+        const worldId = dialog.id;
+        const currentWorldMatch =
+            parseLocation(locationStore.lastLocation.location).worldId === worldId;
+
+        try {
+            const [lastVisit, visitCount, timeSpent] = await Promise.all([
+                database.getLastVisit(worldId, currentWorldMatch),
+                database.getVisitCount(worldId),
+                database.getTimeSpentInWorld(worldId)
+            ]);
+
+            if (worldDialog.value.id !== worldId) {
+                return;
+            }
+
+            if (lastVisit.worldId === worldId) {
+                dialog.lastVisit = lastVisit.created_at;
+            }
+            if (visitCount.worldId === worldId) {
+                dialog.visitCount = visitCount.visitCount;
+            }
+            if (timeSpent.worldId === worldId) {
+                dialog.timeSpent = timeSpent.timeSpent;
+            }
+            dialog.worldStatsLoaded = true;
+        } finally {
+            if (worldDialog.value.id === worldId) {
+                dialog.worldStatsLoading = false;
+            }
+        }
+    }
+
+    watch(
+        () => [worldDialog.value.visible, worldDialog.value.activeTab, worldDialog.value.id],
+        () => {
+            ensureWorldStatsLoaded();
+        },
+        { immediate: true }
+    );
 
     /**
      *
