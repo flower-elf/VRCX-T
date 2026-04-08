@@ -147,11 +147,6 @@
                     @update:modelValue="toggleAccessibleStatusIndicators" />
             </SettingsItem>
 
-            <SettingsItem
-                :label="t('view.settings.appearance.appearance.use_official_status_colors')"
-                :description="t('view.settings.appearance.appearance.use_official_status_colors_description')">
-                <Switch :model-value="useOfficialStatusColors" @update:modelValue="toggleOfficialStatusColors" />
-            </SettingsItem>
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.interface.navigation.header')">
@@ -446,7 +441,6 @@
         isDataTableStriped,
         showPointerOnHover,
         accessibleStatusIndicators,
-        useOfficialStatusColors,
         showNewDashboardButton
     } = storeToRefs(appearanceSettingsStore);
 
@@ -472,7 +466,6 @@
         toggleStripedDataTable,
         togglePointerOnHover,
         toggleAccessibleStatusIndicators,
-        toggleOfficialStatusColors,
         setShowNewDashboardButton,
         setAppFontFamily,
         setCustomFontFamily,

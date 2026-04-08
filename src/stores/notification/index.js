@@ -794,6 +794,7 @@ export const useNotificationStore = defineStore('Notification', () => {
         } finally {
             isNotificationsLoading.value = false;
             notificationInitStatus.value = true;
+            uiStore.updateTrayIconNotify(true);
         }
     }
 
@@ -1182,6 +1183,10 @@ export const useNotificationStore = defineStore('Notification', () => {
         );
         tableData.splice(dbVars.maxTableSize);
         notificationTable.value.data = tableData;
+        unseenNotifications.value = tableData
+            .filter((n) => n.seen === false && !n.$isExpired && !n.expiresAt)
+            .map((n) => n.id);
+        uiStore.updateTrayIconNotify(true);
         refreshNotifications();
     }
 

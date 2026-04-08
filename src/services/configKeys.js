@@ -56,7 +56,6 @@ export const ConfigKeys = {
     dataTableStriped: { type: 'bool', default: false },
     tableDensity: { type: 'string', default: null },
     tablePageSize: { type: 'int', default: null },
-    useOfficialStatusColors: { type: 'bool', default: false },
     randomUserColours: { type: 'bool', default: false },
 
     // ── Settings - Advanced ──────────────────────────

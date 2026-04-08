@@ -15,6 +15,9 @@ use crate::domain::screenshot::{self, SearchType};
 use crate::error::AppError;
 use crate::state::AppState;
 
+const TRAY_ICON_DEFAULT: &[u8] = include_bytes!("../../icons/icon.png");
+const TRAY_ICON_NOTIFY: &[u8] = include_bytes!("../../icons/icon_notify.png");
+
 #[tauri::command]
 pub fn app__check_game_running(
     app_handle: AppHandle,
@@ -545,19 +548,10 @@ pub fn app__do_funny() {}
 pub fn app__set_tray_icon_notification(app_handle: AppHandle, notify: Option<bool>) {
     let notify = notify.unwrap_or(false);
     if let Some(tray) = app_handle.tray_by_id("main") {
-        let icon_path = if notify {
-            "icons/icon_notify.png"
+        let icon_result = tauri::image::Image::from_bytes(if notify {
+            TRAY_ICON_NOTIFY
         } else {
-            "icons/icon.png"
-        };
-        let icon_result = tauri::image::Image::from_path(icon_path).or_else(|_| {
-            let base = std::env::current_exe()
-                .ok()
-                .and_then(|p| p.parent().map(|d| d.to_path_buf()));
-            match base {
-                Some(dir) => tauri::image::Image::from_path(dir.join(icon_path)),
-                None => Err(tauri::Error::AssetNotFound(icon_path.into())),
-            }
+            TRAY_ICON_DEFAULT
         });
         if let Ok(icon) = icon_result {
             let _ = tray.set_icon(Some(icon));
