@@ -10,7 +10,11 @@ import {
     SEARCH_LIMIT_MIN
 } from '../shared/constants';
 import { avatarRequest, queryRequest } from '../api';
-import { debounce, parseLocation } from '../shared/utils';
+import {
+    debounce,
+    parseLocation,
+    parseVrchatScreenshotDateFromFileName
+} from '../shared/utils';
 import { AppDebug } from '../services/appConfig';
 import { database } from '../services/database';
 import { refreshCustomScript } from '../shared/utils/base/ui';
@@ -44,6 +48,8 @@ import { resetSearchIndexOnLogin } from '../coordinators/searchIndexCoordinator'
 import { watchState } from '../services/watchState';
 
 import configRepository from '../services/config';
+
+const SCREENSHOT_METADATA_FALLBACK_LOCATION_MAX_AGE_MS = 15 * 60 * 1000;
 
 export const useVrcxStore = defineStore('Vrcx', () => {
     const gameStore = useGameStore();
@@ -367,58 +373,158 @@ export const useVrcxStore = defineStore('Vrcx', () => {
     /**
      *
      * @param path
+     * @param {{ copyToClipboard?: boolean, metadataContext?: { location: string, worldName: string, players: Array<{ userId: string, displayName: string }> }, screenshotDateTime?: string }} [options]
      */
-    async function processScreenshot(path) {
+    async function processScreenshot(path, options = {}) {
         let newPath = path;
+        const shouldCopyToClipboard =
+            options.copyToClipboard !== false &&
+            advancedSettingsStore.screenshotHelperCopyToClipboard;
         if (advancedSettingsStore.screenshotHelper) {
-            const location = parseLocation(locationStore.lastLocation.location);
-            const metadata = {
-                application: 'VRCX',
-                version: 1,
-                author: {
-                    id: userStore.currentUser.id,
-                    displayName: userStore.currentUser.displayName
-                },
-                world: {
-                    name: locationStore.lastLocation.name,
-                    id: location.worldId,
-                    instanceId: locationStore.lastLocation.location
-                },
-                players: []
-            };
-            for (const user of locationStore.lastLocation.playerList.values()) {
-                metadata.players.push({
-                    id: user.userId,
-                    displayName: user.displayName
-                });
-            }
-            try {
-                newPath = await AppApi.AddScreenshotMetadata(
+            const screenshotContext =
+                (options.metadataContext?.location
+                    ? options.metadataContext
+                    : null) ??
+                (await resolveScreenshotMetadataContext(
                     path,
-                    JSON.stringify(metadata),
-                    location.worldId,
-                    advancedSettingsStore.screenshotHelperModifyFilename
-                );
-            } catch (e) {
-                console.error('Failed to add screenshot metadata', e);
-                if (e.message?.includes('UnauthorizedAccessException')) {
-                    toast.error(
-                        'Failed to add screenshot metadata, access denied. Make sure VRCX has permission to access the screenshot folder.',
-                        { duration: 10000 }
-                    );
+                    options.screenshotDateTime
+                ));
+            if (screenshotContext?.location) {
+                const location = parseLocation(screenshotContext.location);
+                const metadata = {
+                    application: 'VRCX',
+                    version: 1,
+                    author: {
+                        id: userStore.currentUser.id,
+                        displayName: userStore.currentUser.displayName
+                    },
+                    world: {
+                        name: screenshotContext.worldName,
+                        id: location.worldId,
+                        instanceId: screenshotContext.location
+                    },
+                    players: []
+                };
+                for (const user of screenshotContext.players) {
+                    metadata.players.push({
+                        id: user.userId,
+                        displayName: user.displayName
+                    });
                 }
-                return;
+                try {
+                    newPath = await AppApi.AddScreenshotMetadata(
+                        path,
+                        JSON.stringify(metadata),
+                        location.worldId,
+                        advancedSettingsStore.screenshotHelperModifyFilename
+                    );
+                } catch (e) {
+                    console.error('Failed to add screenshot metadata', e);
+                    if (e.message?.includes('UnauthorizedAccessException')) {
+                        toast.error(
+                            'Failed to add screenshot metadata, access denied. Make sure VRCX has permission to access the screenshot folder.',
+                            { duration: 10000 }
+                        );
+                    }
+                    return;
+                }
+                if (!newPath) {
+                    console.error('Failed to add screenshot metadata', path);
+                    return;
+                }
+                console.log('Screenshot metadata added', newPath);
             }
-            if (!newPath) {
-                console.error('Failed to add screenshot metadata', path);
-                return;
+        }
+        if (shouldCopyToClipboard) {
+            AppApi.CopyImageToClipboard(newPath)
+                .then(() => {
+                    console.log('Screenshot copied to clipboard', newPath);
+                })
+                .catch((e) => {
+                    console.error('Failed to copy screenshot to clipboard', e);
+                });
+        }
+    }
+
+    async function resolveScreenshotMetadataContext(path, screenshotDateTime) {
+        const screenshotTimestamp =
+            resolveScreenshotTimestampFromInput(path, screenshotDateTime) ??
+            (await resolveScreenshotTimestampFromFile(path));
+        if (screenshotTimestamp === null) {
+            return null;
+        }
+
+        const screenshotDateIso = new Date(screenshotTimestamp).toJSON();
+        const locationEntry = await database.getLocationBeforeOrAt(
+            screenshotDateIso
+        );
+        if (!locationEntry?.location) {
+            return null;
+        }
+        if (
+            screenshotTimestamp - Date.parse(locationEntry.created_at) >
+            SCREENSHOT_METADATA_FALLBACK_LOCATION_MAX_AGE_MS
+        ) {
+            return null;
+        }
+
+        const joinLeaveEntries = await database.getJoinLeaveEntriesForLocationRange(
+            locationEntry.location,
+            locationEntry.created_at,
+            screenshotDateIso
+        );
+
+        const players = [];
+        const playerMap = new Map();
+        for (const entry of joinLeaveEntries) {
+            const playerKey = entry.userId || `display:${entry.displayName}`;
+            if (entry.type === 'OnPlayerJoined') {
+                playerMap.set(playerKey, {
+                    userId: entry.userId,
+                    displayName: entry.displayName
+                });
+            } else if (entry.type === 'OnPlayerLeft') {
+                playerMap.delete(playerKey);
             }
-            console.log('Screenshot metadata added', newPath);
         }
-        if (advancedSettingsStore.screenshotHelperCopyToClipboard) {
-            await AppApi.CopyImageToClipboard(newPath);
-            console.log('Screenshot copied to clipboard', newPath);
+        playerMap.forEach((player) => {
+            players.push(player);
+        });
+
+        return {
+            location: locationEntry.location,
+            worldName: locationEntry.worldName,
+            players
+        };
+    }
+
+    function resolveScreenshotTimestampFromInput(path, screenshotDateTime) {
+        if (typeof screenshotDateTime === 'string' && screenshotDateTime) {
+            const timestamp = Date.parse(screenshotDateTime);
+            if (!Number.isNaN(timestamp)) {
+                return timestamp;
+            }
         }
+        return parseVrchatScreenshotDateFromFileName(getFileNameFromPath(path));
+    }
+
+    async function resolveScreenshotTimestampFromFile(path) {
+        try {
+            const extra = JSON.parse(await AppApi.GetExtraScreenshotData(path, false));
+            if (extra.creationDate) {
+                const timestamp = Date.parse(extra.creationDate);
+                if (!Number.isNaN(timestamp)) {
+                    return timestamp;
+                }
+            }
+        } catch (e) {
+            console.error('Failed to resolve screenshot timestamp', e);
+        }
+        return null;
+    }
+
+    function getFileNameFromPath(path) {
+        return String(path || '').split(/[/\\]/).pop() || '';
     }
 
     // use in C# side

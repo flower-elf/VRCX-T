@@ -265,7 +265,10 @@
     import { InputGroupSearch } from '@/components/ui/input-group';
     import { Kbd } from '@/components/ui/kbd';
 
-    import { formatDateFilter } from '@/shared/utils';
+    import {
+        formatDateFilter,
+        parseVrchatScreenshotDateFromFileName
+    } from '@/shared/utils';
     import { bytesToObjectUrl } from '@/shared/utils/binary';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
@@ -727,8 +730,6 @@
      * @returns {Promise<void>}
      */
     async function displayScreenshotMetadata(json, needsCarouselFiles = true) {
-        let time;
-        let date;
         const D = screenshotMetadataDialog;
         D.metadata.author = {};
         D.metadata.world = {};
@@ -759,19 +760,11 @@
 
         D.metadata = metadata;
 
-        const regex = metadata.fileName?.match(
-            /VRChat_((\d{3,})x(\d{3,})_(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})\.(\d{1,})|(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})\.(\d{3})_(\d{3,})x(\d{3,}))/
+        const fileNameTimestamp = parseVrchatScreenshotDateFromFileName(
+            metadata.fileName
         );
-        if (regex) {
-            if (typeof regex[2] !== 'undefined' && regex[4].length === 4) {
-                date = `${regex[4]}-${regex[5]}-${regex[6]}`;
-                time = `${regex[7]}:${regex[8]}:${regex[9]}`;
-                D.metadata.dateTime = Date.parse(`${date} ${time}`);
-            } else if (typeof regex[11] !== 'undefined' && regex[11].length === 4) {
-                date = `${regex[11]}-${regex[12]}-${regex[13]}`;
-                time = `${regex[14]}:${regex[15]}:${regex[16]}`;
-                D.metadata.dateTime = Date.parse(`${date} ${time}`);
-            }
+        if (fileNameTimestamp !== null) {
+            D.metadata.dateTime = fileNameTimestamp;
         }
         if (metadata.timestamp) {
             D.metadata.dateTime = Date.parse(metadata.timestamp);

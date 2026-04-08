@@ -120,6 +120,26 @@ pub fn write_vrcx_metadata(text: &str, path: &str) -> bool {
     pf.write_chunk(&chunk)
 }
 
+pub fn has_vrcx_metadata(path: &str) -> bool {
+    let mut pf = match png::PngFile::open_read(path) {
+        Ok(p) => p,
+        Err(_) => return false,
+    };
+    pf.get_chunks_of_type(&png::ChunkType::ITXT)
+        .into_iter()
+        .filter_map(|chunk| chunk.read_itxt())
+        .filter(|(keyword, _)| keyword == "Description")
+        .map(|(_, text)| text)
+        .any(|s| {
+            s.starts_with('{')
+                && s.ends_with('}')
+                && serde_json::from_str::<ScreenshotMetadata>(&s)
+                    .ok()
+                    .and_then(|metadata| metadata.application)
+                    .is_some_and(|application| application == "VRCX")
+        })
+}
+
 pub fn is_png_file(path: &str) -> bool {
     let mut f = match std::fs::File::open(path) {
         Ok(f) => f,

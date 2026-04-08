@@ -1316,6 +1316,56 @@ const gameLog = {
         return players;
     },
 
+    async getLocationBeforeOrAt(createdAt) {
+        let row = null;
+        await sqliteService.execute(
+            (dbRow) => {
+                row = {
+                    created_at: dbRow[0],
+                    location: dbRow[1],
+                    worldId: dbRow[2],
+                    worldName: dbRow[3],
+                    groupName: dbRow[4]
+                };
+            },
+            `SELECT created_at, location, world_id, world_name, group_name
+             FROM gamelog_location
+             WHERE created_at <= @createdAt
+             ORDER BY created_at DESC
+             LIMIT 1`,
+            {
+                '@createdAt': createdAt
+            }
+        );
+        return row;
+    },
+
+    async getJoinLeaveEntriesForLocationRange(location, afterDate, beforeDate) {
+        const entries = [];
+        await sqliteService.execute(
+            (dbRow) => {
+                entries.push({
+                    created_at: dbRow[0],
+                    type: dbRow[1],
+                    displayName: dbRow[2],
+                    userId: dbRow[3]
+                });
+            },
+            `SELECT created_at, type, display_name, user_id
+             FROM gamelog_join_leave
+             WHERE location = @location
+               AND created_at >= @afterDate
+               AND created_at <= @beforeDate
+             ORDER BY created_at ASC`,
+            {
+                '@location': location,
+                '@afterDate': afterDate,
+                '@beforeDate': beforeDate
+            }
+        );
+        return entries;
+    },
+
     /**
      * @param {string} location
      * @returns {Promise<Array<{created_at: string, display_name: string, user_id: string, time: number}>>}
