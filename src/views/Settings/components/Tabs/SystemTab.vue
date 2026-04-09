@@ -3,16 +3,16 @@
         <SettingsGroup :title="t('view.settings.general.general.header')">
             <div class="flex flex-col gap-0.5 px-1 py-1">
                 <div class="flex-1">
-                    <span class="block truncate font-medium text-sm leading-[18px]">{{
+                    <span class="block truncate font-medium text-sm leading-4.5">{{
                         t('view.settings.general.general.version')
                     }}</span>
                     <span class="block truncate text-xs text-muted-foreground" v-text="appVersion"></span>
                 </div>
             </div>
 
-            <div class="flex flex-col gap-0.5 px-1 py-1 cursor-pointer" @click="checkForVRCXUpdate">
+            <!-- <div class="flex flex-col gap-0.5 px-1 py-1 cursor-pointer" @click="checkForVRCXUpdate">
                 <div class="flex-1">
-                    <span class="block truncate font-medium text-sm leading-[18px]">{{
+                    <span class="block truncate font-medium text-sm leading-4.5">{{
                         t('view.settings.general.general.latest_app_version')
                     }}</span>
                     <span
@@ -23,11 +23,11 @@
                         t('view.settings.general.general.latest_app_version_refresh')
                     }}</span>
                 </div>
-            </div>
+            </div> -->
 
             <div class="flex flex-col gap-0.5 px-1 py-1 cursor-pointer" @click="openExternalLink(links.github)">
                 <div class="flex-1">
-                    <span class="block truncate font-medium text-sm leading-[18px]">{{
+                    <span class="block truncate font-medium text-sm leading-4.5">{{
                         t('view.settings.general.general.repository_url')
                     }}</span>
                     <span v-once class="block truncate text-xs text-muted-foreground">{{ links.github }}</span>
@@ -36,7 +36,7 @@
 
             <div class="flex flex-col gap-0.5 px-1 py-1 cursor-pointer" @click="openExternalLink(links.github + '/issues')">
                 <div class="flex-1">
-                    <span class="block truncate font-medium text-sm leading-[18px]">{{
+                    <span class="block truncate font-medium text-sm leading-4.5">{{
                         t('view.settings.general.general.support')
                     }}</span>
                     <span v-once class="block truncate text-xs text-muted-foreground">{{ links.github + '/issues' }}</span>
@@ -44,6 +44,7 @@
             </div>
         </SettingsGroup>
 
+        <!--
         <SettingsGroup :title="t('view.settings.general.vrcx_updater.header')">
             <div class="flex gap-2">
                 <Button size="sm" variant="outline" @click="showChangeLogDialog">{{
@@ -78,6 +79,7 @@
                 {{ t('view.settings.general.vrcx_updater.updater_disabled') }}
             </div>
         </SettingsGroup>
+        -->
 
         <SettingsGroup :title="t('view.settings.general.application.header')">
             <SettingsItem :label="t('view.settings.general.application.startup')">
@@ -124,13 +126,12 @@
 </template>
 
 <script setup>
-    import { computed, defineAsyncComponent, ref } from 'vue';
+    import { defineAsyncComponent, ref } from 'vue';
     import { Button } from '@/components/ui/button';
     import { Switch } from '@/components/ui/switch';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
 
-    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { useGeneralSettingsStore, useVRCXUpdaterStore } from '@/stores';
     import { links } from '@/shared/constants';
     import { openExternalLink } from '@/shared/utils';
@@ -158,8 +159,7 @@
         promptProxySettings
     } = generalSettingsStore;
 
-    const { appVersion, autoUpdateVRCX, latestAppVersion, noUpdater } = storeToRefs(vrcxUpdaterStore);
-    const { setAutoUpdateVRCX, checkForVRCXUpdate, showVRCXUpdateDialog, showChangeLogDialog } = vrcxUpdaterStore;
+    const { appVersion } = storeToRefs(vrcxUpdaterStore);
 
     const ossDialog = ref(false);
 

@@ -93,11 +93,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             if (shown) {
                 await markCurrentVersionAsSeen();
             } else if (isRecognizedStableReleaseVersion()) {
-                const result = await showChangeLogDialog({ prefetch: true });
-                checkedForUpdatesDuringAnnouncement = result.checkedForUpdates;
-                if (result.shown) {
-                    await markCurrentVersionAsSeen();
-                }
+                // ChangelogDialog 已停用，不再在启动流程中尝试打开。
             }
         } else {
             await syncCurrentVersionState();
@@ -230,13 +226,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
     }
 
     async function openChangeLogDialogOnly() {
-        changeLogDialog.value.visible = true;
-        if (
-            !changeLogDialog.value.buildName ||
-            !changeLogDialog.value.changeLog
-        ) {
-            await checkForVRCXUpdate();
-        }
+        return { shown: false, checkedForUpdates: true };
     }
     async function loadVrcxId() {
         if (!vrcxId.value) {
@@ -593,20 +583,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         }
     }
     async function showChangeLogDialog(options = {}) {
-        const { prefetch = false } = options;
-
-        if (prefetch) {
-            const loaded = await ensureChangeLogReady();
-            if (!loaded) {
-                return { shown: false, checkedForUpdates: true };
-            }
-            changeLogDialog.value.visible = true;
-            return { shown: true, checkedForUpdates: true };
-        }
-
-        changeLogDialog.value.visible = true;
-        void ensureChangeLogReady();
-        return { shown: true, checkedForUpdates: true };
+        return { shown: false, checkedForUpdates: true };
     }
 
     async function ensureChangeLogReady() {

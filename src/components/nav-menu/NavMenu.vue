@@ -133,7 +133,6 @@
             :is-applying-theme-color="isApplyingThemeColor"
             :theme-display-name="themeDisplayName"
             :theme-color-display-name="themeColorDisplayName"
-            @show-changelog="showChangeLogDialog"
             @support-link="handleSupportLink"
             @toggle-theme="handleThemeToggle"
             @show-vrcx-update-dialog="showVRCXUpdateDialog"
@@ -144,7 +143,8 @@
             @open-custom-nav="handleOpenCustomNavDialog"
             @logout-click="handleLogoutClick"
             @toggle-nav-collapse="toggleNavCollapse"
-            @open-github="openGithub" />
+            @open-github="openGithub"
+            @open-releases="openReleasePage" />
     </Sidebar>
 
     <CustomNavDialog
@@ -212,7 +212,7 @@
 
     const VRCXUpdaterStore = useVRCXUpdaterStore();
     const { pendingVRCXUpdate, pendingVRCXInstall, appVersion } = storeToRefs(VRCXUpdaterStore);
-    const { showVRCXUpdateDialog, showChangeLogDialog } = VRCXUpdaterStore;
+    const { showVRCXUpdateDialog } = VRCXUpdaterStore;
 
     const dashboardStore = useDashboardStore();
     const { dashboards } = storeToRefs(dashboardStore);
@@ -322,6 +322,10 @@
 
     const openGithub = () => {
         openExternalLink('https://github.com/Map1en/VRCX-0');
+    };
+
+    const openReleasePage = () => {
+        openExternalLink(links.releases);
     };
 
     const handleSupportLink = (id) => {
