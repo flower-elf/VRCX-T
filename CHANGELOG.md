@@ -4,13 +4,12 @@
 
 This is a personal fork of VRCX that I maintain independently after leaving the main project. Development will continue on this branch.
 
-- Significantly reduced size (around 1/10 of the original VRCX)
-- Significantly reduced memory usage
-- Support for custom installation paths
-- Compatible with VRCX database (can be used interchangeably)
-- Remove VROverlay support
-- Remove Linux and macOS support
-- These features may return in the future, but are currently not included due to development complexity
+- Significantly reduced size (around 1/10 of the original VRCX).
+- Significantly reduced memory usage.
+- Support for custom installation paths.
+- Automatically migrate database from VRCX- Remove VROverlay support.
+- Remove Linux and macOS support.
+- These features may return in the future, but are currently not included due to development complexity.
 
 ### Features (compared to VRCX 2026.02.11)
 

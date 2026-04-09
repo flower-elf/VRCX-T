@@ -511,19 +511,10 @@ pub fn app__flash_window(app_handle: AppHandle) -> Result<(), AppError> {
 
 #[tauri::command]
 pub fn app__show_dev_tools(app_handle: AppHandle) -> Result<(), AppError> {
-    #[cfg(debug_assertions)]
-    {
-        use tauri::Manager;
-        if let Some(window) = app_handle.get_webview_window("main") {
-            window.open_devtools();
-        }
+    use tauri::Manager;
+    if let Some(window) = app_handle.get_webview_window("main") {
+        window.open_devtools();
     }
-
-    #[cfg(not(debug_assertions))]
-    {
-        let _ = app_handle;
-    }
-
     Ok(())
 }
 
