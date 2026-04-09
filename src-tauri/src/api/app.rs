@@ -1298,24 +1298,35 @@ pub fn app__get_vrchat_registry_key(key: String) -> Result<serde_json::Value, Ap
         use winreg::enums::*;
         use winreg::RegKey;
 
-        let hashed_key = add_hash_to_key_name(&key);
         let hkcu = RegKey::predef(HKEY_CURRENT_USER);
         let vrc_key = match hkcu.open_subkey("SOFTWARE\\VRChat\\VRChat") {
             Ok(k) => k,
             Err(_) => return Ok(serde_json::Value::Null),
         };
 
+        let hashed_key = add_hash_to_key_name(&key);
         if let Ok(val) = vrc_key.get_raw_value(&hashed_key) {
             match val.vtype {
                 REG_BINARY => {
-                    let s = String::from_utf8_lossy(&val.bytes)
-                        .trim_end_matches('\0')
-                        .to_string();
+                    let s = ascii_decode(&val.bytes);
                     return Ok(serde_json::Value::String(s));
                 }
                 REG_DWORD => {
+                    if val.bytes.len() >= 8 {
+                        let float_value = f64::from_le_bytes([
+                            val.bytes[0],
+                            val.bytes[1],
+                            val.bytes[2],
+                            val.bytes[3],
+                            val.bytes[4],
+                            val.bytes[5],
+                            val.bytes[6],
+                            val.bytes[7],
+                        ]);
+                        return Ok(serde_json::json!(float_value));
+                    }
                     if val.bytes.len() >= 4 {
-                        let dword = u32::from_le_bytes([
+                        let dword = i32::from_le_bytes([
                             val.bytes[0],
                             val.bytes[1],
                             val.bytes[2],
@@ -1392,7 +1403,7 @@ pub fn app__set_vrchat_registry_key(
 
         match type_int {
             4 => {
-                let dword = value.as_u64().unwrap_or(0) as u32;
+                let dword = json_value_to_i32(&value, &key)?;
                 vrc_key
                     .set_raw_value(
                         &hashed_key,
@@ -1405,29 +1416,30 @@ pub fn app__set_vrchat_registry_key(
             }
 
             3 => {
-                let s = value.as_str().unwrap_or("");
-                let mut bytes: Vec<u8> = s.as_bytes().to_vec();
-                bytes.push(0);
+                let s = value
+                    .as_str()
+                    .ok_or_else(|| AppError::Custom(format!("registry value is not string: {key}")))?;
                 vrc_key
                     .set_raw_value(
                         &hashed_key,
                         &winreg::RegValue {
                             vtype: REG_BINARY,
-                            bytes: Cow::Owned(bytes),
+                            bytes: Cow::Owned(ascii_encode(s)),
                         },
                     )
                     .map_err(|e| AppError::Custom(format!("set binary: {e}")))?;
             }
 
             100 => {
-                let f = value.as_f64().unwrap_or(0.0);
-                let bits = (f as f32).to_bits();
+                let f = value
+                    .as_f64()
+                    .ok_or_else(|| AppError::Custom(format!("registry value is not float: {key}")))?;
                 vrc_key
                     .set_raw_value(
                         &hashed_key,
                         &winreg::RegValue {
                             vtype: REG_DWORD,
-                            bytes: Cow::Owned(bits.to_le_bytes().to_vec()),
+                            bytes: Cow::Owned(f.to_le_bytes().to_vec()),
                         },
                     )
                     .map_err(|e| AppError::Custom(format!("set float-as-dword: {e}")))?;
@@ -1463,30 +1475,44 @@ pub fn app__get_vrchat_registry(
         let mut result = HashMap::new();
         for name in vrc_key.enum_values().flatten().map(|(name, _)| name) {
             if let Ok(val) = vrc_key.get_raw_value(&name) {
+                let Some(key_name) = strip_hash_from_key_name(&name) else {
+                    continue;
+                };
                 let mut entry = HashMap::new();
                 match val.vtype {
                     REG_BINARY => {
-                        let s = String::from_utf8_lossy(&val.bytes)
-                            .trim_end_matches('\0')
-                            .to_string();
-                        entry.insert("type".to_string(), serde_json::json!("REG_BINARY"));
-                        entry.insert("value".to_string(), serde_json::json!(s));
+                        let s = ascii_decode(&val.bytes);
+                        entry.insert("type".to_string(), serde_json::json!(3));
+                        entry.insert("data".to_string(), serde_json::json!(s));
                     }
                     REG_DWORD => {
-                        if val.bytes.len() >= 4 {
-                            let dword = u32::from_le_bytes([
+                        if val.bytes.len() >= 8 {
+                            let float_value = f64::from_le_bytes([
+                                val.bytes[0],
+                                val.bytes[1],
+                                val.bytes[2],
+                                val.bytes[3],
+                                val.bytes[4],
+                                val.bytes[5],
+                                val.bytes[6],
+                                val.bytes[7],
+                            ]);
+                            entry.insert("type".to_string(), serde_json::json!(100));
+                            entry.insert("data".to_string(), serde_json::json!(float_value));
+                        } else if val.bytes.len() >= 4 {
+                            let dword = i32::from_le_bytes([
                                 val.bytes[0],
                                 val.bytes[1],
                                 val.bytes[2],
                                 val.bytes[3],
                             ]);
-                            entry.insert("type".to_string(), serde_json::json!("REG_DWORD"));
-                            entry.insert("value".to_string(), serde_json::json!(dword));
+                            entry.insert("type".to_string(), serde_json::json!(4));
+                            entry.insert("data".to_string(), serde_json::json!(dword));
                         }
                     }
                     _ => continue,
                 }
-                result.insert(name, entry);
+                result.insert(key_name.to_string(), entry);
             }
         }
         Ok(result)
@@ -1514,33 +1540,58 @@ pub fn app__set_vrchat_registry(_json: String) -> Result<(), AppError> {
             .map_err(|e| AppError::Custom(format!("registry create: {e}")))?;
 
         for (name, props) in data {
-            let vtype_str = props.get("type").and_then(|v| v.as_str()).unwrap_or("");
-            let value = props.get("value");
+            let normalized_name = add_hash_to_key_name(&name);
+            let vtype_int = props
+                .get("type")
+                .and_then(|v| v.as_i64())
+                .ok_or_else(|| AppError::Custom(format!("unknown type: {name}")))?
+                as i32;
+            let value = props
+                .get("data")
+                .ok_or_else(|| AppError::Custom(format!("missing data: {name}")))?;
 
-            match vtype_str {
-                "REG_BINARY" => {
-                    let s = value.and_then(|v| v.as_str()).unwrap_or("");
-                    let mut bytes: Vec<u8> = s.as_bytes().to_vec();
-                    bytes.push(0);
-                    let _ = vrc_key.set_raw_value(
-                        &name,
-                        &winreg::RegValue {
-                            vtype: REG_BINARY,
-                            bytes: Cow::Owned(bytes),
-                        },
-                    );
+            match vtype_int {
+                3 => {
+                    let s = value
+                        .as_str()
+                        .ok_or_else(|| AppError::Custom(format!("invalid binary data: {name}")))?;
+                    vrc_key
+                        .set_raw_value(
+                            &normalized_name,
+                            &winreg::RegValue {
+                                vtype: REG_BINARY,
+                                bytes: Cow::Owned(ascii_encode(s)),
+                            },
+                        )
+                        .map_err(|e| AppError::Custom(format!("set binary: {e}")))?;
                 }
-                "REG_DWORD" => {
-                    let dword = value.and_then(|v| v.as_u64()).unwrap_or(0) as u32;
-                    let _ = vrc_key.set_raw_value(
-                        &name,
-                        &winreg::RegValue {
-                            vtype: REG_DWORD,
-                            bytes: Cow::Owned(dword.to_le_bytes().to_vec()),
-                        },
-                    );
+                4 => {
+                    let dword = json_value_to_i32(value, &name)?;
+                    vrc_key
+                        .set_raw_value(
+                            &normalized_name,
+                            &winreg::RegValue {
+                                vtype: REG_DWORD,
+                                bytes: Cow::Owned(dword.to_le_bytes().to_vec()),
+                            },
+                        )
+                        .map_err(|e| AppError::Custom(format!("set dword: {e}")))?;
                 }
-                _ => {}
+                100 => {
+                    let float_value = value
+                        .as_f64()
+                        .ok_or_else(|| AppError::Custom(format!("invalid float data: {name}")))?;
+                    vrc_key
+                        .set_raw_value(
+                            &normalized_name,
+                            &winreg::RegValue {
+                                vtype: REG_DWORD,
+                                bytes: Cow::Owned(float_value.to_le_bytes().to_vec()),
+                            },
+                        )
+                        .map_err(|e| AppError::Custom(format!("set float-as-dword: {e}")))?;
+                }
+                _ => return Err(AppError::Custom(format!("unknown type: {vtype_int}"))),
             }
         }
     }
@@ -1558,8 +1609,42 @@ pub fn app__read_vrc_reg_json_file(filepath: String) -> Result<String, AppError>
 #[cfg(target_os = "windows")]
 fn add_hash_to_key_name(key: &str) -> String {
     let mut hash: u32 = 5381;
-    for byte in key.bytes() {
-        hash = hash.wrapping_mul(33).wrapping_add(byte as u32);
+    for unit in key.encode_utf16() {
+        hash = hash.wrapping_mul(33) ^ unit as u32;
     }
     format!("{key}_h{hash}")
+}
+
+#[cfg(target_os = "windows")]
+fn ascii_decode(bytes: &[u8]) -> String {
+    bytes
+        .iter()
+        .map(|byte| if byte.is_ascii() { *byte as char } else { '?' })
+        .collect()
+}
+
+#[cfg(target_os = "windows")]
+fn ascii_encode(value: &str) -> Vec<u8> {
+    value
+        .chars()
+        .map(|ch| if ch.is_ascii() { ch as u8 } else { b'?' })
+        .collect()
+}
+
+#[cfg(target_os = "windows")]
+fn json_value_to_i32(value: &serde_json::Value, key: &str) -> Result<i32, AppError> {
+    let raw = value
+        .as_i64()
+        .ok_or_else(|| AppError::Custom(format!("invalid dword data: {key}")))?;
+    i32::try_from(raw).map_err(|_| AppError::Custom(format!("invalid dword data: {key}")))
+}
+
+#[cfg(target_os = "windows")]
+fn strip_hash_from_key_name(key: &str) -> Option<&str> {
+    let (prefix, suffix) = key.rsplit_once("_h")?;
+    if !suffix.is_empty() && !prefix.is_empty() {
+        Some(prefix)
+    } else {
+        None
+    }
 }

@@ -239,7 +239,12 @@
             // quick check to make sure it's a valid registry backup
             for (const key in data) {
                 const value = data[key];
-                if (typeof value !== 'object' || typeof value.type !== 'number' || typeof value.data === 'undefined') {
+                if (
+                    typeof value !== 'object' ||
+                    value === null ||
+                    typeof value.type !== 'number' ||
+                    typeof value.data === 'undefined'
+                ) {
                     throw new Error('Invalid JSON');
                 }
             }
