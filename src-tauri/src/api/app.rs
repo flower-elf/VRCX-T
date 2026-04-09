@@ -18,6 +18,21 @@ use crate::state::AppState;
 const TRAY_ICON_DEFAULT: &[u8] = include_bytes!("../../icons/icon.png");
 const TRAY_ICON_NOTIFY: &[u8] = include_bytes!("../../icons/icon_notify.png");
 
+#[allow(dead_code)]
+fn spawn_current_exe(args: &[&str]) -> Result<(), AppError> {
+    let exe = std::env::current_exe().map_err(|e| AppError::Custom(format!("current exe: {e}")))?;
+    let mut cmd = std::process::Command::new(&exe);
+    if let Some(dir) = exe.parent() {
+        cmd.current_dir(dir);
+    }
+    for arg in args {
+        cmd.arg(arg);
+    }
+    cmd.spawn()
+        .map_err(|e| AppError::Custom(format!("restart: {e}")))?;
+    Ok(())
+}
+
 #[tauri::command]
 pub fn app__check_game_running(
     app_handle: AppHandle,
@@ -573,15 +588,12 @@ pub fn app__restart_application(
 
     #[cfg(not(debug_assertions))]
     {
-        let exe =
-            std::env::current_exe().map_err(|e| AppError::Custom(format!("current exe: {e}")))?;
-        let mut cmd = std::process::Command::new(&exe);
         if is_upgrade.unwrap_or(false) {
-            cmd.arg("--upgrade");
+            spawn_current_exe(&["--upgrade"])?;
+            app_handle.exit(0);
+        } else {
+            app_handle.request_restart();
         }
-        cmd.spawn()
-            .map_err(|e| AppError::Custom(format!("restart: {e}")))?;
-        app_handle.exit(0);
         Ok(())
     }
 }
@@ -611,16 +623,8 @@ pub fn app__request_legacy_migration(
     #[cfg(not(debug_assertions))]
     {
         let flag_path = state.paths.app_data.join("pending_vrcx_migration");
-        let exe =
-            std::env::current_exe().map_err(|e| AppError::Custom(format!("current exe: {e}")))?;
         std::fs::write(&flag_path, b"1")?;
-        std::process::Command::new(&exe)
-            .spawn()
-            .map_err(|e| {
-                let _ = std::fs::remove_file(&flag_path);
-                AppError::Custom(format!("restart: {e}"))
-            })?;
-        app_handle.exit(0);
+        app_handle.request_restart();
         Ok(true)
     }
 }

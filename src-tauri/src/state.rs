@@ -35,7 +35,6 @@ pub struct AppState {
 
     pub auto_launch: AutoAppLaunchManager,
     pub legacy_vrcx_available: bool,
-    pub restart_after_legacy_migration: bool,
 }
 
 impl AppState {
@@ -54,11 +53,9 @@ impl AppState {
         };
 
         let migration_flag = paths.app_data.join("pending_vrcx_migration");
-        let mut restart_after_legacy_migration = false;
         if migration_flag.exists() {
             copy_legacy_vrcx_data(&paths)?;
             let _ = std::fs::remove_file(&migration_flag);
-            restart_after_legacy_migration = true;
             tracing::info!("Legacy VRCX data migration completed");
         }
 
@@ -96,7 +93,6 @@ impl AppState {
             screenshot_cache,
             auto_launch,
             legacy_vrcx_available,
-            restart_after_legacy_migration,
         })
     }
 }
@@ -139,17 +135,17 @@ fn copy_legacy_vrcx_data(paths: &AppPaths) -> Result<(), AppError> {
     }
 
     if let Some(legacy_db) = resolve_legacy_database_path(&legacy_dir) {
-        copy_if_exists(legacy_db.clone(), paths.db_file.clone())?;
-        copy_if_exists(
+        copy_replace(legacy_db.clone(), paths.db_file.clone())?;
+        sync_sidecar(
             sidecar_path(&legacy_db, "shm"),
             paths.app_data.join("VRCX-0.sqlite3-shm"),
         )?;
-        copy_if_exists(
+        sync_sidecar(
             sidecar_path(&legacy_db, "wal"),
             paths.app_data.join("VRCX-0.sqlite3-wal"),
         )?;
     }
-    copy_if_exists(legacy_dir.join("VRCX.json"), paths.config_file.clone())?;
+    copy_replace(legacy_dir.join("VRCX.json"), paths.config_file.clone())?;
     remove_database_location_from_config(&paths.config_file)?;
 
     Ok(())
@@ -164,17 +160,29 @@ fn resolve_legacy_database_path(legacy_dir: &std::path::Path) -> Option<PathBuf>
     default_db.exists().then_some(default_db)
 }
 
-fn copy_if_exists(from: PathBuf, to: PathBuf) -> Result<(), AppError> {
-    if !from.exists() || to.exists() {
+fn copy_replace(from: PathBuf, to: PathBuf) -> Result<(), AppError> {
+    if !from.exists() {
         return Ok(());
     }
 
+    if to.exists() {
+        std::fs::remove_file(&to)?;
+    }
     std::fs::copy(&from, &to)?;
     Ok(())
 }
 
 fn sidecar_path(db_path: &std::path::Path, suffix: &str) -> PathBuf {
     PathBuf::from(format!("{}-{suffix}", db_path.to_string_lossy()))
+}
+
+fn sync_sidecar(from: PathBuf, to: PathBuf) -> Result<(), AppError> {
+    if from.exists() {
+        copy_replace(from, to)?;
+    } else if to.exists() {
+        std::fs::remove_file(to)?;
+    }
+    Ok(())
 }
 
 fn remove_database_location_from_config(config_path: &std::path::Path) -> Result<(), AppError> {
