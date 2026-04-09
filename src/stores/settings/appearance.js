@@ -284,7 +284,8 @@ export const useAppearanceSettingsStore = defineStore(
             }
 
             themeMode.value = initThemeMode;
-            isDarkMode.value = initDarkMode;
+            const appliedTheme = changeAppThemeStyle(initThemeMode);
+            isDarkMode.value = appliedTheme.isDark ?? initDarkMode;
             lastDarkTheme.value = resolveLastDarkTheme(
                 lastDarkThemeConfig,
                 fallbackDarkTheme
