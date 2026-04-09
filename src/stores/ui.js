@@ -28,6 +28,7 @@ export const useUiStore = defineStore('Ui', () => {
     const keys = useMagicKeys();
     const { directAccessPaste } = useSearchStore();
     const appearanceSettings = useAppearanceSettingsStore();
+    const notificationsSettingsStore = useNotificationsSettingsStore();
 
     const ctrlR = keys['Ctrl+R'];
     const ctrlD = keys['Ctrl+D'];
@@ -306,6 +307,17 @@ export const useUiStore = defineStore('Ui', () => {
         }
     );
 
+    watch(
+        [
+            () => notificationStore.hasUnseenNotifications,
+            () => appearanceSettings.notificationIconDot,
+            () => notificationsSettingsStore.notificationLayout
+        ],
+        () => {
+            updateTrayIconNotify();
+        }
+    );
+
     function notifyMenu(index) {
         const currentRouteName = router.currentRoute.value?.name;
         if (
@@ -328,7 +340,6 @@ export const useUiStore = defineStore('Ui', () => {
     }
 
     function updateTrayIconNotify(force = false) {
-        const notificationsSettingsStore = useNotificationsSettingsStore();
         let newState;
         if (
             notificationsSettingsStore.notificationLayout ===

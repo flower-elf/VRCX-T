@@ -63,7 +63,7 @@
     "resources": "RECURSOS",
     "wiki": "Wiki",
     "get_help": "OBTER AJUDA",
-    "github": "VRCX no GitHub",
+    "github": "VRCX-0 no GitHub",
     "discord": "Entre no nosso Discord",
     "whats_new": "O que há de Novo?",
     "update_available": "Atualização disponível",
@@ -277,7 +277,7 @@
         "search_placeholder": "Pesquisar",
         "filter_placeholder": "Filtrar",
         "chatbox_blacklist": "Lista Negra do Chatbox",
-        "status_tooltip": "Status do Companion VRCX"
+        "status_tooltip": "Status do Companion VRCX-0"
       }
     },
     "my_avatars": {
@@ -493,7 +493,7 @@
         "next_day": "Próximo Dia",
         "refresh": "Atualizar",
         "tips": {
-          "online_time": "O tempo online refere-se ao tempo de jogo registrado pelo VRCX para o dia atual.",
+          "online_time": "O tempo online refere-se ao tempo de jogo registrado pelo VRCX-0 para o dia atual.",
           "click_Y_axis": "Clique no rótulo do eixo Y para navegar até os detalhes da instância ou abrir o diálogo de Usuário.",
           "click_instance_name": "Clique no nome da instância para abrir o diálogo de Informações de Instância Anterior."
         },
@@ -608,7 +608,7 @@
       "export": {
         "header": "Exportar",
         "export_notes": "Exportar Memos de Usuário",
-        "export_notes_description": "Exportar memos de usuário do VRCX para notas do VRChat",
+        "export_notes_description": "Exportar memos de usuário do VRCX-0 para notas do VRChat",
         "discord_names": "Nomes do Discord",
         "export_friend_list": "Exportar Lista de Amigos",
         "export_own_avatars": "Exportar Próprios Avatares"
@@ -629,8 +629,8 @@
       },
       "shortcuts": {
         "header": "Atalhos",
-        "vrcx_data": "Dados do VRCX",
-        "vrcx_data_description": "Abrir a pasta de dados do VRCX",
+        "vrcx_data": "Dados do VRCX-0",
+        "vrcx_data_description": "Abrir a pasta de dados do VRCX-0",
         "vrchat_data": "Dados do VRChat",
         "vrchat_data_description": "Abrir a pasta de dados do VRChat",
         "crash_dumps": "Dumps de Falha",
@@ -743,7 +743,7 @@
           "support": "Suporte"
         },
         "vrcx_updater": {
-          "header": "Atualizador do VRCX",
+          "header": "Atualizador do VRCX-0",
           "change_build": "Alterar Build",
           "update_action": "Ação de Atualização",
           "auto_update_off": "Desativado",
@@ -758,10 +758,10 @@
           "minimized": "Iniciar Minimizado na Inicialização do Sistema",
           "tray": "Minimizar para a Bandeja ao Fechar",
           "disable_gpu_acceleration": "Desativar Aceleração de GPU",
-          "disable_gpu_acceleration_tooltip": "Só altere esta opção se souber o que está fazendo, pode corrigir problemas com a interface, requer reiniciar o VRCX",
+          "disable_gpu_acceleration_tooltip": "Só altere esta opção se souber o que está fazendo, pode corrigir problemas com a interface, requer reiniciar o VRCX-0",
           "disable_vr_overlay_gpu_acceleration": "Desativar Aceleração de GPU do Overlay VR",
           "proxy": "Configurações de Proxy",
-          "startup_linux": "Adicione o argumento \"--startup\" ao arquivo VRCX.desktop de inicialização para iniciar o VRCX minimizado na inicialização do sistema"
+          "startup_linux": "Adicione o argumento \"--startup\" ao arquivo VRCX-0.desktop de inicialização para iniciar o VRCX-0 minimizado na inicialização do sistema"
         },
         "favorites": {
           "header": "Grupos de Favoritos para Filtragem",
@@ -790,7 +790,7 @@
           "auto_invite_request_accept": "Aceitar Solicitações de Convite Automaticamente",
           "auto_invite_request_accept_tooltip": "Aceitar automaticamente solicitações de convite de amigos favoritos",
           "auto_invite_request_accept_favs": "Todos os Favoritos",
-          "auto_invite_request_accept_selected_favs": "Favoritos do VRCX",
+          "auto_invite_request_accept_selected_favs": "Favoritos do VRCX-0",
           "change_status_description": "Substituir Descrição de Status",
           "status_description_placeholder": "Descrição de status (máx. 32 caracteres)",
           "auto_change_status_groups": "Contar apenas amigos de",
@@ -799,10 +799,10 @@
           "auto_accept_invite_groups_placeholder": "Escolher Grupos"
         },
         "legal_notice": {
-          "header": "Aviso Legal",
-          "info": "O VRCX é um aplicativo assistente para o VRChat que fornece informações sobre e gerenciamento de amizades. Este aplicativo faz uso do SDK não oficial da API do VRChat.",
-          "disclaimer1": "O VRCX não é endossado pelo VRChat e não reflete as visões ou opiniões do VRChat ou de qualquer pessoa oficialmente envolvida na produção ou gerenciamento das propriedades do VRChat. VRChat e todas as propriedades associadas são marcas comerciais ou marcas registradas da VRChat Inc. VRChat © VRChat Inc.",
-          "disclaimer2": "pypy & Natsumi e todos os contribuidores não são responsáveis por quaisquer problemas causados pelo VRCX. Use por sua conta e risco!",
+            "header": "Aviso Legal",
+            "info": "O VRCX-0 é um aplicativo assistente para o VRChat que fornece informações sobre e gerenciamento de amizades. Este aplicativo faz uso do SDK não oficial da API do VRChat.",
+            "disclaimer1": "O VRCX-0 não é endossado pelo VRChat e não reflete as visões ou opiniões do VRChat ou de qualquer pessoa oficialmente envolvida na produção ou gerenciamento das propriedades do VRChat. VRChat e todas as propriedades associadas são marcas comerciais ou marcas registradas da VRChat Inc. VRChat © VRChat Inc.",
+            "disclaimer2": "Todos os contribuidores não são responsáveis por quaisquer problemas causados pelo VRCX-0. Use por sua conta e risco!",
           "open_source_software_notice": "Aviso de Software de Código Aberto"
         },
         "contributors": {
@@ -915,8 +915,8 @@
           "header": "Diálogo de Usuário",
           "vrchat_notes": "Notas do VRChat",
           "vrchat_notes_description": "Mostra notas armazenadas no VRChat",
-          "vrcx_memos": "Memos do VRCX",
-          "vrcx_memos_description": "Mostra notas salvas localmente no VRCX",
+          "vrcx_memos": "Memos do VRCX-0",
+          "vrcx_memos_description": "Mostra notas salvas localmente no VRCX-0",
           "recent_action_cooldown": "Indicador de Ação Recente",
           "recent_action_cooldown_description": "Mostrar um ícone de relógio em ações de convite/solicitação realizadas recentemente",
           "recent_action_cooldown_minutes": "Cooldown (minutos)"
@@ -1025,7 +1025,7 @@
         "rpc": {
           "vr": "VR",
           "desktop": "Desktop",
-          "powered_by_vrcx": "Desenvolvido pelo VRCX",
+          "powered_by_vrcx": "Desenvolvido pelo VRCX-0",
           "private_world": "Mundo Privado"
         }
       },
@@ -1043,7 +1043,7 @@
             "header": "VRChat"
           },
           "vrcx_settings": {
-            "header": "VRCX"
+            "header": "VRCX-0"
           },
           "primary_password": {
             "header": "Senha Principal",
@@ -1067,11 +1067,11 @@
           },
           "anonymous_error_reporting": {
             "header": "Relatório de Erros Anônimo (Apenas Beta)",
-            "description": "Ajude a melhorar o VRCX enviando relatórios anônimos de falhas e erros. Nenhum dado pessoal ou do VRChat é coletado.",
+            "description": "Ajude a melhorar o VRCX-0 enviando relatórios anônimos de falhas e erros. Nenhum dado pessoal ou do VRChat é coletado.",
             "consent_title": "Relatório de Erros Anônimo",
-            "consent_description": "Permitir relatório de erros anônimo para ajudar a melhorar o VRCX?\n\n• Apenas dados de falhas e erros\n• Sem dados pessoais ou do VRChat\n• Apenas builds Beta\n• Pode ser desativado nas Configurações Avançadas",
-            "enabled_restart_description": "Relatório de erros ativado. Reiniciar o VRCX para aplicar as alterações?",
-            "disabled_restart_description": "Relatório de erros desativado. Reiniciar o VRCX para aplicar as alterações?"
+            "consent_description": "Permitir relatório de erros anônimo para ajudar a melhorar o VRCX-0?\n\n• Apenas dados de falhas e erros\n• Sem dados pessoais ou do VRChat\n• Apenas builds Beta\n• Pode ser desativado nas Configurações Avançadas",
+            "enabled_restart_description": "Relatório de erros ativado. Reiniciar o VRCX-0 para aplicar as alterações?",
+            "disabled_restart_description": "Relatório de erros desativado. Reiniciar o VRCX-0 para aplicar as alterações?"
           },
           "save_instance_prints_to_file": {
             "header": "Salvar Impressões da Instância em Arquivo",
@@ -1092,7 +1092,7 @@
           },
           "delete_all_screenshot_metadata": {
             "button": "Excluir Metadados de Captura de Tela",
-            "ask": "Tem certeza que deseja excluir todos os metadados de capturas de tela VRC & VRCX da sua pasta de Fotos do VRChat?",
+            "ask": "Tem certeza que deseja excluir todos os metadados de capturas de tela VRC & VRCX-0 da sua pasta de Fotos do VRChat?",
             "confirm": "Excluir todos os metadados de capturas de tela é uma ação muito destrutiva e não pode ser desfeita! Isso inclui todos as impressões, subpastas e outras imagens não relacionadas na sua pasta de Fotos do VRChat; se essas fotos são preciosas para você, faça um backup antes de prosseguir.",
             "confirm_yes": "Sim",
             "confirm_no": "Não"
@@ -1125,7 +1125,7 @@
             "header": "Comandos de Inicialização (Deep Links)",
             "docs": "Documentação de Comandos de Inicialização",
             "show_confirmation_on_switch_avatar_enable": "Mostrar Diálogo de Confirmação Antes de Trocar de Avatar",
-            "show_confirmation_on_switch_avatar_tooltip": "Quando desativado, o VRCX não virá para a frente ao trocar de avatar e pedirá confirmação",
+            "show_confirmation_on_switch_avatar_tooltip": "Quando desativado, o VRCX-0 não virá para a frente ao trocar de avatar e pedirá confirmação",
             "website_userscript": "Userscript do Site VRC"
           },
           "screenshot_helper": {
@@ -1145,7 +1145,7 @@
             "run_process_once": "Abrir Instância Única do Aplicativo"
           },
           "cache_debug": {
-            "header": "Cache/Debug de Instância VRCX",
+            "header": "Cache/Debug de Instância VRCX-0",
             "udon_exception_logging": "Registro de Exceções do Udon",
             "disable_gamelog": "Desabilitar Registro de Jogo",
             "disable_gamelog_notice": "(provavelmente quebrará coisas)",
@@ -1195,7 +1195,7 @@
             "purge_confirm_title": "Limpar Dados de Feed de Avatar",
             "purge_confirm_description_1": "Isso excluirá permanentemente os registros de mudança de avatar do banco de dados e recuperará espaço em disco.",
             "purge_confirm_description_2": "Esta ação não pode ser desfeita!",
-            "purge_confirm_description_3": "O VRCX será reiniciado após a conclusão da operação.",
+            "purge_confirm_description_3": "O VRCX-0 será reiniciado após a conclusão da operação.",
             "purge_confirm_alert": "É altamente recomendável fazer backup do arquivo de banco de dados antes de prosseguir!",
             "purge_confirm_button": "Limpar e Reiniciar",
             "purge_in_progress": "Limpando dados de avatar...",
@@ -1963,14 +1963,14 @@
     },
     "note_export": {
       "header": "Exportação de Notas",
-      "description1": "Este processo exportará todos os seus memos do VRCX e os importará para as notas do VRChat.",
+      "description1": "Este processo exportará todos os seus memos do VRCX-0 e os importará para as notas do VRChat.",
       "description2": "Esteja ciente das seguintes limitações:",
       "description3": "- O endpoint da API tem um limite de taxa que requer um grande atraso entre as solicitações.",
       "description4": "- Limite de 256 caracteres por nota.",
       "description5": "- Filtro de palavrões (sem diversão permitida).",
       "description6": "- Sem novas linhas (serão substituídas por espaço).",
       "description7": "- Isso substituirá quaisquer notas existentes do VRChat para esses usuários.",
-      "description8": "- Qualquer edição feita aqui não afetará os memos do VRCX, mas afetará as notas do VRChat após exportação.",
+      "description8": "- Qualquer edição feita aqui não afetará os memos do VRCX-0, mas afetará as notas do VRChat após exportação.",
       "refresh": "Atualizar",
       "export": "Exportar",
       "cancel": "Cancelar",
@@ -2296,9 +2296,9 @@
       "add_item": "Adicionar Item"
     },
     "vrcx_updater": {
-      "header": "Atualizador do VRCX",
-      "latest_version": "O VRCX está atualizado.",
-      "ready_for_update": "Pronto para instalação, reinicie o VRCX para aplicar.",
+      "header": "Atualizador do VRCX-0",
+      "latest_version": "O VRCX-0 está atualizado.",
+      "ready_for_update": "Pronto para instalação, reinicie o VRCX-0 para aplicar.",
       "branch_stable": "Estável",
       "branch_beta": "Beta",
       "beta_title": "Builds Beta",
@@ -2310,14 +2310,14 @@
     },
     "change_log": {
       "header": "Log de Alterações",
-      "description": "Considere fazer uma doação para apoiar o desenvolvimento futuro do VRCX",
+      "description": "Considere fazer uma doação para apoiar o desenvolvimento futuro do VRCX-0",
       "close": "Fechar",
       "donate": "Doar",
       "github": "GitHub"
     },
     "open_source": {
       "header": "Aviso de Software de Código Aberto",
-      "description": "O VRCX é baseado em software de código aberto. Foi possível graças às contribuições deles.",
+      "description": "O VRCX-0 é baseado em software de código aberto. Foi possível graças às contribuições deles.",
       "loading": "Carregando avisos de terceiros gerados...",
       "unavailable": "Nenhum manifesto de avisos de terceiros gerado está disponível nesta build. Execute uma build de produção para gerá-lo novamente.",
       "search_placeholder": "Pesquisar pacotes, versões ou licenças",
@@ -2349,7 +2349,7 @@
       "action": "Ação",
       "auto_backup": "Backup automático a cada 3 dias (excluído após 2 semanas)",
       "ask_to_restore": "Perguntar para restaurar quando não houver configurações de registro do VRC",
-      "restore_prompt": "O VRCX notou que o backup automático das configurações de registro do VRChat está ativado, mas este computador não tem nenhuma; se desejar restaurar a partir do backup, você pode fazer isso a partir daqui."
+      "restore_prompt": "O VRCX-0 notou que o backup automático das configurações de registro do VRChat está ativado, mas este computador não tem nenhuma; se desejar restaurar a partir do backup, você pode fazer isso a partir daqui."
     },
     "avatar_database_provider": {
       "header": "Provedor de Banco de Dados de Avatar",
@@ -2528,7 +2528,7 @@
       "input_error": "Número válido é obrigatório"
     },
     "auto_clear_cache": {
-      "header": "Temporizador de Limpeza de Cache do VRCX",
+      "header": "Temporizador de Limpeza de Cache do VRCX-0",
       "description": "Insira a quantidade de horas; valores maiores podem impactar o uso de RAM e o desempenho (padrão: 24, desativado: 0)",
       "cancel": "Cancelar",
       "ok": "OK",
@@ -2574,7 +2574,7 @@
     },
     "table_entries_settings": {
       "header": "Configurações de Entradas da Tabela",
-      "description": "Limitar o número de entradas que o VRCX carrega do banco de dados para a interface. Um número grande pode impactar o uso de RAM e o desempenho",
+      "description": "Limitar o número de entradas que o VRCX-0 carrega do banco de dados para a interface. Um número grande pode impactar o uso de RAM e o desempenho",
       "table_max_entries": "Máximo de Entradas da Tabela",
       "table_max_entries_error": "Insira um número entre {min} e {max}.",
       "table_max_entries_hint": "Intervalo válido: {min} – {max}.",
@@ -2637,8 +2637,8 @@
     "database": {
       "upgrade_complete": "Atualização do banco de dados concluída",
       "upgrade_in_progress_title": "Atualização do banco de dados em andamento",
-      "upgrade_in_progress_description": "Atualizando o banco de dados da versão {from} para {to}. Por favor, não feche o VRCX.",
-      "upgrade_in_progress_initializing": "Inicializando a atualização do banco de dados. Por favor, não feche o VRCX.",
+      "upgrade_in_progress_description": "Atualizando o banco de dados da versão {from} para {to}. Por favor, não feche o VRCX-0.",
+      "upgrade_in_progress_initializing": "Inicializando a atualização do banco de dados. Por favor, não feche o VRCX-0.",
       "upgrade_in_progress_wait": "As ações do usuário estão temporariamente bloqueadas até que a atualização seja concluída.",
       "upgrade_failed_title": "Falha na atualização do banco de dados",
       "upgrade_failed_description": "Falha na atualização do banco de dados. Verifique o console para mais detalhes.",
@@ -2711,7 +2711,7 @@
       "delete_failed": "Falha ao excluir metadados de captura de tela"
     },
     "crash": {
-      "vrcx_reload": "O VRCX foi recarregado para estabilidade"
+      "vrcx_reload": "O VRCX-0 foi recarregado para estabilidade"
     },
     "image": {
       "downloading": "Baixando imagem...",
@@ -2956,7 +2956,7 @@
   },
   "onboarding": {
     "welcome": {
-      "title": "Bem-vindo ao VRCX",
+      "title": "Bem-vindo ao VRCX-0",
       "subtitle": "Aqui estão algumas coisas que você pode não descobrir por conta própria.",
       "features": {
         "user_profiles": {
@@ -2979,7 +2979,7 @@
       "cta": "Começar"
     },
     "whatsnew": {
-      "title": "O que há de Novo no VRCX",
+      "title": "O que há de Novo no VRCX-0",
       "subtitle": "Veja o que mudou nesta atualização.",
       "cta": "Entendido"
     }

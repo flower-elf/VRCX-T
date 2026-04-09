@@ -49,7 +49,7 @@ export const useFeedStore = defineStore('Feed', () => {
             await configRepository.getString('feedTableFilters', '[]')
         );
         feedTable.value.vip = await configRepository.getBool(
-            'VRCX-0_feedTableVIPFilter',
+            'VRCX_feedTableVIPFilter',
             false
         );
     }
@@ -130,11 +130,11 @@ export const useFeedStore = defineStore('Feed', () => {
 
     async function feedTableLookup() {
         await configRepository.setString(
-            'VRCX-0_feedTableFilters',
+            'VRCX_feedTableFilters',
             JSON.stringify(feedTable.value.filter)
         );
         await configRepository.setBool(
-            'VRCX-0_feedTableVIPFilter',
+            'VRCX_feedTableVIPFilter',
             feedTable.value.vip
         );
         feedTable.value.loading = true;

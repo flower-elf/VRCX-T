@@ -87,6 +87,8 @@ declare global {
         ): Promise<void>;
         RestartApplication(isUpgrade: boolean): Promise<void>;
         CheckForUpdateExe(): Promise<boolean>;
+        CheckLegacyVrcxAvailable(): Promise<boolean>;
+        RequestLegacyMigration(): Promise<boolean>;
         FocusWindow(): Promise<void>;
         ChangeTheme(value: number): Promise<void>;
         DoFunny(): Promise<void>;

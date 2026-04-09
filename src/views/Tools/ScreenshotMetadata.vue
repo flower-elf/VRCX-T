@@ -254,7 +254,7 @@
 
 <script setup>
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-    import { invoke } from '@tauri-apps/api/core';
+    import { convertFileSrc, invoke } from '@tauri-apps/api/core';
     import { useMagicKeys, whenever } from '@vueuse/core';
     import { onMounted, onUnmounted, reactive, ref, computed } from 'vue';
     import { useGalleryStore, useUserStore, useVrcxStore } from '@/stores';
@@ -265,8 +265,10 @@
     import { InputGroupSearch } from '@/components/ui/input-group';
     import { Kbd } from '@/components/ui/kbd';
 
-    import { formatDateFilter } from '@/shared/utils';
-    import { bytesToObjectUrl } from '@/shared/utils/binary';
+    import {
+        formatDateFilter,
+        parseVrchatScreenshotDateFromFileName
+    } from '@/shared/utils';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
@@ -275,29 +277,14 @@
     import { lookupUser } from '@/coordinators/userCoordinator';
 
     const screenshotImageUrl = ref('');
-    let _prevBlobUrl = '';
+    let screenshotImageVersion = 0;
 
-    async function loadScreenshotImage(filePath) {
-        if (_prevBlobUrl) {
-            URL.revokeObjectURL(_prevBlobUrl);
-            _prevBlobUrl = '';
-        }
-        screenshotImageUrl.value = '';
-        if (!filePath) return;
-        try {
-            const bytes = await invoke('app__get_file_bytes', { path: filePath });
-            if (!bytes?.length) return;
-            const url = bytesToObjectUrl(new Uint8Array(bytes), 'image/png');
-            _prevBlobUrl = url;
-            screenshotImageUrl.value = url;
-        } catch (e) {
-            console.error('Failed to load screenshot image:', e);
-        }
+    function loadScreenshotImage(filePath) {
+        screenshotImageVersion += 1;
+        screenshotImageUrl.value = filePath
+            ? `${convertFileSrc(filePath, 'vrcx-img')}?v=${screenshotImageVersion}`
+            : '';
     }
-
-    onUnmounted(() => {
-        if (_prevBlobUrl) URL.revokeObjectURL(_prevBlobUrl);
-    });
 
     const router = useRouter();
     const { t } = useI18n();
@@ -727,8 +714,6 @@
      * @returns {Promise<void>}
      */
     async function displayScreenshotMetadata(json, needsCarouselFiles = true) {
-        let time;
-        let date;
         const D = screenshotMetadataDialog;
         D.metadata.author = {};
         D.metadata.world = {};
@@ -759,19 +744,11 @@
 
         D.metadata = metadata;
 
-        const regex = metadata.fileName?.match(
-            /VRChat_((\d{3,})x(\d{3,})_(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})\.(\d{1,})|(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})\.(\d{3})_(\d{3,})x(\d{3,}))/
+        const fileNameTimestamp = parseVrchatScreenshotDateFromFileName(
+            metadata.fileName
         );
-        if (regex) {
-            if (typeof regex[2] !== 'undefined' && regex[4].length === 4) {
-                date = `${regex[4]}-${regex[5]}-${regex[6]}`;
-                time = `${regex[7]}:${regex[8]}:${regex[9]}`;
-                D.metadata.dateTime = Date.parse(`${date} ${time}`);
-            } else if (typeof regex[11] !== 'undefined' && regex[11].length === 4) {
-                date = `${regex[11]}-${regex[12]}-${regex[13]}`;
-                time = `${regex[14]}:${regex[15]}:${regex[16]}`;
-                D.metadata.dateTime = Date.parse(`${date} ${time}`);
-            }
+        if (fileNameTimestamp !== null) {
+            D.metadata.dateTime = fileNameTimestamp;
         }
         if (metadata.timestamp) {
             D.metadata.dateTime = Date.parse(metadata.timestamp);
@@ -780,7 +757,7 @@
             D.metadata.dateTime = Date.parse(metadata.creationDate);
         }
 
-        await loadScreenshotImage(D.metadata.filePath);
+        loadScreenshotImage(D.metadata.filePath);
 
         if (fullscreenImageDialog.value.visible) {
             showFullscreenImageDialog(screenshotImageUrl.value);

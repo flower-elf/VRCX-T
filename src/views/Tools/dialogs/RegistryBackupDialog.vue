@@ -48,7 +48,7 @@
     import { useI18n } from 'vue-i18n';
 
     import { useAdvancedSettingsStore, useModalStore, useVrcxStore } from '../../../stores';
-    import { downloadAndSaveJson, removeFromArray } from '../../../shared/utils';
+    import { removeFromArray } from '../../../shared/utils';
     import { Switch } from '../../../components/ui/switch';
     import { createColumns } from '../../Settings/dialogs/registryBackupColumns.jsx';
     import { useVrcxVueTable } from '../../../lib/table/useVrcxVueTable';
@@ -141,8 +141,20 @@
      *
      * @param row
      */
-    function saveVrcRegistryBackupToFile(row) {
-        downloadAndSaveJson(row.name, row.data);
+    async function saveVrcRegistryBackupToFile(row) {
+        try {
+            const filePath = await invoke('app__save_vrc_reg_json_file', {
+                defaultPath: null,
+                defaultName: `${row.name}.json`,
+                json: JSON.stringify(row.data, null, 2)
+            });
+            if (filePath) {
+                toast.success('Registry backup saved to file');
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to save registry backup to file');
+        }
     }
 
     /**
@@ -227,7 +239,12 @@
             // quick check to make sure it's a valid registry backup
             for (const key in data) {
                 const value = data[key];
-                if (typeof value !== 'object' || typeof value.type !== 'number' || typeof value.data === 'undefined') {
+                if (
+                    typeof value !== 'object' ||
+                    value === null ||
+                    typeof value.type !== 'number' ||
+                    typeof value.data === 'undefined'
+                ) {
                     throw new Error('Invalid JSON');
                 }
             }
@@ -256,9 +273,6 @@
      */
     function closeAndClearDialog() {
         closeDialog();
-        // TODO: Element Plus had a distinct @closed event after animation.
-        // If you ever need exact timing, wrap DialogContent with a Transition and call clear on after-leave.
-        clearVrcRegistryDialog();
     }
 
     /**

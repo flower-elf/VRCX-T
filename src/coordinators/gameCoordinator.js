@@ -19,6 +19,7 @@ import { useNotificationStore } from '../stores/notification';
 import { useUpdateLoopStore } from '../stores/updateLoop';
 import { useUserStore } from '../stores/user';
 import { useVrStore } from '../stores/vr';
+import { useVrcxStore } from '../stores/vrcx';
 import { useWorldStore } from '../stores/world';
 
 import configRepository from '../services/config';
@@ -36,6 +37,7 @@ export async function runGameRunningChangedFlow(isGameRunning) {
     const gameLogStore = useGameLogStore();
     const vrStore = useVrStore();
     const gameStore = useGameStore();
+    const vrcxStore = useVrcxStore();
 
     if (isGameRunning) {
         userStore.markCurrentUserGameStarted();
@@ -57,7 +59,7 @@ export async function runGameRunningChangedFlow(isGameRunning) {
         instanceStore.removeAllQueuedInstances();
         runAutoVRChatCacheManagementFlow();
         runCheckIfGameCrashedFlow();
-        updateLoopStore.setIpcTimeout(0);
+        vrcxStore.resetIpcState();
         addAvatarWearTime(userStore.currentUser.currentAvatar);
     }
 

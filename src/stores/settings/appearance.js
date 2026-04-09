@@ -119,7 +119,6 @@ export const useAppearanceSettingsStore = defineStore(
         const isDataTableStriped = ref(false);
         const showPointerOnHover = ref(false);
         const accessibleStatusIndicators = ref(false);
-        const useOfficialStatusColors = ref(true);
         const showNewDashboardButton = ref(true);
         const tableLimitsDialog = ref({
             visible: false,
@@ -182,7 +181,6 @@ export const useAppearanceSettingsStore = defineStore(
                 dataTableStripedConfig,
                 showPointerOnHoverConfig,
                 accessibleStatusIndicatorsConfig,
-                useOfficialStatusColorsConfig,
                 showNewDashboardButtonConfig,
                 appFontFamilyConfig,
                 customFontFamilyConfig,
@@ -193,28 +191,28 @@ export const useAppearanceSettingsStore = defineStore(
                 configRepository.getBool('displayVRCPlusIconsAsAvatar', true),
                 configRepository.getBool('hideNicknames', false),
                 configRepository.getBool(
-                    'VRCX-0_showInstanceIdInLocation',
+                    'VRCX_showInstanceIdInLocation',
                     false
                 ),
                 configRepository.getBool(
-                    'VRCX-0_isAgeGatedInstancesVisible',
+                    'VRCX_isAgeGatedInstancesVisible',
                     true
                 ),
                 configRepository.getBool('sortFavorites', true),
                 configRepository.getBool(
-                    'VRCX-0_instanceUsersSortAlphabetical',
+                    'VRCX_instanceUsersSortAlphabetical',
                     false
                 ),
                 configRepository.getInt('tablePageSize', 20),
                 configRepository.getString(
-                    'VRCX-0_tablePageSizes',
+                    'VRCX_tablePageSizes',
                     JSON.stringify(DEFAULT_TABLE_PAGE_SIZES)
                 ),
                 configRepository.getBool('dtHour12', false),
                 configRepository.getBool('dtIsoFormat', false),
                 configRepository.getInt('weekStartsOn', 1),
                 configRepository.getString(
-                    'VRCX-0_sidebarSortMethods',
+                    'VRCX_sidebarSortMethods',
                     JSON.stringify([
                         'Sort Private to Bottom',
                         'Sort by Time in Instance',
@@ -224,20 +222,20 @@ export const useAppearanceSettingsStore = defineStore(
                 configRepository.getInt('navPanelWidth', 240),
                 configRepository.getBool('sidebarGroupByInstance', true),
                 configRepository.getBool(
-                    'VRCX-0_hideFriendsInSameInstance',
+                    'VRCX_hideFriendsInSameInstance',
                     false
                 ),
                 configRepository.getBool(
-                    'VRCX-0_sameInstanceAboveFavorites',
+                    'VRCX_sameInstanceAboveFavorites',
                     false
                 ),
                 configRepository.getBool(
-                    'VRCX-0_sidebarDivideByFriendGroup',
+                    'VRCX_sidebarDivideByFriendGroup',
                     true
                 ),
                 configRepository.getString('sidebarFavoriteGroups', '[]'),
                 configRepository.getString(
-                    'VRCX-0_sidebarFavoriteGroupOrder',
+                    'VRCX_sidebarFavoriteGroupOrder',
                     '[]'
                 ),
                 configRepository.getBool('hideUserNotes', false),
@@ -247,7 +245,7 @@ export const useAppearanceSettingsStore = defineStore(
                 configRepository.getString('tableDensity'),
                 configRepository.getBool('compactTableMode', false),
                 configRepository.getString(
-                    'VRCX-0_trustColor',
+                    'VRCX_trustColor',
                     JSON.stringify(TRUST_COLOR_DEFAULTS)
                 ),
                 configRepository.getBool('notificationIconDot', true),
@@ -255,22 +253,21 @@ export const useAppearanceSettingsStore = defineStore(
                 configRepository.getBool('dataTableStriped', false),
                 configRepository.getBool('showPointerOnHover', false),
                 configRepository.getBool(
-                    'VRCX-0_accessibleStatusIndicators',
+                    'VRCX_accessibleStatusIndicators',
                     false
                 ),
-                configRepository.getBool('useOfficialStatusColors', true),
                 configRepository.getBool('showNewDashboardButton', true),
                 configRepository.getString(
-                    'VRCX-0_fontFamily',
+                    'VRCX_fontFamily',
                     APP_FONT_DEFAULT_KEY
                 ),
                 configRepository.getString('customFontFamily', ''),
                 configRepository.getString(
-                    'VRCX-0_cjkFontPack',
+                    'VRCX_cjkFontPack',
                     APP_CJK_FONT_PACK_DEFAULT_KEY
                 ),
                 configRepository.getString(
-                    'VRCX-0_lastDarkTheme',
+                    'VRCX_lastDarkTheme',
                     fallbackDarkTheme
                 )
             ]);
@@ -302,7 +299,7 @@ export const useAppearanceSettingsStore = defineStore(
             applyAppCjkFontPack(appCjkFontPack.value);
             if (normalizedAppFontFamily !== appFontFamilyConfig) {
                 configRepository.setString(
-                    'VRCX-0_fontFamily',
+                    'VRCX_fontFamily',
                     normalizedAppFontFamily
                 );
             }
@@ -339,7 +336,7 @@ export const useAppearanceSettingsStore = defineStore(
 
             if (trustColorConfig !== JSON.stringify(TRUST_COLOR_DEFAULTS)) {
                 await configRepository.setString(
-                    'VRCX-0_trustColor',
+                    'VRCX_trustColor',
                     JSON.stringify(TRUST_COLOR_DEFAULTS)
                 );
             }
@@ -371,7 +368,7 @@ export const useAppearanceSettingsStore = defineStore(
             applyTableDensity(tableDensity.value);
             if (!tableDensityConfig) {
                 configRepository.setString(
-                    'VRCX-0_tableDensity',
+                    'VRCX_tableDensity',
                     tableDensity.value
                 );
             }
@@ -379,12 +376,10 @@ export const useAppearanceSettingsStore = defineStore(
             isDataTableStriped.value = dataTableStripedConfig;
             showPointerOnHover.value = showPointerOnHoverConfig;
             accessibleStatusIndicators.value = accessibleStatusIndicatorsConfig;
-            useOfficialStatusColors.value = useOfficialStatusColorsConfig;
             showNewDashboardButton.value = showNewDashboardButtonConfig;
 
             applyPointerHoverClass();
             applyAccessibleStatusClass();
-            applyOfficialStatusColorsClass();
 
             await configRepository.remove('navWidth');
 
@@ -620,7 +615,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setNotificationIconDot() {
             notificationIconDot.value = !notificationIconDot.value;
             configRepository.setBool(
-                'VRCX-0_notificationIconDot',
+                'VRCX_notificationIconDot',
                 notificationIconDot.value
             );
             uiStore.updateTrayIconNotify();
@@ -638,7 +633,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setShowInstanceIdInLocation() {
             showInstanceIdInLocation.value = !showInstanceIdInLocation.value;
             configRepository.setBool(
-                'VRCX-0_showInstanceIdInLocation',
+                'VRCX_showInstanceIdInLocation',
                 showInstanceIdInLocation.value
             );
         }
@@ -649,7 +644,7 @@ export const useAppearanceSettingsStore = defineStore(
             isAgeGatedInstancesVisible.value =
                 !isAgeGatedInstancesVisible.value;
             configRepository.setBool(
-                'VRCX-0_isAgeGatedInstancesVisible',
+                'VRCX_isAgeGatedInstancesVisible',
                 isAgeGatedInstancesVisible.value
             );
         }
@@ -667,7 +662,7 @@ export const useAppearanceSettingsStore = defineStore(
             instanceUsersSortAlphabetical.value =
                 !instanceUsersSortAlphabetical.value;
             configRepository.setBool(
-                'VRCX-0_instanceUsersSortAlphabetical',
+                'VRCX_instanceUsersSortAlphabetical',
                 instanceUsersSortAlphabetical.value
             );
         }
@@ -708,7 +703,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setTablePageSizes(sizes) {
             tablePageSizes.value = normalizeTablePageSizes(sizes);
             configRepository.setString(
-                'VRCX-0_tablePageSizes',
+                'VRCX_tablePageSizes',
                 JSON.stringify(tablePageSizes.value)
             );
 
@@ -765,7 +760,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setSidebarSortMethods(methods) {
             sidebarSortMethods.value = methods;
             configRepository.setString(
-                'VRCX-0_sidebarSortMethods',
+                'VRCX_sidebarSortMethods',
                 JSON.stringify(methods)
             );
         }
@@ -798,7 +793,7 @@ export const useAppearanceSettingsStore = defineStore(
                 requestAnimationFrame(() => {
                     navWidth.value = clampInt(width, 64, 480);
                     configRepository.setInt(
-                        'VRCX-0_navPanelWidth',
+                        'VRCX_navPanelWidth',
                         navWidth.value
                     );
                 });
@@ -810,7 +805,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setIsSidebarGroupByInstance() {
             isSidebarGroupByInstance.value = !isSidebarGroupByInstance.value;
             configRepository.setBool(
-                'VRCX-0_sidebarGroupByInstance',
+                'VRCX_sidebarGroupByInstance',
                 isSidebarGroupByInstance.value
             );
         }
@@ -821,7 +816,7 @@ export const useAppearanceSettingsStore = defineStore(
             isHideFriendsInSameInstance.value =
                 !isHideFriendsInSameInstance.value;
             configRepository.setBool(
-                'VRCX-0_hideFriendsInSameInstance',
+                'VRCX_hideFriendsInSameInstance',
                 isHideFriendsInSameInstance.value
             );
         }
@@ -832,7 +827,7 @@ export const useAppearanceSettingsStore = defineStore(
             isSameInstanceAboveFavorites.value =
                 !isSameInstanceAboveFavorites.value;
             configRepository.setBool(
-                'VRCX-0_sameInstanceAboveFavorites',
+                'VRCX_sameInstanceAboveFavorites',
                 isSameInstanceAboveFavorites.value
             );
         }
@@ -843,7 +838,7 @@ export const useAppearanceSettingsStore = defineStore(
             isSidebarDivideByFriendGroup.value =
                 !isSidebarDivideByFriendGroup.value;
             configRepository.setBool(
-                'VRCX-0_sidebarDivideByFriendGroup',
+                'VRCX_sidebarDivideByFriendGroup',
                 isSidebarDivideByFriendGroup.value
             );
         }
@@ -853,7 +848,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setSidebarFavoriteGroups(value) {
             sidebarFavoriteGroups.value = value;
             configRepository.setString(
-                'VRCX-0_sidebarFavoriteGroups',
+                'VRCX_sidebarFavoriteGroups',
                 JSON.stringify(value)
             );
         }
@@ -863,7 +858,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setSidebarFavoriteGroupOrder(value) {
             sidebarFavoriteGroupOrder.value = value;
             configRepository.setString(
-                'VRCX-0_sidebarFavoriteGroupOrder',
+                'VRCX_sidebarFavoriteGroupOrder',
                 JSON.stringify(value)
             );
         }
@@ -894,7 +889,7 @@ export const useAppearanceSettingsStore = defineStore(
         function setRandomUserColours() {
             randomUserColours.value = !randomUserColours.value;
             configRepository.setBool(
-                'VRCX-0_randomUserColours',
+                'VRCX_randomUserColours',
                 randomUserColours.value
             );
         }
@@ -930,7 +925,7 @@ export const useAppearanceSettingsStore = defineStore(
         function toggleStripedDataTable() {
             isDataTableStriped.value = !isDataTableStriped.value;
             configRepository.setBool(
-                'VRCX-0_dataTableStriped',
+                'VRCX_dataTableStriped',
                 isDataTableStriped.value
             );
         }
@@ -954,7 +949,7 @@ export const useAppearanceSettingsStore = defineStore(
         function togglePointerOnHover() {
             showPointerOnHover.value = !showPointerOnHover.value;
             configRepository.setBool(
-                'VRCX-0_showPointerOnHover',
+                'VRCX_showPointerOnHover',
                 showPointerOnHover.value
             );
             applyPointerHoverClass();
@@ -979,43 +974,16 @@ export const useAppearanceSettingsStore = defineStore(
             accessibleStatusIndicators.value =
                 !accessibleStatusIndicators.value;
             configRepository.setBool(
-                'VRCX-0_accessibleStatusIndicators',
+                'VRCX_accessibleStatusIndicators',
                 accessibleStatusIndicators.value
             );
             applyAccessibleStatusClass();
         }
 
-        /**
-         *
-         */
-        function applyOfficialStatusColorsClass() {
-            const classList = document.documentElement.classList;
-            classList.remove('vrcx-status-colors');
-
-            if (!useOfficialStatusColors.value) {
-                classList.add('vrcx-status-colors');
-            }
-        }
-
-        /**
-         *
-         */
-        function toggleOfficialStatusColors() {
-            useOfficialStatusColors.value = !useOfficialStatusColors.value;
-            configRepository.setBool(
-                'VRCX-0_useOfficialStatusColors',
-                useOfficialStatusColors.value
-            );
-            applyOfficialStatusColorsClass();
-        }
-
-        /**
-         *
-         */
         function setShowNewDashboardButton() {
             showNewDashboardButton.value = !showNewDashboardButton.value;
             configRepository.setBool(
-                'VRCX-0_showNewDashboardButton',
+                'VRCX_showNewDashboardButton',
                 showNewDashboardButton.value
             );
         }
@@ -1027,7 +995,7 @@ export const useAppearanceSettingsStore = defineStore(
             // @ts-ignore
             trustColor.value = color;
             configRepository.setString(
-                'VRCX-0_trustColor',
+                'VRCX_trustColor',
                 JSON.stringify(trustColor.value)
             );
         }
@@ -1168,14 +1136,14 @@ export const useAppearanceSettingsStore = defineStore(
 
             vrcxStore.setMaxTableSize(nextMaxTableSize);
             await configRepository.setInt(
-                'VRCX-0_maxTableSize_v2',
+                'VRCX_maxTableSize_v2',
                 vrcxStore.maxTableSize
             );
             database.setMaxTableSize(vrcxStore.maxTableSize);
 
             vrcxStore.setSearchLimit(nextSearchLimit);
             await configRepository.setInt(
-                'VRCX-0_searchLimit',
+                'VRCX_searchLimit',
                 vrcxStore.searchLimit
             );
             database.setSearchTableSize(vrcxStore.searchLimit);
@@ -1256,7 +1224,6 @@ export const useAppearanceSettingsStore = defineStore(
             isDataTableStriped,
             showPointerOnHover,
             accessibleStatusIndicators,
-            useOfficialStatusColors,
             showNewDashboardButton,
             tableLimitsDialog,
             TABLE_MAX_SIZE_MIN,
@@ -1294,7 +1261,6 @@ export const useAppearanceSettingsStore = defineStore(
             toggleStripedDataTable,
             togglePointerOnHover,
             toggleAccessibleStatusIndicators,
-            toggleOfficialStatusColors,
             setShowNewDashboardButton,
             setTableDensity,
             setTrustColor,

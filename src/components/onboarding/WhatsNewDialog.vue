@@ -48,7 +48,7 @@
             </div>
 
             <!-- Support (subdued footer-like) -->
-            <div class="mx-auto mt-4 w-fit max-w-[340px]">
+            <div class="mx-auto mt-4 w-fit max-w-85">
                 <div class="mb-2 text-[11.5px] font-medium tracking-[0.02em] text-muted-foreground/75">
                     <span>{{ t('onboarding.whatsnew.common.support') }}</span>
                 </div>
@@ -73,7 +73,7 @@
                 </div>
             </div>
 
-            <!-- View Changelog -->
+            <!--
             <div class="mt-2 flex justify-center">
                 <button
                     class="cursor-pointer border-0 bg-transparent text-xs text-muted-foreground/70 transition-colors duration-200 hover:text-foreground"
@@ -81,6 +81,7 @@
                     {{ t('onboarding.whatsnew.common.view_changelog') }} →
                 </button>
             </div>
+            -->
 
             <!-- CTA -->
             <Button class="mt-1 h-11 w-full text-sm font-semibold" size="lg" @click="handleDismiss">
@@ -105,7 +106,7 @@
     const { t } = useI18n();
     const vrcxUpdaterStore = useVRCXUpdaterStore();
     const { whatsNewDialog } = storeToRefs(vrcxUpdaterStore);
-    const { closeWhatsNewDialog, openChangeLogDialogOnly } = vrcxUpdaterStore;
+    const { closeWhatsNewDialog } = vrcxUpdaterStore;
 
     const supporters = [
         {
@@ -115,13 +116,6 @@
                 { label: '爱发电', url: 'https://ifdian.net/a/map1en_' }
             ]
         },
-        {
-            name: 'Natsumi',
-            links: [
-                { label: 'Ko-fi', url: 'https://ko-fi.com/natsumi_sama' },
-                { label: 'Patreon', url: 'https://www.patreon.com/Natsumi_VRCX' }
-            ]
-        }
     ];
 
     const iconMap = {
@@ -144,11 +138,6 @@
 
     function resolveHue(iconName) {
         return hueMap[iconName] ?? '210';
-    }
-
-    async function handleViewChangelog() {
-        closeWhatsNewDialog();
-        await openChangeLogDialogOnly();
     }
 
     function handleDismiss() {

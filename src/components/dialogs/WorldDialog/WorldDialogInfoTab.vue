@@ -143,7 +143,7 @@
                     <ChevronDown class="inline-block" />
                 </TooltipWrapper>
                 <span class="block truncate text-xs">
-                    {{ formatDateFilter(worldDialog.ref.updated_at, 'long') }}
+                    {{ formatDateFilter(worldDialogLastUpdatedAt, 'long') }}
                 </span>
             </div>
         </div>
@@ -288,6 +288,7 @@
         timeSpent,
         worldDialogPlatform,
         worldDialogPlatformCreatedAt,
+        worldDialogLastUpdatedAt,
         onWorldMemoChange,
         copyWorldId,
         copyWorldUrl,

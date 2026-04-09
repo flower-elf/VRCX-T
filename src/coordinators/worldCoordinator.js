@@ -70,6 +70,8 @@ export function showWorldDialog(tag, shortName = null, options = {}) {
     D.lastVisit = '';
     D.visitCount = 0;
     D.timeSpent = 0;
+    D.worldStatsLoaded = false;
+    D.worldStatsLoading = false;
     D.isFavorite = false;
     D.avatarScalingDisabled = false;
     D.focusViewDisabled = false;
@@ -78,29 +80,9 @@ export function showWorldDialog(tag, shortName = null, options = {}) {
     D.isIos = false;
     D.hasPersistData = false;
     D.memo = '';
-    const LL = parseLocation(locationStore.lastLocation.location);
-    let currentWorldMatch = false;
-    if (LL.worldId === D.id) {
-        currentWorldMatch = true;
-    }
     getWorldMemo(D.id).then((memo) => {
         if (memo.worldId === D.id) {
             D.memo = memo.memo;
-        }
-    });
-    database.getLastVisit(D.id, currentWorldMatch).then((ref) => {
-        if (ref.worldId === D.id) {
-            D.lastVisit = ref.created_at;
-        }
-    });
-    database.getVisitCount(D.id).then((ref) => {
-        if (ref.worldId === D.id) {
-            D.visitCount = ref.visitCount;
-        }
-    });
-    database.getTimeSpentInWorld(D.id).then((ref) => {
-        if (ref.worldId === D.id) {
-            D.timeSpent = ref.timeSpent;
         }
     });
     const loadWorldRequest = worldRequest.getWorld({

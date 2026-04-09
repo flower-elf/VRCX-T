@@ -43,6 +43,86 @@ import gameLogService from '../services/gameLog.js';
 
 import * as workerTimers from 'worker-timers';
 
+function resolveGameLogUserId(gameLog, userStore) {
+    if (gameLog.userId) {
+        return String(gameLog.userId);
+    }
+    if (!gameLog.displayName) {
+        return '';
+    }
+    return (
+        findUserByDisplayName(
+            userStore.cachedUsers,
+            gameLog.displayName,
+            userStore.cachedUserIdsByDisplayName
+        )?.id ?? ''
+    );
+}
+
+function getHistoricalPlayerKey(userId, displayName) {
+    return userId || `display:${displayName}`;
+}
+
+async function getHistoricalScreenshotState(userStore) {
+    const data = await database.getGamelogDatabase();
+    const state = {
+        location: '',
+        worldName: '',
+        playerList: new Map()
+    };
+    if (data.length === 0) {
+        return state;
+    }
+    let locationIndex = -1;
+    for (let i = data.length - 1; i > -1; i--) {
+        const entry = data[i];
+        if (entry.type === 'Location') {
+            state.location = entry.location;
+            state.worldName = entry.worldName;
+            locationIndex = i;
+            break;
+        }
+    }
+    if (locationIndex === -1) {
+        return state;
+    }
+    for (let i = locationIndex + 1; i < data.length; i++) {
+        const entry = data[i];
+        if (entry.type === 'OnPlayerJoined') {
+            const userId =
+                entry.userId ||
+                resolveGameLogUserId(
+                    {
+                        userId: entry.userId,
+                        displayName: entry.displayName
+                    },
+                    userStore
+                );
+            state.playerList.set(
+                getHistoricalPlayerKey(userId, entry.displayName),
+                {
+                    userId,
+                    displayName: entry.displayName
+                }
+            );
+        } else if (entry.type === 'OnPlayerLeft') {
+            const userId =
+                entry.userId ||
+                resolveGameLogUserId(
+                    {
+                        userId: entry.userId,
+                        displayName: entry.displayName
+                    },
+                    userStore
+                );
+            state.playerList.delete(
+                getHistoricalPlayerKey(userId, entry.displayName)
+            );
+        }
+    }
+    return state;
+}
+
 /**
  * Loads the player list from game log history and syncs it to
  * locationStore, instanceStore, vrStore, and userStore.
@@ -136,8 +216,9 @@ export async function tryLoadPlayerList() {
  * appropriate stores based on type.
  * @param {object} gameLog
  * @param {string} location
+ * @param {{ processScreenshot?: boolean, copyScreenshotToClipboard?: boolean, screenshotMetadataContext?: { location: string, worldName: string, players: Array<{ userId: string, displayName: string }> }, screenshotDateTime?: string }} [options]
  */
-export function addGameLogEntry(gameLog, location) {
+export function addGameLogEntry(gameLog, location, options = {}) {
     const gameLogStore = useGameLogStore();
     const locationStore = useLocationStore();
     const instanceStore = useInstanceStore();
@@ -152,20 +233,17 @@ export function addGameLogEntry(gameLog, location) {
     const photonStore = usePhotonStore();
     const sharedFeedStore = useSharedFeedStore();
     const notificationStore = useNotificationStore();
+    const processScreenshot = options.processScreenshot === true;
+    const copyScreenshotToClipboard =
+        options.copyScreenshotToClipboard !== false;
+    const screenshotMetadataContext = options.screenshotMetadataContext;
+    const screenshotDateTime = options.screenshotDateTime;
 
     let entry = undefined;
     if (advancedSettingsStore.gameLogDisabled) {
         return;
     }
-    let userId = String(gameLog.userId || '');
-    if (!userId && gameLog.displayName) {
-        userId =
-            findUserByDisplayName(
-                userStore.cachedUsers,
-                gameLog.displayName,
-                userStore.cachedUserIdsByDisplayName
-            )?.id ?? '';
-    }
+    let userId = resolveGameLogUserId(gameLog, userStore);
     switch (gameLog.type) {
         case 'location-destination':
             if (gameStore.isGameRunning) {
@@ -335,7 +413,13 @@ export function addGameLogEntry(gameLog, location) {
             database.addGamelogResourceLoadToDatabase(entry);
             break;
         case 'screenshot':
-            vrcxStore.processScreenshot(gameLog.screenshotPath);
+            if (processScreenshot) {
+                vrcxStore.processScreenshot(gameLog.screenshotPath, {
+                    copyToClipboard: copyScreenshotToClipboard,
+                    metadataContext: screenshotMetadataContext,
+                    screenshotDateTime
+                });
+            }
             break;
         case 'api-request':
             logWebRequest('[GAMELOG API]', gameLog.url);
@@ -509,7 +593,16 @@ export function addGameLogEvent(json) {
         rawLogs[2],
         rawLogs.slice(3)
     );
-    addGameLogEntry(gameLog, locationStore.lastLocation.location);
+    addGameLogEntry(gameLog, locationStore.lastLocation.location, {
+        processScreenshot: true,
+        copyScreenshotToClipboard: true,
+        screenshotMetadataContext: buildScreenshotMetadataContext(
+            locationStore.lastLocation.location,
+            locationStore.lastLocation.name,
+            locationStore.lastLocation.playerList
+        ),
+        screenshotDateTime: gameLog.dt
+    });
 }
 
 /**
@@ -530,13 +623,54 @@ async function updateGameLog(dateTill) {
     await new Promise((resolve) => {
         workerTimers.setTimeout(resolve, 10000);
     });
-    let location = '';
+    const userStore = useUserStore();
+    const historicalState = await getHistoricalScreenshotState(userStore);
+    let location = historicalState.location;
+    let worldName = historicalState.worldName;
+    const playerList = new Map(historicalState.playerList);
     for (const gameLog of await gameLogService.getAll()) {
         if (gameLog.type === 'location') {
             location = gameLog.location;
+            worldName = gameLog.worldName;
+            playerList.clear();
+        } else if (gameLog.type === 'player-joined') {
+            const userId = resolveGameLogUserId(gameLog, userStore);
+            playerList.set(getHistoricalPlayerKey(userId, gameLog.displayName), {
+                userId,
+                displayName: gameLog.displayName
+            });
+        } else if (gameLog.type === 'player-left') {
+            const userId = resolveGameLogUserId(gameLog, userStore);
+            playerList.delete(
+                getHistoricalPlayerKey(userId, gameLog.displayName)
+            );
         }
-        addGameLogEntry(gameLog, location);
+        addGameLogEntry(gameLog, location, {
+            processScreenshot: true,
+            copyScreenshotToClipboard: false,
+            screenshotMetadataContext:
+                gameLog.type === 'screenshot'
+                    ? buildScreenshotMetadataContext(
+                          location,
+                          worldName,
+                          playerList
+                      )
+                    : undefined,
+            screenshotDateTime:
+                gameLog.type === 'screenshot' ? gameLog.dt : undefined
+        });
     }
+}
+
+function buildScreenshotMetadataContext(location, worldName, playerList) {
+    return {
+        location,
+        worldName,
+        players: Array.from(playerList.values()).map((user) => ({
+            userId: user.userId,
+            displayName: user.displayName
+        }))
+    };
 }
 
 /**

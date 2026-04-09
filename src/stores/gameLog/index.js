@@ -17,7 +17,6 @@ import { tryLoadPlayerList } from '../../coordinators/gameLogCoordinator';
 import { useAdvancedSettingsStore } from '../settings/advanced';
 import { useFriendStore } from '../friend';
 import { useNotificationStore } from '../notification';
-import { useUiStore } from '../ui';
 import { useUserStore } from '../user';
 import { useVrStore } from '../vr';
 import { useVrcxStore } from '../vrcx';
@@ -37,12 +36,50 @@ const SESSIONS_DATE_RANGE_MAX_DAYS = 7;
 const SESSIONS_GLOBAL_SEARCH_INITIAL_LOCATIONS = 500;
 const SESSIONS_SEARCH_BATCH_ATTEMPTS = 3;
 
+function getSessionsLocationKey(location) {
+    if (typeof location?.id === 'number') {
+        return `id:${location.id}`;
+    }
+    return `loc:${location?.created_at ?? ''}\0${location?.location ?? ''}`;
+}
+
+function getSessionsEventKey(event) {
+    return `${event?.type ?? ''}\0${event?.created_at ?? ''}\0${event?.userId ?? ''}\0${event?.displayName ?? ''}\0${event?.location ?? ''}\0${event?.videoUrl ?? ''}`;
+}
+
+function mergeUniqueSessionsLocations(existing, incoming) {
+    const merged = [];
+    const seen = new Set();
+    for (const item of [...existing, ...incoming]) {
+        const key = getSessionsLocationKey(item);
+        if (seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        merged.push(item);
+    }
+    return merged;
+}
+
+function mergeUniqueSessionsEvents(existing, incoming) {
+    const merged = [];
+    const seen = new Set();
+    for (const item of [...existing, ...incoming]) {
+        const key = getSessionsEventKey(item);
+        if (seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        merged.push(item);
+    }
+    return merged;
+}
+
 export const useGameLogStore = defineStore('GameLog', () => {
     const notificationStore = useNotificationStore();
     const vrStore = useVrStore();
     const friendStore = useFriendStore();
     const userStore = useUserStore();
-    const uiStore = useUiStore();
     const vrcxStore = useVrcxStore();
     const advancedSettingsStore = useAdvancedSettingsStore();
 
@@ -172,11 +209,11 @@ export const useGameLogStore = defineStore('GameLog', () => {
             await configRepository.getString('gameLogTableFilters', '[]')
         );
         gameLogTable.value.vip = await configRepository.getBool(
-            'VRCX-0_gameLogTableVIPFilter',
+            'VRCX_gameLogTableVIPFilter',
             false
         );
         const savedViewMode = await configRepository.getString(
-            'VRCX-0_gameLogViewMode',
+            'VRCX_gameLogViewMode',
             'sessions'
         );
         if (savedViewMode === 'sessions' || savedViewMode === 'table') {
@@ -374,11 +411,11 @@ export const useGameLogStore = defineStore('GameLog', () => {
      */
     async function gameLogTableLookup() {
         await configRepository.setString(
-            'VRCX-0_gameLogTableFilters',
+            'VRCX_gameLogTableFilters',
             JSON.stringify(gameLogTable.value.filter)
         );
         await configRepository.setBool(
-            'VRCX-0_gameLogTableVIPFilter',
+            'VRCX_gameLogTableVIPFilter',
             gameLogTable.value.vip
         );
         gameLogTable.value.loading = true;
@@ -684,16 +721,6 @@ export const useGameLogStore = defineStore('GameLog', () => {
      * @param {Array<object>} segments
      * @returns {Array<object>}
      */
-    function dropEmptySessionsSegments(segments) {
-        return segments.filter(
-            (segment) => segment.events && segment.events.length > 0
-        );
-    }
-
-    /**
-     * @param {Array<object>} segments
-     * @returns {Array<object>}
-     */
     function filterSessionsSegmentsByDateRange(segments) {
         if (!sessionsDateRangeActive.value) {
             return segments;
@@ -710,7 +737,7 @@ export const useGameLogStore = defineStore('GameLog', () => {
     function applySessionsSearchFilter(segments) {
         const value = normalizeSessionsSearch(sessionsSearch.value);
         if (!value) {
-            return dropEmptySessionsSegments(segments);
+            return segments;
         }
 
         const filtered = [];
@@ -875,14 +902,14 @@ export const useGameLogStore = defineStore('GameLog', () => {
         }
 
         const events = await fetchEventsForLocations(locations);
-        sessionsRawLocations.value = [
-            ...sessionsRawLocations.value,
-            ...locations
-        ];
-        sessionsRawEvents.value = [
-            ...sessionsRawEvents.value,
-            ...events
-        ];
+        sessionsRawLocations.value = mergeUniqueSessionsLocations(
+            sessionsRawLocations.value,
+            locations
+        );
+        sessionsRawEvents.value = mergeUniqueSessionsEvents(
+            sessionsRawEvents.value,
+            events
+        );
         rebuildSessions();
 
         return {
@@ -1003,14 +1030,14 @@ export const useGameLogStore = defineStore('GameLog', () => {
 
                     const events =
                         await fetchEventsForLocations(inRangeLocations);
-                    sessionsRawLocations.value = [
-                        ...sessionsRawLocations.value,
-                        ...inRangeLocations
-                    ];
-                    sessionsRawEvents.value = [
-                        ...sessionsRawEvents.value,
-                        ...events
-                    ];
+                    sessionsRawLocations.value = mergeUniqueSessionsLocations(
+                        sessionsRawLocations.value,
+                        inRangeLocations
+                    );
+                    sessionsRawEvents.value = mergeUniqueSessionsEvents(
+                        sessionsRawEvents.value,
+                        events
+                    );
                     beforeId = locations[locations.length - 1].id;
                     rebuildSessions();
                     hasMore = hasExtraTail && !reachedRangeStart;
@@ -1065,7 +1092,8 @@ export const useGameLogStore = defineStore('GameLog', () => {
 
             if (isSessionsGlobalSearchMode()) {
                 let beforeId = sessionsCursor.value;
-                let hasMore = sessionsHasMore.value;
+                /** @type {boolean} */
+                let hasMore = Boolean(sessionsHasMore.value);
                 const previousCount = sessionsSegments.value.length;
                 let attempts = 0;
 
@@ -1106,14 +1134,14 @@ export const useGameLogStore = defineStore('GameLog', () => {
 
             const moreEvents = await fetchEventsForLocations(moreLocations);
 
-            sessionsRawLocations.value = [
-                ...sessionsRawLocations.value,
-                ...moreLocations
-            ];
-            sessionsRawEvents.value = [
-                ...sessionsRawEvents.value,
-                ...moreEvents
-            ];
+            sessionsRawLocations.value = mergeUniqueSessionsLocations(
+                sessionsRawLocations.value,
+                moreLocations
+            );
+            sessionsRawEvents.value = mergeUniqueSessionsEvents(
+                sessionsRawEvents.value,
+                moreEvents
+            );
             rebuildSessions();
 
             sessionsCursor.value = moreLocations[moreLocations.length - 1].id;
@@ -1225,35 +1253,39 @@ export const useGameLogStore = defineStore('GameLog', () => {
 
         if (type === 'Location') {
             // Add a new location segment
-            sessionsRawLocations.value = [
-                {
-                    id: entry.rowId || Date.now(),
-                    created_at: entry.created_at,
-                    location: entry.location,
-                    worldId: entry.worldId,
-                    worldName: entry.worldName,
-                    time: entry.time,
-                    groupName: entry.groupName || ''
-                },
-                ...sessionsRawLocations.value
-            ];
+            sessionsRawLocations.value = mergeUniqueSessionsLocations(
+                [
+                    {
+                        id: entry.rowId || Date.now(),
+                        created_at: entry.created_at,
+                        location: entry.location,
+                        worldId: entry.worldId,
+                        worldName: entry.worldName,
+                        time: entry.time,
+                        groupName: entry.groupName || ''
+                    }
+                ],
+                sessionsRawLocations.value
+            );
         } else {
             // Append event
-            sessionsRawEvents.value = [
-                ...sessionsRawEvents.value,
-                {
-                    type,
-                    created_at: entry.created_at,
-                    displayName: entry.displayName,
-                    userId: entry.userId,
-                    location: entry.location,
-                    videoUrl: entry.videoUrl,
-                    videoName: entry.videoName,
-                    videoId: entry.videoId,
-                    isFriend: entry.isFriend,
-                    isFavorite: entry.isFavorite
-                }
-            ];
+            sessionsRawEvents.value = mergeUniqueSessionsEvents(
+                sessionsRawEvents.value,
+                [
+                    {
+                        type,
+                        created_at: entry.created_at,
+                        displayName: entry.displayName,
+                        userId: entry.userId,
+                        location: entry.location,
+                        videoUrl: entry.videoUrl,
+                        videoName: entry.videoName,
+                        videoId: entry.videoId,
+                        isFriend: entry.isFriend,
+                        isFavorite: entry.isFavorite
+                    }
+                ]
+            );
         }
         rebuildSessionsDebounced();
     }

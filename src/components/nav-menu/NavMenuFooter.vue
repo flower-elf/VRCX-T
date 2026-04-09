@@ -10,7 +10,7 @@
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="right" align="start" class="w-56">
-                        <DropdownMenuItem @click="emit('show-changelog')">
+                        <DropdownMenuItem @click="emit('open-releases')">
                             <span>{{ t('nav_menu.changelog') }}</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -253,7 +253,6 @@
     });
 
     const emit = defineEmits([
-        'show-changelog',
         'support-link',
         'toggle-theme',
         'show-vrcx-update-dialog',
@@ -264,7 +263,8 @@
         'open-custom-nav',
         'logout-click',
         'toggle-nav-collapse',
-        'open-github'
+        'open-github',
+        'open-releases'
     ]);
     const { t } = useI18n();
 </script>

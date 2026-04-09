@@ -646,7 +646,7 @@
         isActiveFriends.value = await configRepository.getBool('isFriendsGroupActive', false);
         isOfflineFriends.value = await configRepository.getBool('isFriendsGroupOffline', true);
         isSidebarGroupByInstanceCollapsed.value = await configRepository.getBool(
-            'VRCX-0_sidebarGroupByInstanceCollapsed',
+            'VRCX_sidebarGroupByInstanceCollapsed',
             false
         );
     }

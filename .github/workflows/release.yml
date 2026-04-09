@@ -67,7 +67,7 @@ jobs:
                   echo "base_version=${base_version}"       >> "$GITHUB_OUTPUT"
                   echo "build_version=${build_version}"     >> "$GITHUB_OUTPUT"
                   echo "display_version=${display_version}" >> "$GITHUB_OUTPUT"
-                  echo "tag=v${build_version}"              >> "$GITHUB_OUTPUT"
+                  echo "tag=v${display_version}"            >> "$GITHUB_OUTPUT"
                   echo "name=VRCX-0 ${display_version}"     >> "$GITHUB_OUTPUT"
                   echo "prerelease=${prerelease}"           >> "$GITHUB_OUTPUT"
 
@@ -79,7 +79,7 @@ jobs:
                   else
                       src="CHANGELOG-beta.md"
                   fi
-                  notes=$(sed '1{/^## /d}' "$src" | sed '/^<!--/,/-->/d' | sed '/./,$!d' | sed -e :a -e '/^\n*$/{$d;N;ba}')
+                  notes=$(awk '/^## /{if(n++)exit;next} 1' "$src" | sed '/^<!--/,/-->/d' | sed '/./,$!d' | sed -e :a -e '/^\n*$/{$d;N;ba}')
                   if [ -z "$notes" ]; then
                       notes="No changelog provided."
                   fi
@@ -96,17 +96,6 @@ jobs:
                   const tauri = JSON.parse(fs.readFileSync(tauriPath, 'utf8'));
                   tauri.version = buildVersion;
                   fs.writeFileSync(tauriPath, `${JSON.stringify(tauri, null, 2)}\n`);
-
-                  const cargoPath = './src-tauri/Cargo.toml';
-                  const cargo = fs.readFileSync(cargoPath, 'utf8');
-                  const nextCargo = cargo.replace(
-                    /^version = ".*"$/m,
-                    `version = "${buildVersion}"`
-                  );
-                  if (cargo === nextCargo) {
-                    throw new Error('Failed to update Cargo.toml version');
-                  }
-                  fs.writeFileSync(cargoPath, nextCargo);
                   NODE
               env:
                   BUILD_VERSION: ${{ steps.meta.outputs.build_version }}
@@ -125,12 +114,22 @@ jobs:
             - run: npm ci
             - run: npm run tauri:build
 
+            - name: Rename NSIS installer
+              shell: pwsh
+              run: |
+                  $nsisDir = "src-tauri/target/release/bundle/nsis"
+                  $original = Get-ChildItem "$nsisDir/*.exe" | Select-Object -First 1
+                  if ($original) {
+                      $newName = "VRCX-0_${{ steps.meta.outputs.display_version }}_windows_x64-setup.exe"
+                      Rename-Item $original.FullName -NewName $newName
+                  }
+
             - name: Package portable zip
               shell: pwsh
               run: |
                   $zipDir = "src-tauri/target/release/bundle/zip"
                   $packageDir = Join-Path $zipDir "VRCX-0"
-                  $zipPath = Join-Path $zipDir "VRCX-0_${{ steps.meta.outputs.display_version }}_windows_x64.zip"
+                  $zipPath = Join-Path $zipDir "VRCX-0_${{ steps.meta.outputs.display_version }}_windows_x64-portable.zip"
                   if (Test-Path $packageDir) {
                       Remove-Item $packageDir -Recurse -Force
                   }

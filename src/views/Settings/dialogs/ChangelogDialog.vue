@@ -9,15 +9,9 @@
                 <span>
                     {{ t('dialog.change_log.description') }}
                     <br />
-                    Map1en:
                     <a class="cursor-pointer" @click="openExternalLink('https://ko-fi.com/map1en_')">Ko-fi</a>.
                     <a class="cursor-pointer" @click="openExternalLink('https://ifdian.net/a/map1en_')">爱发电</a>
                     <br />
-                    Natsumi:
-                    <a class="cursor-pointer" @click="openExternalLink('https://ko-fi.com/natsumi_sama')">Ko-fi</a>,
-                    <a class="cursor-pointer" @click="openExternalLink('https://www.patreon.com/Natsumi_VRCX')"
-                        >Patreon</a
-                    >.
                 </span>
                 <VueShowdown
                     class="changelog-markdown mt-2"
@@ -34,9 +28,6 @@
                     @click="openExternalLink('https://github.com/Map1en/VRCX-0/releases')">
                     {{ t('dialog.change_log.github') }}
                 </Button>
-                <!-- <Button variant="outline" class="mr-2" @click="openExternalLink('https://patreon.com/Natsumi_VRCX')">
-                    {{ t('dialog.change_log.donate') }}
-                </Button> -->
                 <Button @click="closeDialog">
                     {{ t('dialog.change_log.close') }}
                 </Button>

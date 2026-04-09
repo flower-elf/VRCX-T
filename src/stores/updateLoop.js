@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia';
-import { watch } from 'vue';
+import { reactive, toRefs, watch } from 'vue';
 
 import { database } from '../services/database';
 import { groupRequest } from '../api';
 import { runRefreshFriendsListFlow } from '../coordinators/friendSyncCoordinator';
 import { runUpdateIsGameRunningFlow } from '../coordinators/gameCoordinator';
-import { addGameLogEntry } from '../coordinators/gameLogCoordinator';
 import { runRefreshPlayerModerationsFlow } from '../coordinators/moderationCoordinator';
 import { clearVRCXCache } from '../coordinators/vrcxCoordinator';
 import { useAuthStore } from './auth';
@@ -21,8 +20,6 @@ import { useVRCXUpdaterStore } from './vrcxUpdater';
 import { useVrStore } from './vr';
 import { useVrcxStore } from './vrcx';
 import { watchState } from '../services/watchState';
-import gameLogService from '../services/gameLog.js';
-import { useLocationStore } from './location';
 
 import * as workerTimers from 'worker-timers';
 
@@ -34,7 +31,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
     const discordPresenceSettingsStore = useDiscordPresenceSettingsStore();
     const vrcxUpdaterStore = useVRCXUpdaterStore();
     const vrStore = useVrStore();
-    const state = {
+    const state = reactive({
         nextCurrentUserRefresh: 300,
         nextFriendsRefresh: 3600,
         nextGroupInstanceRefresh: 0,
@@ -43,10 +40,8 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
         nextClearVRCXCacheCheck: 86400,
         nextDiscordUpdate: 0,
         nextAutoStateChange: 0,
-        nextGetLogCheck: 0,
-        nextGameRunningCheck: 0,
         nextDatabaseOptimize: 3600
-    };
+    });
 
     watch(
         () => watchState.isLoggedIn,
@@ -58,13 +53,11 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
         { flush: 'sync' }
     );
 
-    const nextGroupInstanceRefresh = state.nextGroupInstanceRefresh;
-
-    const nextCurrentUserRefresh = state.nextCurrentUserRefresh;
-
-    const nextDiscordUpdate = state.nextDiscordUpdate;
-
-    const ipcTimeout = state.ipcTimeout;
+    const {
+        nextGroupInstanceRefresh,
+        nextCurrentUserRefresh,
+        nextDiscordUpdate
+    } = toRefs(state);
 
     /**
      *
@@ -72,12 +65,6 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
     async function updateLoop() {
         try {
             if (watchState.isLoggedIn) {
-                // Game log polling
-                if (--state.nextGetLogCheck <= 0) {
-                    state.nextGetLogCheck = 1; // every 1s
-                    await pollGameLogs();
-                }
-
                 if (--state.nextCurrentUserRefresh <= 0) {
                     state.nextCurrentUserRefresh = 300; // 5min
                     getCurrentUser();
@@ -101,7 +88,6 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
                             await groupRequest.getUsersGroupInstances();
                         handleGroupUserInstances(args);
                     }
-                    AppApi.CheckGameRunning();
                 }
                 if (--state.nextAppUpdateCheck <= 0) {
                     state.nextAppUpdateCheck = 3600; // 1hour
@@ -109,9 +95,6 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
                         vrcxUpdaterStore.checkForVRCXUpdate();
                     }
                     vrcxStore.tryAutoBackupVrcRegistry();
-                }
-                if (--state.ipcTimeout <= 0) {
-                    vrcxStore.setIpcEnabled(false);
                 }
                 if (
                     --state.nextClearVRCXCacheCheck <= 0 &&
@@ -144,28 +127,6 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
     }
 
     /**
-     * Poll LogWatcher.Get() and process any new game log entries.
-     * Mirrors the C# update-loop polling that feeds addGameLogEntry.
-     */
-    async function pollGameLogs() {
-        try {
-            const locationStore = useLocationStore();
-            const gameLogs = await gameLogService.getAll();
-            if (gameLogs.length > 0) {
-                console.log(`[LogWatcher] polled ${gameLogs.length} log entries`);
-            }
-            for (const gameLog of gameLogs) {
-                if (gameLog.type !== 'api-request' && gameLog.type !== 'udon-exception') {
-                    console.log('[LogWatcher] processing:', gameLog.type, gameLog);
-                }
-                addGameLogEntry(gameLog, locationStore.lastLocation.location);
-            }
-        } catch (err) {
-            console.error('[LogWatcher] pollGameLogs error:', err);
-        }
-    }
-
-    /**
      *
      * @param value
      */
@@ -193,14 +154,6 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
      *
      * @param value
      */
-    function setIpcTimeout(value) {
-        state.ipcTimeout = value;
-    }
-
-    /**
-     *
-     * @param value
-     */
     function setNextCurrentUserRefresh(value) {
         state.nextCurrentUserRefresh = value;
     }
@@ -211,9 +164,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
         nextGroupInstanceRefresh,
         nextCurrentUserRefresh,
         nextDiscordUpdate,
-        ipcTimeout,
         updateLoop,
-        setIpcTimeout,
         setNextCurrentUserRefresh,
         setNextDiscordUpdate,
         setNextGroupInstanceRefresh,

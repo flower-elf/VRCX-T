@@ -2,7 +2,7 @@
     <div class="x-container x-container--auto-height" ref="playerListRef">
         <div class="flex h-full min-h-0 flex-col overflow-y-auto overflow-x-hidden">
             <div
-                v-if="currentInstanceWorld.ref.id"
+                v-if="isGameRunning && currentInstanceWorld.ref.id"
                 ref="playerListHeaderRef"
                 style="display: flex; min-height: 120px"
                 class="mb-7">
@@ -164,7 +164,7 @@
                 <PhotonEventTable @show-chatbox-blacklist="showChatboxBlacklistDialog" />
             </div>
 
-            <div class="current-instance-table flex min-h-0 min-w-0 flex-1">
+            <div v-if="isGameRunning" class="current-instance-table flex min-h-0 min-w-0 flex-1">
                 <DataTableLayout
                     class="[&_th]:px-2.5! [&_th]:py-0.75! [&_td]:px-2.5! [&_td]:py-0.75! [&_tr]:h-7!"
                     :table="playerListTable"
@@ -189,6 +189,7 @@
     import {
         useAppearanceSettingsStore,
         useGalleryStore,
+        useGameStore,
         useInstanceStore,
         useLocationStore,
         usePhotonStore,
@@ -213,6 +214,7 @@
     const photonStore = usePhotonStore();
     const { photonLoggingEnabled, chatboxUserBlacklist } = storeToRefs(photonStore);
     const { saveChatboxUserBlacklist } = photonStore;
+    const { isGameRunning } = storeToRefs(useGameStore());
 
     const { lastLocation } = storeToRefs(useLocationStore());
     const { currentInstanceLocation, currentInstanceWorld, currentInstanceUsersData } = storeToRefs(useInstanceStore());

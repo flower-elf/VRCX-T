@@ -36,6 +36,7 @@ import { database } from '../services/database';
 import { resolveRef } from '../shared/utils/resolveRef';
 import { useAppearanceSettingsStore } from './settings/appearance';
 import { useFriendStore } from './friend';
+import { useGameStore } from './game';
 import { useGroupStore } from './group';
 import { useLocationStore } from './location';
 import { useNotificationStore } from './notification';
@@ -54,6 +55,7 @@ export const useInstanceStore = defineStore('Instance', () => {
     const friendStore = useFriendStore();
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const groupStore = useGroupStore();
+    const gameStore = useGameStore();
     const notificationStore = useNotificationStore();
     const uiStore = useUiStore();
     const userStore = useUserStore();
@@ -1285,6 +1287,11 @@ export const useInstanceStore = defineStore('Instance', () => {
      *
      */
     function updatePlayerListDebounce() {
+        if (!gameStore.isGameRunning) {
+            currentInstanceUsersData.value = [];
+            return;
+        }
+
         const users = [];
         const pushUser = function (ref) {
             let photonId = -1;

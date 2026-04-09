@@ -203,7 +203,12 @@
 
     const videoLabel = computed(() => {
         if (props.event.type !== 'VideoPlay') return '';
-        return props.event.videoName || props.event.videoUrl;
+        return (
+            props.event.videoName ||
+            props.event.videoUrl ||
+            props.event.videoId ||
+            'Unknown Video'
+        );
     });
 
     function formatTime(dateStr) {

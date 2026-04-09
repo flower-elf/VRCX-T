@@ -23,6 +23,7 @@ export * from './world';
 export * from './throttle';
 export * from './retry';
 export * from './gameLog';
+export * from './screenshot';
 export * from './entityTransforms';
 export * from './userTransforms';
 export * from './worldTransforms';

@@ -86,7 +86,7 @@
 
     function saveTableFilters() {
         configRepository.setString(
-            'VRCX-0_playerModerationTableFilters',
+            'VRCX_playerModerationTableFilters',
             JSON.stringify(playerModerationTable.value.filters[0].value)
         );
     }

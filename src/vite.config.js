@@ -120,7 +120,7 @@ export default defineConfig(() => {
                     customMedia: true
                 },
                 errorRecovery: true,
-                targets: browserslistToTargets(browserslist('Chrome 125'))
+                targets: browserslistToTargets(browserslist('Edge 130'))
             }
         },
         optimizeDeps: {
@@ -145,7 +145,7 @@ export default defineConfig(() => {
             strictPort: true
         },
         build: {
-            target: 'chrome111',
+            target: 'edge130',
             outDir: '../build/html',
             license: true,
             emptyOutDir: true,

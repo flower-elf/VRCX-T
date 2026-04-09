@@ -555,7 +555,7 @@ export const useAuthStore = defineStore('Auth', () => {
      */
     async function toggleCustomEndpoint() {
         await configRepository.setBool(
-            'VRCX-0_enableCustomEndpoint',
+            'VRCX_enableCustomEndpoint',
             enableCustomEndpoint.value
         );
         loginForm.value.endpoint = '';

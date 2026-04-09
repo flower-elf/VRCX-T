@@ -252,7 +252,7 @@ describe('useAvatarCardGrid', () => {
             const { cardScale } = createGrid();
             cardScale.value = 0.7;
             expect(config.setString).toHaveBeenCalledWith(
-                'VRCX-0_MyAvatarsCardScale',
+                'VRCX_MyAvatarsCardScale',
                 '0.7'
             );
         });
@@ -263,7 +263,7 @@ describe('useAvatarCardGrid', () => {
             const { cardSpacing } = createGrid();
             cardSpacing.value = 0.8;
             expect(config.setString).toHaveBeenCalledWith(
-                'VRCX-0_MyAvatarsCardSpacing',
+                'VRCX_MyAvatarsCardSpacing',
                 '0.8'
             );
         });

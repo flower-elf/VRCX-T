@@ -85,7 +85,7 @@
 
         <GlobalToolsDialogs></GlobalToolsDialogs>
 
-        <ChangelogDialog></ChangelogDialog>
+        <!-- <ChangelogDialog></ChangelogDialog> -->
 
         <WhatsNewDialog></WhatsNewDialog>
 
@@ -105,7 +105,7 @@
     import { watchState } from '../../services/watchState';
 
     import AvatarImportDialog from '../Favorites/dialogs/AvatarImportDialog.vue';
-    import ChangelogDialog from '../Settings/dialogs/ChangelogDialog.vue';
+    // import ChangelogDialog from '../Settings/dialogs/ChangelogDialog.vue';
     import ChooseFavoriteGroupDialog from '../../components/dialogs/ChooseFavoriteGroupDialog.vue';
     import FriendImportDialog from '../Favorites/dialogs/FriendImportDialog.vue';
     import FullscreenImagePreview from '../../components/FullscreenImagePreview.vue';

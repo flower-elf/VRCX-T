@@ -137,7 +137,7 @@ describe('Tools.vue', () => {
         await imageCategoryHeader.trigger('click');
 
         expect(setString).toHaveBeenCalledWith(
-            'VRCX-0_toolsCategoryCollapsed',
+            'VRCX_toolsCategoryCollapsed',
             expect.stringContaining('"image":true')
         );
     });
@@ -157,7 +157,7 @@ describe('Tools.vue', () => {
         await imageCategoryHeader.trigger('click');
 
         expect(setString).toHaveBeenCalledWith(
-            'VRCX-0_toolsCategoryCollapsed',
+            'VRCX_toolsCategoryCollapsed',
             expect.stringContaining('"image":false')
         );
     });

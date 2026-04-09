@@ -34,6 +34,8 @@ pub struct AppState {
     pub screenshot_cache: MetadataCacheDb,
 
     pub auto_launch: AutoAppLaunchManager,
+    pub legacy_vrcx_available: bool,
+    pub launched_from_autostart: bool,
 }
 
 impl AppState {
@@ -50,18 +52,22 @@ impl AppState {
             image_cache: app_data.join("ImageCache"),
             app_data,
         };
+        let launched_from_autostart = std::env::args().any(|arg| arg == "--autostart");
 
-        try_copy_legacy_vrcx_data(&paths)?;
+        let migration_flag = paths.app_data.join("pending_vrcx_migration");
+        if migration_flag.exists() {
+            copy_legacy_vrcx_data(&paths)?;
+            let _ = std::fs::remove_file(&migration_flag);
+            tracing::info!("Legacy VRCX data migration completed");
+        }
+
+        let legacy_vrcx_available = !paths.db_file.exists()
+            && !paths.config_file.exists()
+            && has_legacy_vrcx_data();
 
         let storage = StorageService::new(&paths.config_file)?;
 
-        let db_path = storage
-            .get("VRCX-0_DatabaseLocation")
-            .filter(|s| !s.is_empty())
-            .map(PathBuf::from)
-            .unwrap_or_else(|| paths.db_file.clone());
-
-        let db = DatabaseService::new(&db_path)?;
+        let db = DatabaseService::new(&paths.db_file)?;
         let process_monitor = ProcessMonitor::new();
         let log_watcher = LogWatcher::new();
         let web = WebClient::new(&storage, &db)?;
@@ -88,15 +94,37 @@ impl AppState {
             ipc,
             screenshot_cache,
             auto_launch,
+            legacy_vrcx_available,
+            launched_from_autostart,
         })
     }
 }
 
-fn try_copy_legacy_vrcx_data(paths: &AppPaths) -> Result<(), AppError> {
-    if paths.db_file.exists() || paths.config_file.exists() {
-        return Ok(());
-    }
+fn has_legacy_vrcx_data() -> bool {
+    let Some(base_app_data) = std::env::var_os("APPDATA")
+        .map(PathBuf::from)
+        .or_else(dirs::config_dir)
+    else {
+        return false;
+    };
 
+    let legacy_dir = base_app_data.join("VRCX");
+    resolve_legacy_database_path(&legacy_dir).is_some()
+}
+
+fn legacy_database_location() -> Option<PathBuf> {
+    let base_app_data = std::env::var_os("APPDATA")
+        .map(PathBuf::from)
+        .or_else(dirs::config_dir)?;
+    let legacy_config = base_app_data.join("VRCX").join("VRCX.json");
+    let content = std::fs::read_to_string(legacy_config).ok()?;
+    let data: std::collections::HashMap<String, String> = serde_json::from_str(&content).ok()?;
+    data.get("VRCX_DatabaseLocation")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+}
+
+fn copy_legacy_vrcx_data(paths: &AppPaths) -> Result<(), AppError> {
     let Some(base_app_data) = std::env::var_os("APPDATA")
         .map(PathBuf::from)
         .or_else(dirs::config_dir)
@@ -109,25 +137,70 @@ fn try_copy_legacy_vrcx_data(paths: &AppPaths) -> Result<(), AppError> {
         return Ok(());
     }
 
-    copy_if_exists(legacy_dir.join("VRCX.sqlite3"), paths.db_file.clone())?;
-    copy_if_exists(
-        legacy_dir.join("VRCX.sqlite3-shm"),
-        paths.app_data.join("VRCX-0.sqlite3-shm"),
-    )?;
-    copy_if_exists(
-        legacy_dir.join("VRCX.sqlite3-wal"),
-        paths.app_data.join("VRCX-0.sqlite3-wal"),
-    )?;
-    copy_if_exists(legacy_dir.join("VRCX.json"), paths.config_file.clone())?;
+    if let Some(legacy_db) = resolve_legacy_database_path(&legacy_dir) {
+        copy_replace(legacy_db.clone(), paths.db_file.clone())?;
+        sync_sidecar(
+            sidecar_path(&legacy_db, "shm"),
+            paths.app_data.join("VRCX-0.sqlite3-shm"),
+        )?;
+        sync_sidecar(
+            sidecar_path(&legacy_db, "wal"),
+            paths.app_data.join("VRCX-0.sqlite3-wal"),
+        )?;
+    }
+    copy_replace(legacy_dir.join("VRCX.json"), paths.config_file.clone())?;
+    remove_database_location_from_config(&paths.config_file)?;
 
     Ok(())
 }
 
-fn copy_if_exists(from: PathBuf, to: PathBuf) -> Result<(), AppError> {
-    if !from.exists() || to.exists() {
+fn resolve_legacy_database_path(legacy_dir: &std::path::Path) -> Option<PathBuf> {
+    if let Some(config_db) = legacy_database_location().filter(|path| path.exists()) {
+        return Some(config_db);
+    }
+
+    let default_db = legacy_dir.join("VRCX.sqlite3");
+    default_db.exists().then_some(default_db)
+}
+
+fn copy_replace(from: PathBuf, to: PathBuf) -> Result<(), AppError> {
+    if !from.exists() {
         return Ok(());
     }
 
+    if to.exists() {
+        std::fs::remove_file(&to)?;
+    }
     std::fs::copy(&from, &to)?;
+    Ok(())
+}
+
+fn sidecar_path(db_path: &std::path::Path, suffix: &str) -> PathBuf {
+    PathBuf::from(format!("{}-{suffix}", db_path.to_string_lossy()))
+}
+
+fn sync_sidecar(from: PathBuf, to: PathBuf) -> Result<(), AppError> {
+    if from.exists() {
+        copy_replace(from, to)?;
+    } else if to.exists() {
+        std::fs::remove_file(to)?;
+    }
+    Ok(())
+}
+
+fn remove_database_location_from_config(config_path: &std::path::Path) -> Result<(), AppError> {
+    if !config_path.exists() {
+        return Ok(());
+    }
+
+    let content = std::fs::read_to_string(config_path)?;
+    let mut data: std::collections::HashMap<String, String> =
+        serde_json::from_str(&content).unwrap_or_default();
+    if data.remove("VRCX_DatabaseLocation").is_none() {
+        return Ok(());
+    }
+
+    let json = serde_json::to_string_pretty(&data)?;
+    std::fs::write(config_path, json)?;
     Ok(())
 }

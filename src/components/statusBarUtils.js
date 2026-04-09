@@ -98,7 +98,7 @@ export function normalizeClock(entry) {
  */
 export function loadVisibility(storage) {
     try {
-        const saved = storage.getItem('VRCX-0_statusBarVisibility');
+        const saved = storage.getItem('VRCX_statusBarVisibility');
         if (saved) {
             return { ...defaultVisibility, ...JSON.parse(saved) };
         }
@@ -117,7 +117,7 @@ export function loadVisibility(storage) {
  */
 export function loadClocks(storage, defaults) {
     try {
-        const saved = storage.getItem('VRCX-0_statusBarClocks');
+        const saved = storage.getItem('VRCX_statusBarClocks');
         if (saved) {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length === 3) {
@@ -138,7 +138,7 @@ export function loadClocks(storage, defaults) {
  */
 export function loadClockCount(storage) {
     try {
-        const saved = storage.getItem('VRCX-0_statusBarClockCount');
+        const saved = storage.getItem('VRCX_statusBarClockCount');
         if (saved !== null) {
             const n = Number(saved);
             if (n >= 0 && n <= 3) return n;

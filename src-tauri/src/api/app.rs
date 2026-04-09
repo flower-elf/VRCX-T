@@ -8,12 +8,32 @@ use std::path::PathBuf;
 use base64::{engine::general_purpose::STANDARD as B64, Engine};
 use fast_rsync::{Signature, SignatureOptions};
 use tauri::{AppHandle, Emitter, State};
+#[cfg(target_os = "windows")]
+use tauri_plugin_autostart::ManagerExt as _;
 
 use crate::domain::ipc::IpcPacket;
 use crate::domain::png::{self as png_mod, ChunkType};
 use crate::domain::screenshot::{self, SearchType};
 use crate::error::AppError;
 use crate::state::AppState;
+
+const TRAY_ICON_DEFAULT: &[u8] = include_bytes!("../../icons/icon.png");
+const TRAY_ICON_NOTIFY: &[u8] = include_bytes!("../../icons/icon_notify.png");
+
+#[allow(dead_code)]
+fn spawn_current_exe(args: &[&str]) -> Result<(), AppError> {
+    let exe = std::env::current_exe().map_err(|e| AppError::Custom(format!("current exe: {e}")))?;
+    let mut cmd = std::process::Command::new(&exe);
+    if let Some(dir) = exe.parent() {
+        cmd.current_dir(dir);
+    }
+    for arg in args {
+        cmd.arg(arg);
+    }
+    cmd.spawn()
+        .map_err(|e| AppError::Custom(format!("restart: {e}")))?;
+    Ok(())
+}
 
 #[tauri::command]
 pub fn app__check_game_running(
@@ -380,6 +400,54 @@ pub async fn app__open_folder_selector_dialog(
 }
 
 #[tauri::command]
+pub async fn app__save_vrc_reg_json_file(
+    app_handle: AppHandle,
+    default_path: Option<String>,
+    default_name: String,
+    json: String,
+) -> Result<String, AppError> {
+    use tauri_plugin_dialog::DialogExt;
+
+    let mut builder = app_handle.dialog().file();
+
+    if let Some(ref path) = default_path {
+        let p = PathBuf::from(path);
+        if p.is_dir() {
+            builder = builder.set_directory(p);
+        } else if let Some(parent) = p.parent() {
+            if parent.is_dir() {
+                builder = builder.set_directory(parent);
+            }
+        }
+    }
+
+    if !default_name.trim().is_empty() {
+        builder = builder.set_file_name(&default_name);
+    }
+
+    builder = builder.add_filter("JSON Files", &["json"]);
+
+    let result = builder.blocking_save_file();
+
+    match result {
+        Some(file_path) => {
+            let path = match file_path {
+                tauri_plugin_dialog::FilePath::Path(p) => p,
+                other => PathBuf::from(other.to_string()),
+            };
+
+            if let Some(parent) = path.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+
+            std::fs::write(&path, json)?;
+            Ok(path.to_string_lossy().to_string())
+        }
+        None => Ok(String::new()),
+    }
+}
+
+#[tauri::command]
 pub fn app__quit_game() -> Result<i32, AppError> {
     use sysinfo::System;
     let mut sys = System::new();
@@ -460,19 +528,10 @@ pub fn app__flash_window(app_handle: AppHandle) -> Result<(), AppError> {
 
 #[tauri::command]
 pub fn app__show_dev_tools(app_handle: AppHandle) -> Result<(), AppError> {
-    #[cfg(debug_assertions)]
-    {
-        use tauri::Manager;
-        if let Some(window) = app_handle.get_webview_window("main") {
-            window.open_devtools();
-        }
+    use tauri::Manager;
+    if let Some(window) = app_handle.get_webview_window("main") {
+        window.open_devtools();
     }
-
-    #[cfg(not(debug_assertions))]
-    {
-        let _ = app_handle;
-    }
-
     Ok(())
 }
 
@@ -497,19 +556,10 @@ pub fn app__do_funny() {}
 pub fn app__set_tray_icon_notification(app_handle: AppHandle, notify: Option<bool>) {
     let notify = notify.unwrap_or(false);
     if let Some(tray) = app_handle.tray_by_id("main") {
-        let icon_path = if notify {
-            "icons/icon_notify.png"
+        let icon_result = tauri::image::Image::from_bytes(if notify {
+            TRAY_ICON_NOTIFY
         } else {
-            "icons/icon.png"
-        };
-        let icon_result = tauri::image::Image::from_path(icon_path).or_else(|_| {
-            let base = std::env::current_exe()
-                .ok()
-                .and_then(|p| p.parent().map(|d| d.to_path_buf()));
-            match base {
-                Some(dir) => tauri::image::Image::from_path(dir.join(icon_path)),
-                None => Err(tauri::Error::AssetNotFound(icon_path.into())),
-            }
+            TRAY_ICON_DEFAULT
         });
         if let Ok(icon) = icon_result {
             let _ = tray.set_icon(Some(icon));
@@ -540,15 +590,12 @@ pub fn app__restart_application(
 
     #[cfg(not(debug_assertions))]
     {
-        let exe =
-            std::env::current_exe().map_err(|e| AppError::Custom(format!("current exe: {e}")))?;
-        let mut cmd = std::process::Command::new(&exe);
         if is_upgrade.unwrap_or(false) {
-            cmd.arg("--upgrade");
+            spawn_current_exe(&["--upgrade"])?;
+            app_handle.exit(0);
+        } else {
+            app_handle.request_restart();
         }
-        cmd.spawn()
-            .map_err(|e| AppError::Custom(format!("restart: {e}")))?;
-        app_handle.exit(0);
         Ok(())
     }
 }
@@ -559,6 +606,32 @@ pub fn app__check_for_update_exe(state: State<'_, AppState>) -> bool {
 }
 
 #[tauri::command]
+pub fn app__check_legacy_vrcx_available(state: State<'_, AppState>) -> bool {
+    state.legacy_vrcx_available
+}
+
+#[tauri::command]
+pub fn app__request_legacy_migration(
+    app_handle: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<bool, AppError> {
+    #[cfg(debug_assertions)]
+    {
+        tracing::warn!("app__request_legacy_migration: dev mode does not auto-restart or persist migration flag");
+        let _ = (app_handle, state);
+        Ok(false)
+    }
+
+    #[cfg(not(debug_assertions))]
+    {
+        let flag_path = state.paths.app_data.join("pending_vrcx_migration");
+        std::fs::write(&flag_path, b"1")?;
+        app_handle.request_restart();
+        Ok(true)
+    }
+}
+
+#[tauri::command]
 pub fn app__get_clipboard() -> Result<String, AppError> {
     let mut clipboard =
         arboard::Clipboard::new().map_err(|e| AppError::Custom(format!("clipboard: {e}")))?;
@@ -566,58 +639,53 @@ pub fn app__get_clipboard() -> Result<String, AppError> {
 }
 
 #[tauri::command]
-pub fn app__copy_image_to_clipboard(path: String) -> Result<(), AppError> {
-    let ext = PathBuf::from(&path)
-        .extension()
-        .map(|e| e.to_string_lossy().to_lowercase())
-        .unwrap_or_default();
+pub async fn app__copy_image_to_clipboard(path: String) -> Result<(), AppError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let ext = PathBuf::from(&path)
+            .extension()
+            .map(|e| e.to_string_lossy().to_lowercase())
+            .unwrap_or_default();
 
-    if !matches!(
-        ext.as_str(),
-        "png" | "jpg" | "jpeg" | "bmp" | "gif" | "webp"
-    ) {
-        return Err(AppError::Custom("unsupported image format".into()));
-    }
+        if !matches!(
+            ext.as_str(),
+            "png" | "jpg" | "jpeg" | "bmp" | "gif" | "webp"
+        ) {
+            return Err(AppError::Custom("unsupported image format".into()));
+        }
 
-    let data = std::fs::read(&path)?;
-    let img =
-        image::load_from_memory(&data).map_err(|e| AppError::Custom(format!("load image: {e}")))?;
-    let rgba = img.to_rgba8();
+        let data = std::fs::read(&path)?;
+        let img = image::load_from_memory(&data)
+            .map_err(|e| AppError::Custom(format!("load image: {e}")))?;
+        let rgba = img.to_rgba8();
 
-    let mut clipboard =
-        arboard::Clipboard::new().map_err(|e| AppError::Custom(format!("clipboard: {e}")))?;
-    clipboard
-        .set_image(arboard::ImageData {
-            width: rgba.width() as usize,
-            height: rgba.height() as usize,
-            bytes: std::borrow::Cow::Borrowed(rgba.as_raw()),
-        })
-        .map_err(|e| AppError::Custom(format!("set clipboard image: {e}")))?;
-    Ok(())
+        let mut clipboard =
+            arboard::Clipboard::new().map_err(|e| AppError::Custom(format!("clipboard: {e}")))?;
+        clipboard
+            .set_image(arboard::ImageData {
+                width: rgba.width() as usize,
+                height: rgba.height() as usize,
+                bytes: std::borrow::Cow::Owned(rgba.into_raw()),
+            })
+            .map_err(|e| AppError::Custom(format!("set clipboard image: {e}")))?;
+        Ok(())
+    })
+    .await
+    .map_err(|e| AppError::Custom(format!("copy image task: {e}")))?
 }
 
 #[tauri::command]
-pub fn app__set_startup(_enabled: bool) -> Result<(), AppError> {
+pub fn app__set_startup(app_handle: AppHandle, _enabled: bool) -> Result<(), AppError> {
     #[cfg(target_os = "windows")]
     {
-        let enabled = _enabled;
-        use winreg::enums::*;
-        use winreg::RegKey;
-        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-        let key = hkcu
-            .open_subkey_with_flags(
-                "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
-                KEY_SET_VALUE | KEY_READ,
-            )
-            .map_err(|e| AppError::Custom(format!("registry: {e}")))?;
-
-        if enabled {
-            let exe = std::env::current_exe()
-                .map_err(|e| AppError::Custom(format!("current exe: {e}")))?;
-            key.set_value("VRCX-0", &exe.to_string_lossy().as_ref())
-                .map_err(|e| AppError::Custom(format!("set registry: {e}")))?;
+        let autolaunch = app_handle.autolaunch();
+        if _enabled {
+            autolaunch
+                .enable()
+                .map_err(|e| AppError::Custom(format!("enable autostart: {e}")))?;
         } else {
-            let _ = key.delete_value("VRCX-0");
+            autolaunch
+                .disable()
+                .map_err(|e| AppError::Custom(format!("disable autostart: {e}")))?;
         }
     }
     Ok(())
@@ -901,24 +969,26 @@ pub fn app__get_extra_screenshot_data(
         .unwrap_or_default();
     result.insert("fileName".into(), serde_json::json!(file_name));
 
-    if let Some(parent) = p.parent() {
-        if let Ok(entries) = std::fs::read_dir(parent) {
-            let mut pngs: Vec<String> = entries
-                .filter_map(|e| e.ok())
-                .filter(|e| {
-                    e.path()
-                        .extension()
-                        .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
-                })
-                .map(|e| e.path().to_string_lossy().into_owned())
-                .collect();
-            pngs.sort();
-            if let Some(idx) = pngs.iter().position(|f| f == &path) {
-                if idx > 0 {
-                    result.insert("previousFilePath".into(), serde_json::json!(pngs[idx - 1]));
-                }
-                if idx + 1 < pngs.len() {
-                    result.insert("nextFilePath".into(), serde_json::json!(pngs[idx + 1]));
+    if _carousel_cache {
+        if let Some(parent) = p.parent() {
+            if let Ok(entries) = std::fs::read_dir(parent) {
+                let mut pngs: Vec<String> = entries
+                    .filter_map(|e| e.ok())
+                    .filter(|e| {
+                        e.path()
+                            .extension()
+                            .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
+                    })
+                    .map(|e| e.path().to_string_lossy().into_owned())
+                    .collect();
+                pngs.sort();
+                if let Some(idx) = pngs.iter().position(|f| f == &path) {
+                    if idx > 0 {
+                        result.insert("previousFilePath".into(), serde_json::json!(pngs[idx - 1]));
+                    }
+                    if idx + 1 < pngs.len() {
+                        result.insert("nextFilePath".into(), serde_json::json!(pngs[idx + 1]));
+                    }
                 }
             }
         }
@@ -1016,6 +1086,9 @@ pub fn app__add_screenshot_metadata(
     _world_id: String,
     _change_filename: Option<bool>,
 ) -> Result<String, AppError> {
+    if screenshot::has_vrcx_metadata(&path) {
+        return Ok(path);
+    }
     screenshot::write_vrcx_metadata(&metadata_string, &path);
     Ok(path)
 }
@@ -1213,24 +1286,35 @@ pub fn app__get_vrchat_registry_key(key: String) -> Result<serde_json::Value, Ap
         use winreg::enums::*;
         use winreg::RegKey;
 
-        let hashed_key = add_hash_to_key_name(&key);
         let hkcu = RegKey::predef(HKEY_CURRENT_USER);
         let vrc_key = match hkcu.open_subkey("SOFTWARE\\VRChat\\VRChat") {
             Ok(k) => k,
             Err(_) => return Ok(serde_json::Value::Null),
         };
 
+        let hashed_key = add_hash_to_key_name(&key);
         if let Ok(val) = vrc_key.get_raw_value(&hashed_key) {
             match val.vtype {
                 REG_BINARY => {
-                    let s = String::from_utf8_lossy(&val.bytes)
-                        .trim_end_matches('\0')
-                        .to_string();
+                    let s = ascii_decode(&val.bytes);
                     return Ok(serde_json::Value::String(s));
                 }
                 REG_DWORD => {
+                    if val.bytes.len() >= 8 {
+                        let float_value = f64::from_le_bytes([
+                            val.bytes[0],
+                            val.bytes[1],
+                            val.bytes[2],
+                            val.bytes[3],
+                            val.bytes[4],
+                            val.bytes[5],
+                            val.bytes[6],
+                            val.bytes[7],
+                        ]);
+                        return Ok(serde_json::json!(float_value));
+                    }
                     if val.bytes.len() >= 4 {
-                        let dword = u32::from_le_bytes([
+                        let dword = i32::from_le_bytes([
                             val.bytes[0],
                             val.bytes[1],
                             val.bytes[2],
@@ -1307,7 +1391,7 @@ pub fn app__set_vrchat_registry_key(
 
         match type_int {
             4 => {
-                let dword = value.as_u64().unwrap_or(0) as u32;
+                let dword = json_value_to_i32(&value, &key)?;
                 vrc_key
                     .set_raw_value(
                         &hashed_key,
@@ -1320,29 +1404,30 @@ pub fn app__set_vrchat_registry_key(
             }
 
             3 => {
-                let s = value.as_str().unwrap_or("");
-                let mut bytes: Vec<u8> = s.as_bytes().to_vec();
-                bytes.push(0);
+                let s = value
+                    .as_str()
+                    .ok_or_else(|| AppError::Custom(format!("registry value is not string: {key}")))?;
                 vrc_key
                     .set_raw_value(
                         &hashed_key,
                         &winreg::RegValue {
                             vtype: REG_BINARY,
-                            bytes: Cow::Owned(bytes),
+                            bytes: Cow::Owned(ascii_encode(s)),
                         },
                     )
                     .map_err(|e| AppError::Custom(format!("set binary: {e}")))?;
             }
 
             100 => {
-                let f = value.as_f64().unwrap_or(0.0);
-                let bits = (f as f32).to_bits();
+                let f = value
+                    .as_f64()
+                    .ok_or_else(|| AppError::Custom(format!("registry value is not float: {key}")))?;
                 vrc_key
                     .set_raw_value(
                         &hashed_key,
                         &winreg::RegValue {
                             vtype: REG_DWORD,
-                            bytes: Cow::Owned(bits.to_le_bytes().to_vec()),
+                            bytes: Cow::Owned(f.to_le_bytes().to_vec()),
                         },
                     )
                     .map_err(|e| AppError::Custom(format!("set float-as-dword: {e}")))?;
@@ -1378,30 +1463,44 @@ pub fn app__get_vrchat_registry(
         let mut result = HashMap::new();
         for name in vrc_key.enum_values().flatten().map(|(name, _)| name) {
             if let Ok(val) = vrc_key.get_raw_value(&name) {
+                let Some(key_name) = strip_hash_from_key_name(&name) else {
+                    continue;
+                };
                 let mut entry = HashMap::new();
                 match val.vtype {
                     REG_BINARY => {
-                        let s = String::from_utf8_lossy(&val.bytes)
-                            .trim_end_matches('\0')
-                            .to_string();
-                        entry.insert("type".to_string(), serde_json::json!("REG_BINARY"));
-                        entry.insert("value".to_string(), serde_json::json!(s));
+                        let s = ascii_decode(&val.bytes);
+                        entry.insert("type".to_string(), serde_json::json!(3));
+                        entry.insert("data".to_string(), serde_json::json!(s));
                     }
                     REG_DWORD => {
-                        if val.bytes.len() >= 4 {
-                            let dword = u32::from_le_bytes([
+                        if val.bytes.len() >= 8 {
+                            let float_value = f64::from_le_bytes([
+                                val.bytes[0],
+                                val.bytes[1],
+                                val.bytes[2],
+                                val.bytes[3],
+                                val.bytes[4],
+                                val.bytes[5],
+                                val.bytes[6],
+                                val.bytes[7],
+                            ]);
+                            entry.insert("type".to_string(), serde_json::json!(100));
+                            entry.insert("data".to_string(), serde_json::json!(float_value));
+                        } else if val.bytes.len() >= 4 {
+                            let dword = i32::from_le_bytes([
                                 val.bytes[0],
                                 val.bytes[1],
                                 val.bytes[2],
                                 val.bytes[3],
                             ]);
-                            entry.insert("type".to_string(), serde_json::json!("REG_DWORD"));
-                            entry.insert("value".to_string(), serde_json::json!(dword));
+                            entry.insert("type".to_string(), serde_json::json!(4));
+                            entry.insert("data".to_string(), serde_json::json!(dword));
                         }
                     }
                     _ => continue,
                 }
-                result.insert(name, entry);
+                result.insert(key_name.to_string(), entry);
             }
         }
         Ok(result)
@@ -1429,33 +1528,58 @@ pub fn app__set_vrchat_registry(_json: String) -> Result<(), AppError> {
             .map_err(|e| AppError::Custom(format!("registry create: {e}")))?;
 
         for (name, props) in data {
-            let vtype_str = props.get("type").and_then(|v| v.as_str()).unwrap_or("");
-            let value = props.get("value");
+            let normalized_name = add_hash_to_key_name(&name);
+            let vtype_int = props
+                .get("type")
+                .and_then(|v| v.as_i64())
+                .ok_or_else(|| AppError::Custom(format!("unknown type: {name}")))?
+                as i32;
+            let value = props
+                .get("data")
+                .ok_or_else(|| AppError::Custom(format!("missing data: {name}")))?;
 
-            match vtype_str {
-                "REG_BINARY" => {
-                    let s = value.and_then(|v| v.as_str()).unwrap_or("");
-                    let mut bytes: Vec<u8> = s.as_bytes().to_vec();
-                    bytes.push(0);
-                    let _ = vrc_key.set_raw_value(
-                        &name,
-                        &winreg::RegValue {
-                            vtype: REG_BINARY,
-                            bytes: Cow::Owned(bytes),
-                        },
-                    );
+            match vtype_int {
+                3 => {
+                    let s = value
+                        .as_str()
+                        .ok_or_else(|| AppError::Custom(format!("invalid binary data: {name}")))?;
+                    vrc_key
+                        .set_raw_value(
+                            &normalized_name,
+                            &winreg::RegValue {
+                                vtype: REG_BINARY,
+                                bytes: Cow::Owned(ascii_encode(s)),
+                            },
+                        )
+                        .map_err(|e| AppError::Custom(format!("set binary: {e}")))?;
                 }
-                "REG_DWORD" => {
-                    let dword = value.and_then(|v| v.as_u64()).unwrap_or(0) as u32;
-                    let _ = vrc_key.set_raw_value(
-                        &name,
-                        &winreg::RegValue {
-                            vtype: REG_DWORD,
-                            bytes: Cow::Owned(dword.to_le_bytes().to_vec()),
-                        },
-                    );
+                4 => {
+                    let dword = json_value_to_i32(value, &name)?;
+                    vrc_key
+                        .set_raw_value(
+                            &normalized_name,
+                            &winreg::RegValue {
+                                vtype: REG_DWORD,
+                                bytes: Cow::Owned(dword.to_le_bytes().to_vec()),
+                            },
+                        )
+                        .map_err(|e| AppError::Custom(format!("set dword: {e}")))?;
                 }
-                _ => {}
+                100 => {
+                    let float_value = value
+                        .as_f64()
+                        .ok_or_else(|| AppError::Custom(format!("invalid float data: {name}")))?;
+                    vrc_key
+                        .set_raw_value(
+                            &normalized_name,
+                            &winreg::RegValue {
+                                vtype: REG_DWORD,
+                                bytes: Cow::Owned(float_value.to_le_bytes().to_vec()),
+                            },
+                        )
+                        .map_err(|e| AppError::Custom(format!("set float-as-dword: {e}")))?;
+                }
+                _ => return Err(AppError::Custom(format!("unknown type: {vtype_int}"))),
             }
         }
     }
@@ -1473,8 +1597,42 @@ pub fn app__read_vrc_reg_json_file(filepath: String) -> Result<String, AppError>
 #[cfg(target_os = "windows")]
 fn add_hash_to_key_name(key: &str) -> String {
     let mut hash: u32 = 5381;
-    for byte in key.bytes() {
-        hash = hash.wrapping_mul(33).wrapping_add(byte as u32);
+    for unit in key.encode_utf16() {
+        hash = hash.wrapping_mul(33) ^ unit as u32;
     }
     format!("{key}_h{hash}")
+}
+
+#[cfg(target_os = "windows")]
+fn ascii_decode(bytes: &[u8]) -> String {
+    bytes
+        .iter()
+        .map(|byte| if byte.is_ascii() { *byte as char } else { '?' })
+        .collect()
+}
+
+#[cfg(target_os = "windows")]
+fn ascii_encode(value: &str) -> Vec<u8> {
+    value
+        .chars()
+        .map(|ch| if ch.is_ascii() { ch as u8 } else { b'?' })
+        .collect()
+}
+
+#[cfg(target_os = "windows")]
+fn json_value_to_i32(value: &serde_json::Value, key: &str) -> Result<i32, AppError> {
+    let raw = value
+        .as_i64()
+        .ok_or_else(|| AppError::Custom(format!("invalid dword data: {key}")))?;
+    i32::try_from(raw).map_err(|_| AppError::Custom(format!("invalid dword data: {key}")))
+}
+
+#[cfg(target_os = "windows")]
+fn strip_hash_from_key_name(key: &str) -> Option<&str> {
+    let (prefix, suffix) = key.rsplit_once("_h")?;
+    if !suffix.is_empty() && !prefix.is_empty() {
+        Some(prefix)
+    } else {
+        None
+    }
 }
