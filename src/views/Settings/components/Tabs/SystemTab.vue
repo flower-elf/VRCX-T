@@ -105,25 +105,8 @@
             </SettingsItem>
         </SettingsGroup>
 
-        <SettingsGroup :title="t('view.settings.general.contributors.header')">
-            <div>
-                <img
-                    src="https://contrib.rocks/image?repo=Map1en/VRCX-0"
-                    alt="Contributors"
-                    class="cursor-pointer"
-                    @click="openExternalLink('https://github.com/Map1en/VRCX-0/graphs/contributors')" />
-            </div>
-        </SettingsGroup>
-
         <SettingsGroup :title="t('view.settings.general.legal_notice.header')">
             <div class="flex flex-col gap-2 text-sm text-muted-foreground mb-2">
-                <p class="m-0">
-                    &copy; 2019-2026
-                    <a class="cursor-pointer" @click="openExternalLink('https://github.com/pypy-vrc')">pypy</a> &amp;
-                    <a class="cursor-pointer" @click="openExternalLink('https://github.com/Natsumi-sama')">Natsumi</a>
-                    &amp;
-                    <a class="cursor-pointer" @click="openExternalLink('https://github.com/Map1en')">Map1en</a>
-                </p>
                 <p class="m-0">{{ t('view.settings.general.legal_notice.info') }}</p>
                 <p class="m-0">{{ t('view.settings.general.legal_notice.disclaimer1') }}</p>
                 <p class="m-0">{{ t('view.settings.general.legal_notice.disclaimer2') }}</p>

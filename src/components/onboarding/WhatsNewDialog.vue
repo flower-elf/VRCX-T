@@ -115,13 +115,6 @@
                 { label: '爱发电', url: 'https://ifdian.net/a/map1en_' }
             ]
         },
-        {
-            name: 'Natsumi',
-            links: [
-                { label: 'Ko-fi', url: 'https://ko-fi.com/natsumi_sama' },
-                { label: 'Patreon', url: 'https://www.patreon.com/Natsumi_VRCX' }
-            ]
-        }
     ];
 
     const iconMap = {
