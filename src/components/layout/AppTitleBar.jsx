@@ -85,8 +85,14 @@ export function AppTitleBar() {
     const vrcUnseenNotificationCount = useVrcNotificationStore(
         (state) => state.unseenCount
     );
+    const isVrcNotificationCenterOpen = useVrcNotificationStore(
+        (state) => state.isCenterOpen
+    );
     const openVrcNotificationCenter = useVrcNotificationStore(
         (state) => state.openCenter
+    );
+    const setVrcNotificationCenterOpen = useVrcNotificationStore(
+        (state) => state.setCenterOpen
     );
     const markAllVrcNotificationsSeen = useVrcNotificationStore(
         (state) => state.markAllSeen
@@ -209,11 +215,15 @@ export function AppTitleBar() {
         }
     }
 
+    function toggleVrcNotificationCenter() {
+        setVrcNotificationCenterOpen(!isVrcNotificationCenterOpen);
+    }
+
     const notificationButton = (
         <TitleBarButton
             label={t('side_panel.notification_center.title')}
             className="relative rounded-none"
-            onClick={() => openVrcNotificationCenter()}
+            onClick={toggleVrcNotificationCenter}
         >
             <BellIcon data-icon="inline-start" />
             {vrcUnseenNotificationCount > 0 ? (
@@ -228,7 +238,10 @@ export function AppTitleBar() {
 
     return (
         <>
-            <header className="bg-background text-foreground relative z-[60] flex h-8 shrink-0 items-center border-b select-none">
+            <header
+                data-app-titlebar="true"
+                className="bg-background text-foreground pointer-events-auto relative z-[60] flex h-8 shrink-0 items-center border-b select-none"
+            >
                 <div
                     className="flex h-full min-w-0 flex-1 items-center gap-2 px-3"
                     onMouseDown={handleTitleBarMouseDown}
