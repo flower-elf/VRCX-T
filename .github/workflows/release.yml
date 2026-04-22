@@ -180,9 +180,8 @@ jobs:
                   Copy-Item "LICENSE" -Destination (Join-Path $packageDir "LICENSE")
                   Copy-Item "LICENSE-MIT" -Destination (Join-Path $packageDir "LICENSE-MIT")
                   New-Item -ItemType Directory -Force -Path (Join-Path $packageDir "licenses") | Out-Null
-                  Copy-Item "build/html/licenses/THIRD_PARTY_NOTICES.txt" -Destination (Join-Path $packageDir "THIRD_PARTY_NOTICES.txt")
-                  Copy-Item "build/html/licenses/THIRD_PARTY_NOTICES.txt" -Destination (Join-Path $packageDir "licenses/THIRD_PARTY_NOTICES.txt")
-                  Copy-Item "build/html/licenses/third-party-licenses.json" -Destination (Join-Path $packageDir "licenses/third-party-licenses.json")
+                  Copy-Item "src-tauri/resources/licenses/THIRD_PARTY_NOTICES.txt" -Destination (Join-Path $packageDir "THIRD_PARTY_NOTICES.txt")
+                  Copy-Item "src-tauri/resources/licenses/THIRD_PARTY_NOTICES.txt" -Destination (Join-Path $packageDir "licenses/THIRD_PARTY_NOTICES.txt")
                   if (Test-Path $zipPath) {
                       Remove-Item $zipPath -Force
                   }

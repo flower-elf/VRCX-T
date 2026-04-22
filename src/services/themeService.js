@@ -8,14 +8,14 @@ const MAX_ZOOM_LEVEL = 300;
 const APP_FONT_STYLE_ATTR = 'data-vrcx-app-font';
 const APP_CJK_FONT_STYLE_ATTR = 'data-vrcx-cjk-font';
 
-export const APP_FONT_DEFAULT_KEY = 'inter';
+export const APP_FONT_DEFAULT_KEY = 'geist';
 export const APP_CJK_FONT_PACK_DEFAULT_KEY = 'noto';
 
 export const APP_FONT_CONFIG = Object.freeze({
     inter: {
         cssName: "'Inter Variable', 'Inter'",
         cssImport:
-            "@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap');"
+            "@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');"
     },
     noto_sans: {
         cssName: "'Noto Sans'",
@@ -23,9 +23,8 @@ export const APP_FONT_CONFIG = Object.freeze({
             "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');"
     },
     geist: {
-        cssName: "'Geist'",
-        cssImport:
-            "@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');"
+        cssName: "'Geist Variable', 'Geist'",
+        cssImport: null
     },
     nunito_sans: {
         cssName: "'Nunito Sans'",
@@ -69,12 +68,7 @@ export const APP_CJK_FONT_PACK_CONFIG = Object.freeze({
             "'Noto Sans KR Variable'",
             "'Noto Sans KR'"
         ]),
-        cssImport: [
-            "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100..900&display=swap');",
-            "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');",
-            "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap');",
-            "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap');"
-        ].join('\n')
+        cssImport: null
     },
     puhuiti: {
         cssNames: Object.freeze([

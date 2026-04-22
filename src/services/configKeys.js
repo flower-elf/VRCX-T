@@ -52,7 +52,7 @@ export const ConfigKeys = {
     // ── Settings - Appearance ────────────────────────
     ThemeMode: { type: 'string', default: null },
     lastDarkTheme: { type: 'string', default: null },
-    fontFamily: { type: 'string', default: 'inter' },
+    fontFamily: { type: 'string', default: 'geist' },
     customFontFamily: { type: 'string', default: '' },
     cjkFontPack: { type: 'string', default: 'noto' },
     dtHour12: { type: 'bool', default: false },

@@ -854,7 +854,7 @@
                     "cjk_font_pack": "CJK 字体",
                     "font_family_inter": "Inter",
                     "font_family_noto_sans": "Noto Sans",
-                    "font_family_geist": "Geist",
+                    "font_family_geist": "Geist（默认）",
                     "font_family_nunito_sans": "Nunito Sans",
                     "font_family_ibm_plex_sans": "IBM Plex Sans",
                     "font_family_jetbrains_mono": "JetBrains Mono",
