@@ -46,8 +46,7 @@
         "resources": {
             "../LICENSE": "LICENSE",
             "../LICENSE-MIT": "LICENSE-MIT",
-            "../dist/licenses/THIRD_PARTY_NOTICES.txt": "licenses/THIRD_PARTY_NOTICES.txt",
-            "../dist/licenses/third-party-licenses.json": "licenses/third-party-licenses.json"
+            "resources/licenses/THIRD_PARTY_NOTICES.txt": "licenses/THIRD_PARTY_NOTICES.txt"
         },
         "targets": ["nsis"],
         "icon": [

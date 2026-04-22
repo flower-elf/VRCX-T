@@ -7,7 +7,16 @@ const rootDir = path.join(__dirname, '..');
 const outputDir = path.join(rootDir, 'dist', 'licenses');
 const frontendLicenseJsonPath = path.join(outputDir, 'frontend-licenses.json');
 const outputManifestPath = path.join(outputDir, 'third-party-licenses.json');
-const outputNoticePath = path.join(outputDir, 'THIRD_PARTY_NOTICES.txt');
+const tauriLicenseResourceDir = path.join(
+    rootDir,
+    'src-tauri',
+    'resources',
+    'licenses'
+);
+const tauriResourceNoticePath = path.join(
+    tauriLicenseResourceDir,
+    'THIRD_PARTY_NOTICES.txt'
+);
 
 function normalizeWhitespace(value) {
     return String(value ?? '')
@@ -22,13 +31,21 @@ function sanitizeId(value) {
         .replace(/^-|-$/g, '');
 }
 
-function readJsonArrayIfExists(filePath) {
+function readRequiredJsonArray(filePath) {
     if (!fs.existsSync(filePath)) {
-        return [];
+        throw new Error(
+            `Missing frontend license manifest: ${path.relative(rootDir, filePath)}`
+        );
     }
 
     const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) {
+        throw new Error(
+            `Frontend license manifest must be a JSON array: ${path.relative(rootDir, filePath)}`
+        );
+    }
+
+    return parsed;
 }
 
 function normalizeFrontendEntry(entry, index) {
@@ -82,8 +99,9 @@ function createThirdPartyNoticeText(entries) {
 
 function main() {
     fs.mkdirSync(outputDir, { recursive: true });
+    fs.mkdirSync(tauriLicenseResourceDir, { recursive: true });
 
-    const frontendEntries = readJsonArrayIfExists(frontendLicenseJsonPath)
+    const frontendEntries = readRequiredJsonArray(frontendLicenseJsonPath)
         .map(normalizeFrontendEntry)
         .sort((left, right) => left.name.localeCompare(right.name));
     const manifest = {
@@ -94,7 +112,7 @@ function main() {
 
     fs.writeFileSync(outputManifestPath, JSON.stringify(manifest, null, 4));
     fs.writeFileSync(
-        outputNoticePath,
+        tauriResourceNoticePath,
         createThirdPartyNoticeText(frontendEntries)
     );
 

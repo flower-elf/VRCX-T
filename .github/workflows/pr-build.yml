@@ -35,7 +35,6 @@ jobs:
                   if-no-files-found: error
 
     tauri:
-        needs: frontend
         runs-on: windows-latest
         defaults:
             run:
@@ -46,8 +45,5 @@ jobs:
             - uses: Swatinem/rust-cache@v2
               with:
                   workspaces: src-tauri -> target
-            - uses: actions/download-artifact@v4
-              with:
-                  name: frontend-dist
-                  path: dist
+            - run: mkdir -p dist && printf '<!doctype html><html><body></body></html>' > dist/index.html
             - run: cargo build --manifest-path src-tauri/Cargo.toml
