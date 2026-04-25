@@ -42,10 +42,10 @@ impl ProcessMonitor {
 
                 for proc in sys.processes().values() {
                     let name = proc.name().to_string_lossy();
-                    if !game_found && name.starts_with("VRChat") {
+                    if !game_found && is_vrchat_process_name(&name) {
                         game_found = true;
                     }
-                    if !steamvr_found && name.starts_with("vrserver") {
+                    if !steamvr_found && is_steamvr_process_name(&name) {
                         steamvr_found = true;
                     }
                     if game_found && steamvr_found {
@@ -91,5 +91,55 @@ impl ProcessMonitor {
 
     pub fn is_steamvr_running(&self) -> bool {
         self.steamvr_running.load(Ordering::Relaxed)
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn is_vrchat_process_name(name: &str) -> bool {
+    name == "VRChat.exe"
+}
+
+#[cfg(not(target_os = "linux"))]
+fn is_vrchat_process_name(name: &str) -> bool {
+    name.starts_with("VRChat")
+}
+
+#[cfg(target_os = "linux")]
+fn is_steamvr_process_name(name: &str) -> bool {
+    name == "vrmonitor" || name == "monado-service" || name.ends_with("wivrn-server")
+}
+
+#[cfg(not(target_os = "linux"))]
+fn is_steamvr_process_name(name: &str) -> bool {
+    name.starts_with("vrserver")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{is_steamvr_process_name, is_vrchat_process_name};
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn linux_vrchat_process_name_matches_vue_electron_backend() {
+        assert!(is_vrchat_process_name("VRChat.exe"));
+        assert!(!is_vrchat_process_name("VRChat"));
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn linux_steamvr_process_name_matches_vue_electron_backend() {
+        assert!(is_steamvr_process_name("vrmonitor"));
+        assert!(is_steamvr_process_name("monado-service"));
+        assert!(is_steamvr_process_name("WiVRn-wivrn-server"));
+        assert!(!is_steamvr_process_name("vrserver"));
+    }
+
+    #[test]
+    #[cfg(not(target_os = "linux"))]
+    fn non_linux_process_name_matching_keeps_existing_behavior() {
+        assert!(is_vrchat_process_name("VRChat.exe"));
+        assert!(is_vrchat_process_name("VRChat"));
+        assert!(is_steamvr_process_name("vrserver"));
+        assert!(is_steamvr_process_name("vrserver.exe"));
     }
 }

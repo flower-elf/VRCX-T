@@ -94,7 +94,7 @@ impl UpdateManager {
             generation
         };
 
-        tokio::spawn(async move {
+        tauri::async_runtime::spawn(async move {
             if let Err(e) = do_download(
                 &app_data,
                 &file_url,

@@ -208,9 +208,7 @@ fn linux_host_capabilities(platform: &str, available: &CapabilityStatus) -> Host
         local_database: available.clone(),
         websocket_runtime: available.clone(),
         game_log_watcher: vrchat_path_discovery.clone(),
-        game_process_monitor: CapabilityStatus::pending(
-            "Linux process monitor implementation pending",
-        ),
+        game_process_monitor: available.clone(),
         vrchat_path_discovery,
         steam_library_discovery,
         steam_runtime_integration: CapabilityStatus::unsupported(
