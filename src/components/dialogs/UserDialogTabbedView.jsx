@@ -432,12 +432,6 @@ export function UserDialogTabbedView({
                         moderationState={moderationState}
                         onAvatarOverride={onAvatarOverride}
                         onBoop={onBoop}
-                        onCopyDisplayName={() =>
-                            void copyUserText(
-                                profile.displayName || profile.username || '',
-                                'Display name'
-                            )
-                        }
                         onCopyUserId={() => void copyUserText(profile.id, 'User ID')}
                         onCopyUserUrl={() => void copyUserText(userUrl, 'User URL')}
                         onEditMemo={onEditMemo}

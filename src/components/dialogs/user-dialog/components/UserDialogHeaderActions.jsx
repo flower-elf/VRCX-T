@@ -1,8 +1,6 @@
 import {
     BanIcon,
     CheckIcon,
-    CopyIcon,
-    ExternalLinkIcon,
     MailIcon,
     MapPinIcon,
     MessageSquareIcon,
@@ -10,7 +8,6 @@ import {
     PencilIcon,
     RefreshCwIcon,
     SettingsIcon,
-    Share2Icon,
     UserIcon,
     UserMinusIcon,
     UsersIcon,
@@ -25,7 +22,6 @@ import {
     EntityActionItem,
     EntityActionSeparator
 } from '../../EntityDialogScaffold.jsx';
-import { SelfPreferenceCheckboxItem } from '../UserDialogViewParts.jsx';
 
 export function UserDialogHeaderActions({
     profile,
@@ -42,12 +38,8 @@ export function UserDialogHeaderActions({
     currentAvatarTarget,
     fallbackAvatarTarget,
     previousInstances,
-    userUrl,
     recentDialogShortcut,
     onRefresh,
-    onCopyUserUrl,
-    onOpenUserUrl,
-    onCopyUserId,
     onEditMemo,
     onShowAvatarAuthor,
     onOpenFallbackAvatar,
@@ -56,10 +48,6 @@ export function UserDialogHeaderActions({
     onEditSelfBio,
     onEditSelfBioLinks,
     onEditSelfPronouns,
-    onToggleSelfAvatarCopying,
-    onToggleSelfBooping,
-    onToggleSelfSharedConnections,
-    onToggleSelfDiscordConnections,
     onFriendRequest,
     onInvite,
     onInviteMessage,
@@ -103,26 +91,6 @@ export function UserDialogHeaderActions({
                 >
                     {t('common.actions.refresh')}
                 </EntityActionItem>
-                {userUrl ? (
-                    <>
-                        <EntityActionItem
-                            icon={Share2Icon}
-                            onSelect={onCopyUserUrl}
-                        >
-                            {t('dialog.user.actions.share')}
-                        </EntityActionItem>
-                        <EntityActionItem
-                            icon={ExternalLinkIcon}
-                            onSelect={onOpenUserUrl}
-                        >
-                            {t('common.actions.open_link')}
-                        </EntityActionItem>
-                        <EntityActionItem icon={CopyIcon} onSelect={onCopyUserId}>
-                            {t('dialog.user.info.copy_id')}
-                        </EntityActionItem>
-                        <EntityActionSeparator />
-                    </>
-                ) : null}
                 <EntityActionItem icon={UserIcon} onSelect={onEditMemo}>
                     {t('dialog.user.actions.edit_note_memo')}
                 </EntityActionItem>
@@ -180,31 +148,6 @@ export function UserDialogHeaderActions({
                         >
                             {t('dialog.user.actions.edit_pronouns')}
                         </EntityActionItem>
-                        <EntityActionSeparator />
-                        <SelfPreferenceCheckboxItem
-                            label={t('dialog.user.info.avatar_cloning')}
-                            checked={Boolean(profile.allowAvatarCopying)}
-                            disabled={actionsDisabled}
-                            onToggle={onToggleSelfAvatarCopying}
-                        />
-                        <SelfPreferenceCheckboxItem
-                            label={t('dialog.user.info.booping')}
-                            checked={profile.isBoopingEnabled !== false}
-                            disabled={actionsDisabled}
-                            onToggle={onToggleSelfBooping}
-                        />
-                        <SelfPreferenceCheckboxItem
-                            label={t('dialog.user.info.show_mutual_friends')}
-                            checked={!profile.hasSharedConnectionsOptOut}
-                            disabled={actionsDisabled}
-                            onToggle={onToggleSelfSharedConnections}
-                        />
-                        <SelfPreferenceCheckboxItem
-                            label={t('dialog.user.info.show_discord_connections')}
-                            checked={!profile.hasDiscordFriendsOptOut}
-                            disabled={actionsDisabled}
-                            onToggle={onToggleSelfDiscordConnections}
-                        />
                     </>
                 ) : null}
                 {!isCurrentUser ? (

@@ -2195,6 +2195,7 @@
                 "avatar_cloning_deny": "Deny",
                 "home_location": "Home World",
                 "id": "User ID",
+                "url": "VRChat URL",
                 "id_tooltip": "Copy to clipboard",
                 "copy_id": "Copy ID",
                 "copy_url": "Copy URL",

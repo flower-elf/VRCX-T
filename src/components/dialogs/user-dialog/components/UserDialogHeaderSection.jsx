@@ -1,4 +1,4 @@
-import { CopyIcon, PencilIcon, UsersIcon } from 'lucide-react';
+import { CopyIcon, ExternalLinkIcon, PencilIcon, UsersIcon } from 'lucide-react';
 import { isValidElement } from 'react';
 
 import { userFacingErrorMessage } from '@/lib/errorDisplay.js';
@@ -11,13 +11,6 @@ import {
     CardHeader,
     CardTitle
 } from '@/ui/shadcn/card';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/ui/shadcn/dropdown-menu';
 import { Separator } from '@/ui/shadcn/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/shadcn/tooltip';
 
@@ -52,6 +45,30 @@ function HeaderFactRow({ label, value, children }) {
     );
 }
 
+function HeaderPreferenceRow({ checked, disabled, label, onToggle, t }) {
+    const value = preferenceLabel(checked, t);
+
+    if (!onToggle) {
+        return <HeaderFactRow label={label} value={value} />;
+    }
+
+    return (
+        <HeaderFactRow label={label}>
+            <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-pressed={checked}
+                disabled={disabled}
+                onClick={onToggle}
+                className="text-muted-foreground hover:text-primary h-auto min-w-0 px-1 py-0 text-xs"
+            >
+                <span className="min-w-0 truncate text-right">{value}</span>
+            </Button>
+        </HeaderFactRow>
+    );
+}
+
 function compactUserId(userId) {
     if (!userId || userId.length <= 18) {
         return userId || '';
@@ -59,43 +76,68 @@ function compactUserId(userId) {
     return `${userId.slice(0, 12)}\u2026${userId.slice(-4)}`;
 }
 
+function compactUrl(url) {
+    if (!url) {
+        return '';
+    }
+
+    const displayUrl = url.replace(/^https?:\/\//, '');
+    if (displayUrl.length <= 18) {
+        return displayUrl;
+    }
+
+    return `${displayUrl.slice(0, 12)}\u2026${displayUrl.slice(-4)}`;
+}
+
 function UserDialogHeaderFacts({
+    actionStatus,
     isCurrentUser,
-    onCopyDisplayName,
     onCopyUserId,
     onCopyUserUrl,
+    onOpenUserUrl,
+    onToggleSelfAvatarCopying,
+    onToggleSelfBooping,
+    onToggleSelfDiscordConnections,
+    onToggleSelfSharedConnections,
     profile,
     t,
     userUrl
 }) {
+    const actionsDisabled = actionStatus !== 'idle';
+
     return (
         <div className="text-muted-foreground/80 flex min-w-0 flex-col gap-1 border-t pt-3 text-xs">
-            <HeaderFactRow
+            <HeaderPreferenceRow
                 label={t('dialog.user.info.avatar_cloning')}
-                value={preferenceLabel(Boolean(profile.allowAvatarCopying), t)}
+                checked={Boolean(profile.allowAvatarCopying)}
+                disabled={actionsDisabled}
+                onToggle={
+                    isCurrentUser ? onToggleSelfAvatarCopying : undefined
+                }
+                t={t}
             />
             {isCurrentUser ? (
                 <>
-                    <HeaderFactRow
+                    <HeaderPreferenceRow
                         label={t('dialog.user.info.booping')}
-                        value={preferenceLabel(
-                            profile.isBoopingEnabled !== false,
-                            t
-                        )}
+                        checked={profile.isBoopingEnabled !== false}
+                        disabled={actionsDisabled}
+                        onToggle={onToggleSelfBooping}
+                        t={t}
                     />
-                    <HeaderFactRow
+                    <HeaderPreferenceRow
                         label={t('dialog.user.info.show_mutual_friends')}
-                        value={preferenceLabel(
-                            !profile.hasSharedConnectionsOptOut,
-                            t
-                        )}
+                        checked={!profile.hasSharedConnectionsOptOut}
+                        disabled={actionsDisabled}
+                        onToggle={onToggleSelfSharedConnections}
+                        t={t}
                     />
-                    <HeaderFactRow
+                    <HeaderPreferenceRow
                         label={t('dialog.user.info.show_discord_connections')}
-                        value={preferenceLabel(
-                            !profile.hasDiscordFriendsOptOut,
-                            t
-                        )}
+                        checked={!profile.hasDiscordFriendsOptOut}
+                        disabled={actionsDisabled}
+                        onToggle={onToggleSelfDiscordConnections}
+                        t={t}
                     />
                 </>
             ) : null}
@@ -108,39 +150,66 @@ function UserDialogHeaderFacts({
                         >
                             {compactUserId(profile.id)}
                         </span>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
                                 <Button
                                     type="button"
-                                    aria-label={t('dialog.user.info.id_tooltip')}
+                                    aria-label={t('dialog.user.info.copy_id')}
                                     size="icon-xs"
                                     variant="ghost"
+                                    onClick={onCopyUserId}
                                 >
                                     <CopyIcon data-icon="inline-start" />
                                 </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start">
-                                <DropdownMenuGroup>
-                                    <DropdownMenuItem onSelect={onCopyUserId}>
-                                        {t('dialog.user.info.copy_id')}
-                                    </DropdownMenuItem>
-                                    {userUrl ? (
-                                        <DropdownMenuItem onSelect={onCopyUserUrl}>
-                                            {t('dialog.user.info.copy_url')}
-                                        </DropdownMenuItem>
-                                    ) : null}
-                                    {profile.displayName ? (
-                                        <DropdownMenuItem
-                                            onSelect={onCopyDisplayName}
-                                        >
-                                            {t(
-                                                'dialog.user.info.copy_display_name'
-                                            )}
-                                        </DropdownMenuItem>
-                                    ) : null}
-                                </DropdownMenuGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {t('dialog.user.info.copy_id')}
+                            </TooltipContent>
+                        </Tooltip>
+                    </span>
+                </HeaderFactRow>
+            ) : null}
+            {userUrl ? (
+                <HeaderFactRow label={t('dialog.user.info.url')}>
+                    <span className="flex min-w-0 items-center justify-end gap-1">
+                        <span
+                            className="text-muted-foreground/80 min-w-0 truncate font-mono text-[11px]"
+                            title={userUrl}
+                        >
+                            {compactUrl(userUrl)}
+                        </span>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    type="button"
+                                    aria-label={t('common.actions.open_link')}
+                                    size="icon-xs"
+                                    variant="ghost"
+                                    onClick={onOpenUserUrl}
+                                >
+                                    <ExternalLinkIcon data-icon="inline-start" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {t('common.actions.open_link')}
+                            </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    type="button"
+                                    aria-label={t('dialog.user.info.copy_url')}
+                                    size="icon-xs"
+                                    variant="ghost"
+                                    onClick={onCopyUserUrl}
+                                >
+                                    <CopyIcon data-icon="inline-start" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {t('dialog.user.info.copy_url')}
+                            </TooltipContent>
+                        </Tooltip>
                     </span>
                 </HeaderFactRow>
             ) : null}
@@ -166,7 +235,6 @@ export function UserDialogHeaderSection({
     moderationState,
     onAvatarOverride,
     onBoop,
-    onCopyDisplayName,
     onCopyUserId,
     onCopyUserUrl,
     onEditMemo,
@@ -365,12 +433,8 @@ export function UserDialogHeaderSection({
                             currentAvatarTarget={currentAvatarTarget}
                             fallbackAvatarTarget={fallbackAvatarTarget}
                             previousInstances={previousInstances}
-                            userUrl={userUrl}
                             recentDialogShortcut={recentDialogShortcut}
                             onRefresh={onRefresh}
-                            onCopyUserUrl={onCopyUserUrl}
-                            onOpenUserUrl={onOpenUserUrl}
-                            onCopyUserId={onCopyUserId}
                             onEditMemo={onEditMemo}
                             onShowAvatarAuthor={onShowAvatarAuthor}
                             onOpenFallbackAvatar={onOpenFallbackAvatar}
@@ -465,10 +529,19 @@ export function UserDialogHeaderSection({
                 ) : null}
 
                 <UserDialogHeaderFacts
+                    actionStatus={actionStatus}
                     isCurrentUser={isCurrentUser}
-                    onCopyDisplayName={onCopyDisplayName}
                     onCopyUserId={onCopyUserId}
                     onCopyUserUrl={onCopyUserUrl}
+                    onOpenUserUrl={onOpenUserUrl}
+                    onToggleSelfAvatarCopying={onToggleSelfAvatarCopying}
+                    onToggleSelfBooping={onToggleSelfBooping}
+                    onToggleSelfDiscordConnections={
+                        onToggleSelfDiscordConnections
+                    }
+                    onToggleSelfSharedConnections={
+                        onToggleSelfSharedConnections
+                    }
                     profile={profile}
                     t={t}
                     userUrl={userUrl}
