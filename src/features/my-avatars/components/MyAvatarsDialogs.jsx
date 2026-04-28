@@ -1,25 +1,44 @@
 import { ImageCropDialog } from '@/components/media/ImageCropDialog.jsx';
+import { AvatarDetailsDialog } from '@/components/dialogs/AvatarDetailsDialog.jsx';
+import { AvatarContentTagsDialog } from '@/components/dialogs/AvatarOwnerEditDialogs.jsx';
 
-import { AvatarStylesDialog } from '../AvatarStylesDialog.jsx';
 import { ManageAvatarTagsDialog } from '../ManageAvatarTagsDialog.jsx';
 
 export function MyAvatarsDialogs({
     t,
+    editDetailsAvatar,
+    contentTagsAvatar,
     imageCropRequest,
     manageTagsAvatar,
     savingTagsAvatarId,
-    stylesAvatar,
     currentUserId,
     currentEndpoint,
+    onEditDetailsOpenChange,
+    onContentTagsOpenChange,
     onImageCropOpenChange,
     onImageCropConfirm,
     onManageTagsOpenChange,
     onSaveTags,
-    onStylesOpenChange,
-    onStylesSaved
+    onEditDetailsSaved,
+    onContentTagsSaved
 }) {
     return (
         <>
+            <AvatarDetailsDialog
+                open={Boolean(editDetailsAvatar)}
+                avatar={editDetailsAvatar}
+                endpoint={currentEndpoint}
+                onOpenChange={onEditDetailsOpenChange}
+                onSavedCurrentAvatar={onEditDetailsSaved}
+            />
+            <AvatarContentTagsDialog
+                open={Boolean(contentTagsAvatar)}
+                avatar={contentTagsAvatar}
+                currentUserId={currentUserId}
+                endpoint={currentEndpoint}
+                onOpenChange={onContentTagsOpenChange}
+                onSavedCurrentAvatar={onContentTagsSaved}
+            />
             <ImageCropDialog
                 open={Boolean(imageCropRequest)}
                 file={imageCropRequest?.file || null}
@@ -34,14 +53,6 @@ export function MyAvatarsDialogs({
                 saving={Boolean(savingTagsAvatarId)}
                 onOpenChange={onManageTagsOpenChange}
                 onSave={onSaveTags}
-            />
-            <AvatarStylesDialog
-                open={Boolean(stylesAvatar)}
-                avatar={stylesAvatar}
-                currentUserId={currentUserId}
-                endpoint={currentEndpoint}
-                onOpenChange={onStylesOpenChange}
-                onSaved={onStylesSaved}
             />
         </>
     );

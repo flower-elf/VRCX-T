@@ -12,7 +12,6 @@ import { useTranslation } from 'react-i18next';
 
 import { EmptyState } from '@/components/layout/PageScaffold.jsx';
 import { getAvailablePlatforms } from '@/lib/avatarPlatform.js';
-import { configRepository } from '@/repositories/index.js';
 import { openAvatarDialog } from '@/services/dialogService.js';
 import { getTagColor } from '@/shared/constants/tags.js';
 import { Badge } from '@/ui/shadcn/badge';
@@ -27,16 +26,15 @@ import {
 } from '@/ui/shadcn/dropdown-menu';
 import { Field, FieldGroup, FieldLabel } from '@/ui/shadcn/field';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/shadcn/popover';
-import { Slider } from '@/ui/shadcn/slider';
 import { Spinner } from '@/ui/shadcn/spinner';
+import { ToggleGroup, ToggleGroupItem } from '@/ui/shadcn/toggle-group';
 
 import { resolveMyAvatarActionDisabled } from '../myAvatarsDisplay.js';
 import { toggleMyAvatarsTagFilter } from '../myAvatarsFilters.js';
 import {
+    MY_AVATARS_GRID_DENSITY_OPTIONS,
     MY_AVATARS_PLATFORM_OPTIONS,
-    MY_AVATARS_RELEASE_STATUS_OPTIONS,
-    sanitizeMyAvatarsCardScale,
-    sanitizeMyAvatarsCardSpacing
+    MY_AVATARS_RELEASE_STATUS_OPTIONS
 } from '../myAvatarsState.js';
 import {
     AvatarActionMenuItems,
@@ -52,7 +50,7 @@ export function SortButton({ column, label, descFirst = false }) {
         <Button
             type="button"
             variant="ghost"
-            className="text-muted-foreground hover:text-primary h-auto gap-1 p-0 text-left text-xs tracking-wide uppercase"
+            className="text-muted-foreground hover:text-primary h-auto min-w-0 max-w-full gap-1 p-0 text-left text-xs tracking-wide uppercase"
             onClick={() => {
                 if (!direction && descFirst) {
                     column.toggleSorting(true);
@@ -61,7 +59,7 @@ export function SortButton({ column, label, descFirst = false }) {
                 column.toggleSorting(direction === 'asc');
             }}
         >
-            <span>{label}</span>
+            <span className="truncate">{label}</span>
             {direction === 'asc' ? (
                 <ArrowUpIcon data-icon="inline-end" />
             ) : direction === 'desc' ? (
@@ -134,6 +132,7 @@ export function AvatarActionsDropdown({
                         'view.my_avatars.generated.open_avatar_actions'
                     )}
                     disabled={isUpdating}
+                    onPointerDown={(event) => event.stopPropagation()}
                     onClick={(event) => event.stopPropagation()}
                 >
                     {isUpdating ? (
@@ -143,7 +142,10 @@ export function AvatarActionsDropdown({
                     )}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent
+                align="end"
+                className="w-max min-w-52 max-w-[90vw]"
+            >
                 <AvatarActionMenuItems
                     avatar={avatar}
                     isActive={isActive}
@@ -188,57 +190,81 @@ export function MyAvatarFilterPopover({
                         <div className="text-muted-foreground text-xs font-medium">
                             {t('view.my_avatars.generated.visibility')}
                         </div>
-                        <div className="flex flex-wrap gap-1">
+                        <ToggleGroup
+                            type="single"
+                            variant="outline"
+                            size="sm"
+                            spacing={1}
+                            value={releaseStatusFilter}
+                            onValueChange={(nextValue) => {
+                                if (nextValue) {
+                                    onReleaseStatusChange(nextValue);
+                                }
+                            }}
+                            className="grid w-full grid-cols-3"
+                        >
                             {MY_AVATARS_RELEASE_STATUS_OPTIONS.map((option) => (
-                                <Button
+                                <ToggleGroupItem
                                     key={option}
-                                    type="button"
-                                    size="sm"
-                                    variant={
-                                        releaseStatusFilter === option
-                                            ? 'default'
-                                            : 'outline'
+                                    value={option}
+                                    aria-label={
+                                        option === 'all'
+                                            ? t('search.avatar.all')
+                                            : option === 'public'
+                                              ? t('search.avatar.public')
+                                              : t('search.avatar.private')
                                     }
-                                    onClick={() =>
-                                        onReleaseStatusChange(option)
-                                    }
+                                    className="w-full min-w-0 justify-center px-2"
                                 >
-                                    {option === 'all'
-                                        ? t('search.avatar.all')
-                                        : option === 'public'
-                                          ? t('search.avatar.public')
-                                          : t('search.avatar.private')}
-                                </Button>
+                                    <span className="truncate">
+                                        {option === 'all'
+                                            ? t('search.avatar.all')
+                                            : option === 'public'
+                                              ? t('search.avatar.public')
+                                              : t('search.avatar.private')}
+                                    </span>
+                                </ToggleGroupItem>
                             ))}
-                        </div>
+                        </ToggleGroup>
                     </div>
                     <div className="flex flex-col gap-1.5">
                         <div className="text-muted-foreground text-xs font-medium">
                             {t('view.my_avatars.generated.platform')}
                         </div>
-                        <div className="flex flex-wrap gap-1">
-                            {MY_AVATARS_PLATFORM_OPTIONS.map((option) => (
-                                <Button
-                                    key={option}
-                                    type="button"
-                                    size="sm"
-                                    variant={
-                                        platformFilter === option
-                                            ? 'default'
-                                            : 'outline'
-                                    }
-                                    onClick={() => onPlatformChange(option)}
-                                >
-                                    {option === 'all'
+                        <ToggleGroup
+                            type="single"
+                            variant="outline"
+                            size="sm"
+                            spacing={1}
+                            value={platformFilter}
+                            onValueChange={(nextValue) => {
+                                if (nextValue) {
+                                    onPlatformChange(nextValue);
+                                }
+                            }}
+                            className="grid w-full grid-cols-4"
+                        >
+                            {MY_AVATARS_PLATFORM_OPTIONS.map((option) => {
+                                const label =
+                                    option === 'all'
                                         ? t('search.avatar.all')
                                         : option === 'pc'
                                           ? 'PC'
                                           : option === 'android'
                                             ? 'Android'
-                                            : 'iOS'}
-                                </Button>
-                            ))}
-                        </div>
+                                            : 'iOS';
+                                return (
+                                    <ToggleGroupItem
+                                        key={option}
+                                        value={option}
+                                        aria-label={label}
+                                        className="w-full min-w-0 justify-center px-2"
+                                    >
+                                        <span className="truncate">{label}</span>
+                                    </ToggleGroupItem>
+                                );
+                            })}
+                        </ToggleGroup>
                     </div>
                     {allTags.length ? (
                         <div className="flex flex-col gap-1.5">
@@ -302,43 +328,10 @@ export function MyAvatarFilterPopover({
 }
 
 export function GridSettingsMenu({
-    cardScale,
-    cardSpacing,
-    onCardScaleChange,
-    onCardSpacingChange
+    gridDensity,
+    onGridDensityChange
 }) {
     const { t } = useTranslation();
-
-    const cardScalePercent = Math.round(cardScale * 100);
-    const cardSpacingPercent = Math.round(cardSpacing * 100);
-
-    const updateCardScale = (value) => {
-        const nextValue = sanitizeMyAvatarsCardScale(value);
-        onCardScaleChange(nextValue);
-        return nextValue;
-    };
-
-    const commitCardScale = (value) => {
-        const nextValue = updateCardScale(value);
-        void configRepository.setString(
-            'VRCX_MyAvatarsCardScale',
-            String(nextValue)
-        );
-    };
-
-    const updateCardSpacing = (value) => {
-        const nextValue = sanitizeMyAvatarsCardSpacing(value);
-        onCardSpacingChange(nextValue);
-        return nextValue;
-    };
-
-    const commitCardSpacing = (value) => {
-        const nextValue = updateCardSpacing(value);
-        void configRepository.setString(
-            'VRCX_MyAvatarsCardSpacing',
-            String(nextValue)
-        );
-    };
 
     return (
         <DropdownMenu>
@@ -352,51 +345,38 @@ export function GridSettingsMenu({
                     <SettingsIcon data-icon="inline-start" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-60 p-3" align="end">
+            <DropdownMenuContent className="w-72 p-3" align="end">
                 <FieldGroup>
                     <Field>
-                        <div className="flex items-center justify-between text-sm font-medium">
-                            <FieldLabel>
-                                {t('view.friends_locations.scale')}
-                            </FieldLabel>
-                            <span className="text-xs">{cardScalePercent}%</span>
-                        </div>
-                        <Slider
-                            value={[cardScale]}
-                            min={0.4}
-                            max={1.4}
-                            step={0.05}
-                            aria-label={t(
-                                'view.my_avatars.generated.avatar_card_scale'
-                            )}
-                            onValueChange={(value) => updateCardScale(value[0])}
-                            onValueCommit={(value) => commitCardScale(value[0])}
-                        />
-                    </Field>
-                    <Field>
-                        <div className="flex items-center justify-between text-sm font-medium">
-                            <FieldLabel>
-                                {t('view.friends_locations.spacing')}
-                            </FieldLabel>
-                            <span className="text-xs">
-                                {cardSpacingPercent}%
-                            </span>
-                        </div>
-                        <Slider
-                            value={[cardSpacing]}
-                            min={0.6}
-                            max={2}
-                            step={0.05}
-                            aria-label={t(
-                                'view.my_avatars.generated.avatar_card_spacing'
-                            )}
-                            onValueChange={(value) =>
-                                updateCardSpacing(value[0])
-                            }
-                            onValueCommit={(value) =>
-                                commitCardSpacing(value[0])
-                            }
-                        />
+                        <FieldLabel>
+                            {t('view.my_avatars.generated.grid_density')}
+                        </FieldLabel>
+                        <ToggleGroup
+                            type="single"
+                            variant="outline"
+                            size="sm"
+                            spacing={1}
+                            value={gridDensity}
+                            onValueChange={(nextValue) => {
+                                if (nextValue) {
+                                    onGridDensityChange(nextValue);
+                                }
+                            }}
+                            className="grid w-full grid-cols-3"
+                        >
+                            {MY_AVATARS_GRID_DENSITY_OPTIONS.map((option) => (
+                                <ToggleGroupItem
+                                    key={option.value}
+                                    value={option.value}
+                                    aria-label={t(option.labelKey)}
+                                    className="w-full min-w-0 justify-center px-2"
+                                >
+                                    <span className="truncate">
+                                        {t(option.labelKey)}
+                                    </span>
+                                </ToggleGroupItem>
+                            ))}
+                        </ToggleGroup>
                     </Field>
                 </FieldGroup>
             </DropdownMenuContent>

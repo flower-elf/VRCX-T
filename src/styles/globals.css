@@ -46,6 +46,9 @@
     --status-offline-alt: #808080;
     --status-offline-card: #737f8d;
     --status-active: #f4e05e;
+    --platform-pc: #0078d4;
+    --platform-quest: #3ddc84;
+    --platform-ios: #8e8e93;
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -135,6 +138,9 @@
     --color-chart-3: var(--chart-3);
     --color-chart-2: var(--chart-2);
     --color-chart-1: var(--chart-1);
+    --color-platform-pc: var(--platform-pc);
+    --color-platform-quest: var(--platform-quest);
+    --color-platform-ios: var(--platform-ios);
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);

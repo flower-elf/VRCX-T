@@ -5,6 +5,21 @@ export const MY_AVATARS_RELEASE_STATUS_OPTIONS = ['all', 'public', 'private'];
 export const MY_AVATARS_PLATFORM_OPTIONS = ['all', 'pc', 'android', 'ios'];
 export const MY_AVATARS_DEFAULT_CARD_SCALE = 0.6;
 export const MY_AVATARS_DEFAULT_CARD_SPACING = 1;
+export const MY_AVATARS_DEFAULT_GRID_DENSITY = 'compact';
+export const MY_AVATARS_GRID_DENSITY_OPTIONS = Object.freeze([
+    {
+        value: 'compact',
+        labelKey: 'view.my_avatars.generated.grid_density_standard'
+    },
+    {
+        value: 'dense',
+        labelKey: 'view.my_avatars.generated.grid_density_compact'
+    },
+    {
+        value: 'micro',
+        labelKey: 'view.my_avatars.generated.grid_density_dense'
+    }
+]);
 export const MY_AVATARS_COLUMN_IDS = [
     'active',
     'thumbnail',
@@ -21,12 +36,21 @@ export const MY_AVATARS_COLUMN_IDS = [
     'created_at',
     'actions'
 ];
+export const MY_AVATARS_DEFAULT_COLUMN_VISIBILITY = Object.freeze({
+    pcPerf: false,
+    androidPerf: false,
+    iosPerf: false,
+    created_at: false
+});
 
 const STORAGE_KEY = 'vrcx:table:my-avatars';
 const COLUMN_ID_ALIASES = {
     releaseStatus: 'visibility',
     action: 'actions'
 };
+const GRID_DENSITY_VALUES = new Set(
+    MY_AVATARS_GRID_DENSITY_OPTIONS.map((option) => option.value)
+);
 const SORT_COLUMN_IDS = [
     'name',
     'customTags',
@@ -178,6 +202,37 @@ export function sanitizeMyAvatarsCardSpacing(value) {
     return MY_AVATARS_DEFAULT_CARD_SPACING;
 }
 
+export function sanitizeMyAvatarsGridDensity(value) {
+    const normalized = typeof value === 'string' ? value.trim() : '';
+    return GRID_DENSITY_VALUES.has(normalized)
+        ? normalized
+        : MY_AVATARS_DEFAULT_GRID_DENSITY;
+}
+
+export function resolveMyAvatarsGridDensity({
+    persistedDensity,
+    legacyCardScale
+} = {}) {
+    const normalized = typeof persistedDensity === 'string'
+        ? persistedDensity.trim()
+        : '';
+    if (GRID_DENSITY_VALUES.has(normalized)) {
+        return normalized;
+    }
+
+    const legacyScale = Number.parseFloat(legacyCardScale);
+    if (!Number.isFinite(legacyScale)) {
+        return MY_AVATARS_DEFAULT_GRID_DENSITY;
+    }
+    if (legacyScale <= 0.45) {
+        return 'micro';
+    }
+    if (legacyScale <= 0.55) {
+        return 'dense';
+    }
+    return MY_AVATARS_DEFAULT_GRID_DENSITY;
+}
+
 export function sanitizeMyAvatarsColumnVisibility(value) {
     const visibility = {};
     if (value && typeof value === 'object') {
@@ -193,6 +248,13 @@ export function sanitizeMyAvatarsColumnVisibility(value) {
     }
 
     return visibility;
+}
+
+export function resolveMyAvatarsColumnVisibility(persistedState = {}) {
+    return {
+        ...MY_AVATARS_DEFAULT_COLUMN_VISIBILITY,
+        ...sanitizeMyAvatarsColumnVisibility(persistedState.columnVisibility)
+    };
 }
 
 export function sanitizeMyAvatarsColumnOrder(value) {

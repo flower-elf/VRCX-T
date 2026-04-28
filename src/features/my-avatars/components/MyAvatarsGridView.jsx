@@ -1,6 +1,7 @@
 import { MyAvatarGridCard } from './MyAvatarsViewParts.jsx';
 
 export function MyAvatarsGridView({
+    densityConfig,
     gridScrollRef,
     gridTotalHeight,
     visibleGridRows,
@@ -8,7 +9,6 @@ export function MyAvatarsGridView({
     gridColumnCount,
     gridMinWidth,
     currentAvatarId,
-    cardScale,
     savingTagsAvatarId,
     updatingAvatarId,
     uploadingImageAvatarId,
@@ -38,7 +38,7 @@ export function MyAvatarsGridView({
                                 key={avatar.id}
                                 avatar={avatar}
                                 currentAvatarId={currentAvatarId}
-                                cardScale={cardScale}
+                                densityConfig={densityConfig}
                                 isUpdating={
                                     savingTagsAvatarId === avatar.id ||
                                     updatingAvatarId === avatar.id ||

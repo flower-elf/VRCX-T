@@ -2,14 +2,17 @@ import {
     DataTableColumnDndProvider,
     DataTableColumnSizeColGroup,
     DataTableColumnSortableContext,
-    DataTableHeader,
     DataTablePagination,
     DataTableScrollArea,
     DataTableSurface,
     getDataTableSizingStyle
 } from '@/components/data-table/DataTableView.jsx';
-import { ResizableTableCell } from '@/components/data-table/ResizableTableParts.jsx';
-import { Table, TableBody, TableRow } from '@/ui/shadcn/table';
+import {
+    ResizableTableCell,
+    ResizableTableHead
+} from '@/components/data-table/ResizableTableParts.jsx';
+import { useDataTableColumnDnd } from '@/components/data-table/dataTableColumnDndContext.js';
+import { Table, TableBody, TableHeader, TableRow } from '@/ui/shadcn/table';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -23,6 +26,46 @@ import {
     AvatarActionMenuItems,
     openAvatarDetails
 } from './MyAvatarsViewParts.jsx';
+
+function isInteractiveRowEvent(event) {
+    return (
+        event.target instanceof HTMLElement &&
+        Boolean(
+            event.target.closest(
+                'button,a,input,textarea,select,[role="button"],[role="menuitem"]'
+            )
+        )
+    );
+}
+
+function MyAvatarsTableHeader({ table }) {
+    const columnDnd = useDataTableColumnDnd();
+
+    return (
+        <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+                <DataTableColumnSortableContext
+                    key={headerGroup.id}
+                    table={table}
+                >
+                    <TableRow className="hover:bg-transparent">
+                        {headerGroup.headers.map((header) => (
+                            <ResizableTableHead
+                                key={header.id}
+                                header={header}
+                                enableColumnReorder={columnDnd.enabled}
+                                className={
+                                    header.column.columnDef.meta
+                                        ?.tableHeadClassName
+                                }
+                            />
+                        ))}
+                    </TableRow>
+                </DataTableColumnSortableContext>
+            ))}
+        </TableHeader>
+    );
+}
 
 export function MyAvatarsTableView({
     t,
@@ -47,7 +90,7 @@ export function MyAvatarsTableView({
                             style={getDataTableSizingStyle(table)}
                         >
                             <DataTableColumnSizeColGroup table={table} />
-                            <DataTableHeader table={table} />
+                            <MyAvatarsTableHeader table={table} />
                             <TableBody>
                                 {table.getRowModel().rows.map((row) => (
                                     <ContextMenu
@@ -56,7 +99,7 @@ export function MyAvatarsTableView({
                                         <ContextMenuTrigger asChild>
                                             <TableRow
                                                 className={[
-                                                    'h-10 cursor-pointer',
+                                                    'group h-8 cursor-pointer',
                                                     row.original?.id ===
                                                         currentAvatarId
                                                         ? 'bg-primary/10'
@@ -79,6 +122,13 @@ export function MyAvatarsTableView({
                                                 )}
                                                 onKeyDown={(event) => {
                                                     if (
+                                                        isInteractiveRowEvent(
+                                                            event
+                                                        )
+                                                    ) {
+                                                        return;
+                                                    }
+                                                    if (
                                                         event.key !== 'Enter' &&
                                                         event.key !== ' '
                                                     ) {
@@ -89,11 +139,18 @@ export function MyAvatarsTableView({
                                                         row.original
                                                     );
                                                 }}
-                                                onClick={() =>
+                                                onClick={(event) => {
+                                                    if (
+                                                        isInteractiveRowEvent(
+                                                            event
+                                                        )
+                                                    ) {
+                                                        return;
+                                                    }
                                                     openAvatarDetails(
                                                         row.original
-                                                    )
-                                                }
+                                                    );
+                                                }}
                                             >
                                                 <DataTableColumnSortableContext
                                                     table={table}
@@ -104,13 +161,23 @@ export function MyAvatarsTableView({
                                                             <ResizableTableCell
                                                                 key={cell.id}
                                                                 cell={cell}
-                                                                className="px-2 py-1"
+                                                                className={[
+                                                                    cell.column
+                                                                        .columnDef
+                                                                        .meta
+                                                                        ?.tableCellClassName,
+                                                                    'px-2 py-0.5'
+                                                                ]
+                                                                    .filter(
+                                                                        Boolean
+                                                                    )
+                                                                    .join(' ')}
                                                             />
                                                         ))}
                                                 </DataTableColumnSortableContext>
                                             </TableRow>
                                         </ContextMenuTrigger>
-                                        <ContextMenuContent>
+                                        <ContextMenuContent className="w-max min-w-52 max-w-[90vw]">
                                             <AvatarActionMenuItems
                                                 avatar={row.original}
                                                 isActive={

@@ -1,9 +1,19 @@
-import { LayoutGridIcon, ListIcon, RefreshCwIcon } from 'lucide-react';
+import {
+    LayoutGridIcon,
+    ListIcon,
+    RefreshCwIcon,
+    SearchIcon
+} from 'lucide-react';
 
 import { TableColumnVisibilityMenu } from '@/components/data-table/TableColumnVisibilityMenu.jsx';
 import { Button } from '@/ui/shadcn/button';
-import { Input } from '@/ui/shadcn/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput
+} from '@/ui/shadcn/input-group';
 import { Spinner } from '@/ui/shadcn/spinner';
+import { ToggleGroup, ToggleGroupItem } from '@/ui/shadcn/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/shadcn/tooltip';
 
 import {
@@ -21,8 +31,7 @@ export function MyAvatarsToolbar({
     tagFilters,
     loadStatus,
     searchQuery,
-    cardScale,
-    cardSpacing,
+    gridDensity,
     table,
     currentUserId,
     onViewModeChange,
@@ -31,115 +40,121 @@ export function MyAvatarsToolbar({
     onTagFiltersChange,
     onClearFilters,
     onSearchChange,
-    onCardScaleChange,
-    onCardSpacingChange,
+    onGridDensityChange,
     onRefresh
 }) {
     return (
-        <div className="flex flex-wrap items-center gap-2 px-0.5 pt-1.5">
-            <div className="flex items-center gap-1">
+        <div className="flex shrink-0 flex-col gap-2 px-0.5 pt-1.5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <ToggleGroup
+                    type="single"
+                    variant="outline"
+                    size="sm"
+                    spacing={1}
+                    value={viewMode}
+                    onValueChange={(nextValue) => {
+                        if (nextValue) {
+                            onViewModeChange(nextValue);
+                        }
+                    }}
+                    className="shrink-0"
+                >
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <ToggleGroupItem
+                                value="grid"
+                                aria-label={t(
+                                    'view.my_avatars.generated.show_avatar_grid'
+                                )}
+                            >
+                                <LayoutGridIcon data-icon="inline-start" />
+                            </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            {t('view.my_avatars.generated.show_avatar_grid')}
+                        </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <ToggleGroupItem
+                                value="table"
+                                aria-label={t(
+                                    'view.my_avatars.generated.show_avatar_table'
+                                )}
+                            >
+                                <ListIcon data-icon="inline-start" />
+                            </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            {t('view.my_avatars.generated.show_avatar_table')}
+                        </TooltipContent>
+                    </Tooltip>
+                </ToggleGroup>
+
+                <MyAvatarFilterPopover
+                    activeFilterCount={activeFilterCount}
+                    allTags={allTags}
+                    releaseStatusFilter={releaseStatusFilter}
+                    platformFilter={platformFilter}
+                    tagFilters={tagFilters}
+                    onReleaseStatusChange={onReleaseStatusChange}
+                    onPlatformChange={onPlatformChange}
+                    onTagFiltersChange={onTagFiltersChange}
+                    onClearFilters={onClearFilters}
+                />
+
+                {loadStatus === 'running' ? (
+                    <span className="text-muted-foreground text-sm">
+                        {t('common.loading')}
+                    </span>
+                ) : null}
+            </div>
+
+            <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
+                <InputGroup className="min-w-52 flex-1 sm:max-w-md lg:w-80 lg:flex-none">
+                    <InputGroupAddon>
+                        <SearchIcon />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                        value={searchQuery}
+                        onChange={(event) => onSearchChange(event.target.value)}
+                        placeholder={t('common.actions.search')}
+                        aria-label={t('common.actions.search')}
+                    />
+                </InputGroup>
+                {viewMode === 'grid' ? (
+                    <GridSettingsMenu
+                        gridDensity={gridDensity}
+                        onGridDensityChange={onGridDensityChange}
+                    />
+                ) : null}
+                {viewMode === 'table' ? (
+                    <TableColumnVisibilityMenu table={table} />
+                ) : null}
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button
                             type="button"
+                            variant="ghost"
                             size="icon-sm"
-                            variant={
-                                viewMode === 'grid' ? 'default' : 'outline'
-                            }
                             aria-label={t(
-                                'view.my_avatars.generated.show_avatar_grid'
+                                'view.my_avatars.generated.refresh_avatar_inventory'
                             )}
-                            onClick={() => onViewModeChange('grid')}
+                            disabled={!currentUserId || loadStatus === 'running'}
+                            onClick={onRefresh}
                         >
-                            <LayoutGridIcon data-icon="inline-start" />
+                            {loadStatus === 'running' ? (
+                                <Spinner data-icon="inline-start" />
+                            ) : (
+                                <RefreshCwIcon data-icon="inline-start" />
+                            )}
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                        {t('view.my_avatars.generated.show_avatar_grid')}
-                    </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            type="button"
-                            size="icon-sm"
-                            variant={
-                                viewMode === 'table' ? 'default' : 'outline'
-                            }
-                            aria-label={t(
-                                'view.my_avatars.generated.show_avatar_table'
-                            )}
-                            onClick={() => onViewModeChange('table')}
-                        >
-                            <ListIcon data-icon="inline-start" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        {t('view.my_avatars.generated.show_avatar_table')}
+                        {t('view.my_avatars.generated.refresh_avatar_inventory')}
                     </TooltipContent>
                 </Tooltip>
             </div>
-
-            <MyAvatarFilterPopover
-                activeFilterCount={activeFilterCount}
-                allTags={allTags}
-                releaseStatusFilter={releaseStatusFilter}
-                platformFilter={platformFilter}
-                tagFilters={tagFilters}
-                onReleaseStatusChange={onReleaseStatusChange}
-                onPlatformChange={onPlatformChange}
-                onTagFiltersChange={onTagFiltersChange}
-                onClearFilters={onClearFilters}
-            />
-
-            <div className="flex-1" />
-
-            {loadStatus === 'running' ? (
-                <span className="text-muted-foreground text-sm">
-                    {t('common.loading')}
-                </span>
-            ) : null}
-            <Input
-                value={searchQuery}
-                onChange={(event) => onSearchChange(event.target.value)}
-                placeholder={t('common.actions.search')}
-                aria-label={t('common.actions.search')}
-                className="w-80"
-            />
-            {viewMode === 'grid' ? (
-                <GridSettingsMenu
-                    cardScale={cardScale}
-                    cardSpacing={cardSpacing}
-                    onCardScaleChange={onCardScaleChange}
-                    onCardSpacingChange={onCardSpacingChange}
-                />
-            ) : null}
-            {viewMode === 'table' ? (
-                <TableColumnVisibilityMenu table={table} />
-            ) : null}
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={t(
-                            'view.my_avatars.generated.refresh_avatar_inventory'
-                        )}
-                        disabled={!currentUserId || loadStatus === 'running'}
-                        onClick={onRefresh}
-                    >
-                        {loadStatus === 'running' ? (
-                            <Spinner data-icon="inline-start" />
-                        ) : (
-                            <RefreshCwIcon data-icon="inline-start" />
-                        )}
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    {t('view.my_avatars.generated.refresh_avatar_inventory')}
-                </TooltipContent>
-            </Tooltip>
         </div>
     );
 }

@@ -15,8 +15,7 @@ export function MyAvatarsPageView({
     tagFilters,
     loadStatus,
     searchQuery,
-    cardScale,
-    cardSpacing,
+    gridDensity,
     table,
     currentUserId,
     handleViewModeChange,
@@ -24,8 +23,7 @@ export function MyAvatarsPageView({
     setPlatformFilter,
     setTagFilters,
     setSearchQuery,
-    setCardScale,
-    setCardSpacing,
+    handleGridDensityChange,
     setRefreshToken,
     detail,
     userFacingErrorMessage,
@@ -46,6 +44,7 @@ export function MyAvatarsPageView({
     resolveMyAvatarsPageSize,
     setPagination,
     MyAvatarsGridView,
+    densityConfig,
     gridScrollRef,
     gridTotalHeight,
     visibleGridRows,
@@ -53,17 +52,19 @@ export function MyAvatarsPageView({
     gridColumnCount,
     gridMinWidth,
     MyAvatarsDialogs,
+    editDetailsAvatar,
+    contentTagsAvatar,
     imageCropRequest,
     manageTagsAvatar,
-    stylesAvatar,
     currentEndpoint,
+    setEditDetailsAvatar,
+    setContentTagsAvatar,
     setImageCropRequest,
     imageUploadAvatarRef,
     imageUploadAuthTargetRef,
     confirmAvatarImageUpload,
     setManageTagsAvatar,
     handleSaveAvatarTags,
-    setStylesAvatar,
     applyAvatarUpdate,
     setDetail
 }) {
@@ -92,8 +93,7 @@ export function MyAvatarsPageView({
                     tagFilters={tagFilters}
                     loadStatus={loadStatus}
                     searchQuery={searchQuery}
-                    cardScale={cardScale}
-                    cardSpacing={cardSpacing}
+                    gridDensity={gridDensity}
                     table={table}
                     currentUserId={currentUserId}
                     onViewModeChange={handleViewModeChange}
@@ -106,8 +106,7 @@ export function MyAvatarsPageView({
                         setTagFilters(new Set());
                     }}
                     onSearchChange={setSearchQuery}
-                    onCardScaleChange={setCardScale}
-                    onCardSpacingChange={setCardSpacing}
+                    onGridDensityChange={handleGridDensityChange}
                     onRefresh={() => setRefreshToken((value) => value + 1)}
                 />
 
@@ -167,6 +166,7 @@ export function MyAvatarsPageView({
                         />
                     ) : (
                         <MyAvatarsGridView
+                            densityConfig={densityConfig}
                             gridScrollRef={gridScrollRef}
                             gridTotalHeight={gridTotalHeight}
                             visibleGridRows={visibleGridRows}
@@ -174,7 +174,6 @@ export function MyAvatarsPageView({
                             gridColumnCount={gridColumnCount}
                             gridMinWidth={gridMinWidth}
                             currentAvatarId={currentAvatarId}
-                            cardScale={cardScale}
                             savingTagsAvatarId={savingTagsAvatarId}
                             updatingAvatarId={updatingAvatarId}
                             uploadingImageAvatarId={uploadingImageAvatarId}
@@ -194,12 +193,23 @@ export function MyAvatarsPageView({
             </div>
             <MyAvatarsDialogs
                 t={t}
+                editDetailsAvatar={editDetailsAvatar}
+                contentTagsAvatar={contentTagsAvatar}
                 imageCropRequest={imageCropRequest}
                 manageTagsAvatar={manageTagsAvatar}
                 savingTagsAvatarId={savingTagsAvatarId}
-                stylesAvatar={stylesAvatar}
                 currentUserId={currentUserId}
                 currentEndpoint={currentEndpoint}
+                onEditDetailsOpenChange={(open) => {
+                    if (!open) {
+                        setEditDetailsAvatar(null);
+                    }
+                }}
+                onContentTagsOpenChange={(open) => {
+                    if (!open) {
+                        setContentTagsAvatar(null);
+                    }
+                }}
                 onImageCropOpenChange={(open) => {
                     if (!open) {
                         setImageCropRequest(null);
@@ -214,15 +224,18 @@ export function MyAvatarsPageView({
                     }
                 }}
                 onSaveTags={handleSaveAvatarTags}
-                onStylesOpenChange={(open) => {
-                    if (!open) {
-                        setStylesAvatar(null);
-                    }
-                }}
-                onStylesSaved={(nextAvatar) => {
+                onEditDetailsSaved={(nextAvatar) => {
                     applyAvatarUpdate(nextAvatar);
                     setDetail(
-                        t('view.my_avatars.generated.avatar_styles_updated')
+                        t('dialog.avatar.generated.avatar_details_updated')
+                    );
+                }}
+                onContentTagsSaved={(nextAvatar) => {
+                    applyAvatarUpdate(nextAvatar);
+                    setDetail(
+                        t(
+                            'dialog.avatar.generated.avatar_content_tags_updated'
+                        )
                     );
                 }}
             />

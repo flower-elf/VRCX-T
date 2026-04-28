@@ -44,16 +44,17 @@ import {
 import { collectMyAvatarTags, filterMyAvatars } from './myAvatarsFilters.js';
 import {
     MY_AVATARS_DEFAULT_CARD_SCALE,
-    MY_AVATARS_DEFAULT_CARD_SPACING,
+    MY_AVATARS_DEFAULT_COLUMN_VISIBILITY,
     MY_AVATARS_DEFAULT_PAGE_SIZES,
     MY_AVATARS_VIEW_MODES,
     readPersistedMyAvatarsState,
+    resolveMyAvatarsColumnVisibility,
+    resolveMyAvatarsGridDensity,
     resolveMyAvatarsPageSize,
-    sanitizeMyAvatarsCardScale,
-    sanitizeMyAvatarsCardSpacing,
     sanitizeMyAvatarsColumnOrder,
     sanitizeMyAvatarsColumnSizing,
     sanitizeMyAvatarsColumnVisibility,
+    sanitizeMyAvatarsGridDensity,
     sanitizeMyAvatarsPageSizes,
     sanitizeMyAvatarsSorting,
     writePersistedMyAvatarsState
@@ -67,6 +68,11 @@ function isRuntimeAuthTarget(authTarget) {
         runtimeAuth.currentUserEndpoint === authTarget.currentEndpoint
     );
 }
+
+function resolveTableColumnOrder(columnOrder) {
+    const ordered = sanitizeMyAvatarsColumnOrder(columnOrder);
+    return [...ordered.filter((columnId) => columnId !== 'actions'), 'actions'];
+}
 export function useMyAvatarsPageController({ embedded = false } = {}) {
     const { t } = useTranslation();
     const currentUserId = useRuntimeStore((state) => state.auth.currentUserId);
@@ -77,7 +83,6 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
         (state) => state.auth.currentUserSnapshot
     );
     const confirm = useModalStore((state) => state.confirm);
-    const prompt = useModalStore((state) => state.prompt);
     const currentAvatarId = currentUserSnapshot?.currentAvatar || '';
     const previousAvatarSwapTime =
         Number(currentUserSnapshot?.$previousAvatarSwapTime) || 0;
@@ -103,14 +108,14 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
     const [releaseStatusFilter, setReleaseStatusFilter] = useState('all');
     const [platformFilter, setPlatformFilter] = useState('all');
     const [tagFilters, setTagFilters] = useState(() => new Set());
-    const [cardScale, setCardScale] = useState(MY_AVATARS_DEFAULT_CARD_SCALE);
-    const [cardSpacing, setCardSpacing] = useState(
-        MY_AVATARS_DEFAULT_CARD_SPACING
+    const [gridDensity, setGridDensity] = useState(() =>
+        resolveMyAvatarsGridDensity()
     );
     const [pageSizes, setPageSizes] = useState(MY_AVATARS_DEFAULT_PAGE_SIZES);
     const [refreshToken, setRefreshToken] = useState(0);
+    const [editDetailsAvatar, setEditDetailsAvatar] = useState(null);
+    const [contentTagsAvatar, setContentTagsAvatar] = useState(null);
     const [manageTagsAvatar, setManageTagsAvatar] = useState(null);
-    const [stylesAvatar, setStylesAvatar] = useState(null);
     const [imageCropRequest, setImageCropRequest] = useState(null);
     const [savingTagsAvatarId, setSavingTagsAvatarId] = useState('');
     const [updatingAvatarId, setUpdatingAvatarId] = useState('');
@@ -119,7 +124,7 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
         sanitizeMyAvatarsSorting(persistedState.sorting)
     );
     const [columnVisibility, setColumnVisibility] = useState(() =>
-        sanitizeMyAvatarsColumnVisibility(persistedState.columnVisibility)
+        resolveMyAvatarsColumnVisibility(persistedState)
     );
     const [columnOrder, setColumnOrder] = useState(() =>
         sanitizeMyAvatarsColumnOrder(persistedState.columnOrder)
@@ -162,14 +167,14 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
         mediaRepository,
         myAvatarRepository,
         openAvatarDetails,
-        prompt,
         readFileAsBase64,
         setAvatars,
+        setContentTagsAvatar,
         setDetail,
+        setEditDetailsAvatar,
         setImageCropRequest,
         setManageTagsAvatar,
         setSavingTagsAvatarId,
-        setStylesAvatar,
         setUpdatingAvatarId,
         setUploadingImageAvatarId,
         setViewMode,
@@ -184,13 +189,10 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
             getTablePageSizesPreference(MY_AVATARS_DEFAULT_PAGE_SIZES),
             getTablePageSizePreference(20),
             configRepository.getString('MyAvatarsViewMode', 'grid'),
+            configRepository.getString('VRCX_MyAvatarsGridDensity', ''),
             configRepository.getString(
                 'VRCX_MyAvatarsCardScale',
                 String(MY_AVATARS_DEFAULT_CARD_SCALE)
-            ),
-            configRepository.getString(
-                'VRCX_MyAvatarsCardSpacing',
-                String(MY_AVATARS_DEFAULT_CARD_SPACING)
             )
         ])
             .then(
@@ -198,8 +200,8 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
                     nextPageSizes,
                     nextPageSize,
                     nextViewMode,
-                    nextCardScale,
-                    nextCardSpacing
+                    nextGridDensity,
+                    nextLegacyCardScale
                 ]) => {
                     if (!active) {
                         return;
@@ -235,9 +237,11 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
                             ? nextViewMode
                             : 'grid'
                     );
-                    setCardScale(sanitizeMyAvatarsCardScale(nextCardScale));
-                    setCardSpacing(
-                        sanitizeMyAvatarsCardSpacing(nextCardSpacing)
+                    setGridDensity(
+                        resolveMyAvatarsGridDensity({
+                            persistedDensity: nextGridDensity,
+                            legacyCardScale: nextLegacyCardScale
+                        })
                     );
                 }
             )
@@ -310,6 +314,14 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
         tagFilters,
         viewMode
     ]);
+    function handleGridDensityChange(value) {
+        const nextDensity = sanitizeMyAvatarsGridDensity(value);
+        setGridDensity(nextDensity);
+        void configRepository.setString(
+            'VRCX_MyAvatarsGridDensity',
+            nextDensity
+        );
+    }
     useEffect(() => {
         const requestId = requestIdRef.current + 1;
         requestIdRef.current = requestId;
@@ -410,6 +422,19 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
             uploadingImageAvatarId
         ]
     );
+    const tableColumnOrder = useMemo(
+        () => resolveTableColumnOrder(columnOrder),
+        [columnOrder]
+    );
+    function handleColumnOrderChange(updater) {
+        setColumnOrder((current) =>
+            resolveTableColumnOrder(
+                typeof updater === 'function'
+                    ? updater(resolveTableColumnOrder(current))
+                    : updater
+            )
+        );
+    }
     const table = useReactTable({
         data: filteredAvatars,
         columns,
@@ -417,17 +442,20 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
             sorting,
             pagination,
             columnVisibility,
-            columnOrder,
+            columnOrder: tableColumnOrder,
             columnSizing
         },
         onSortingChange: setSorting,
         onPaginationChange: setPagination,
         onColumnVisibilityChange: setColumnVisibility,
-        onColumnOrderChange: setColumnOrder,
+        onColumnOrderChange: handleColumnOrderChange,
         onColumnSizingChange: setColumnSizing,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        initialState: {
+            columnVisibility: MY_AVATARS_DEFAULT_COLUMN_VISIBILITY
+        },
         enableColumnResizing: true,
         columnResizeMode: 'onChange',
         meta: {
@@ -436,6 +464,7 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
         }
     });
     const {
+        densityConfig,
         gridGap,
         gridColumnCount,
         gridMinWidth,
@@ -443,10 +472,9 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
         gridTotalHeight,
         visibleGridRows
     } = useMyAvatarsGridVirtualization({
-        cardScale,
-        cardSpacing,
         deferredSearchQuery,
         filteredAvatars,
+        gridDensity,
         platformFilter,
         releaseStatusFilter,
         tagFilters,
@@ -476,8 +504,7 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
         tagFilters,
         loadStatus,
         searchQuery,
-        cardScale,
-        cardSpacing,
+        gridDensity,
         table,
         currentUserId,
         handleViewModeChange,
@@ -485,8 +512,7 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
         setPlatformFilter,
         setTagFilters,
         setSearchQuery,
-        setCardScale,
-        setCardSpacing,
+        handleGridDensityChange,
         setRefreshToken,
         detail,
         userFacingErrorMessage,
@@ -507,6 +533,7 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
         resolveMyAvatarsPageSize,
         setPagination,
         MyAvatarsGridView,
+        densityConfig,
         gridScrollRef,
         gridTotalHeight,
         visibleGridRows,
@@ -514,17 +541,19 @@ export function useMyAvatarsPageController({ embedded = false } = {}) {
         gridColumnCount,
         gridMinWidth,
         MyAvatarsDialogs,
+        editDetailsAvatar,
+        contentTagsAvatar,
         imageCropRequest,
         manageTagsAvatar,
-        stylesAvatar,
         currentEndpoint,
+        setEditDetailsAvatar,
+        setContentTagsAvatar,
         setImageCropRequest,
         imageUploadAvatarRef,
         imageUploadAuthTargetRef,
         confirmAvatarImageUpload,
         setManageTagsAvatar,
         handleSaveAvatarTags,
-        setStylesAvatar,
         applyAvatarUpdate,
         setDetail
     };

@@ -30,26 +30,34 @@ export function buildMyAvatarsColumns({
     return [
         {
             id: 'active',
+            size: 32,
+            minSize: 32,
+            maxSize: 36,
             accessorFn: (row) => (row?.id === currentAvatarId ? 1 : 0),
             header: () => null,
+            enableResizing: false,
             cell: ({ row }) =>
                 row.original?.id === currentAvatarId ? (
-                    <CheckIcon className="text-primary size-4" />
+                    <CheckIcon className="text-primary size-3.5" />
                 ) : (
-                    <span className="block size-4" />
+                    <span className="block size-3.5" />
                 )
         },
         {
             id: 'thumbnail',
+            size: 56,
+            minSize: 52,
+            maxSize: 72,
             accessorFn: (row) => row?.thumbnailImageUrl || '',
             header: () => null,
             enableSorting: false,
+            enableResizing: false,
             cell: ({ row }) =>
                 row.original?.thumbnailImageUrl ? (
                     <Button
                         type="button"
                         variant="ghost"
-                        className="h-auto p-0"
+                        className="h-6 w-10 p-0"
                         onClick={() => openAvatarDetails(row.original)}
                     >
                         <img
@@ -58,7 +66,7 @@ export function buildMyAvatarsColumns({
                                 row.original?.name ||
                                 t('view.my_avatars.generated.avatar')
                             }
-                            className="h-8 w-14 rounded-sm object-cover"
+                            className="h-6 w-10 rounded-sm object-cover"
                             loading="lazy"
                         />
                     </Button>
@@ -66,7 +74,7 @@ export function buildMyAvatarsColumns({
                     <Button
                         type="button"
                         variant="outline"
-                        className="text-muted-foreground h-8 w-14 p-0"
+                        className="text-muted-foreground h-6 w-10 p-0"
                         onClick={() => openAvatarDetails(row.original)}
                     >
                         <ImageIcon data-icon="inline-start" />
@@ -75,6 +83,8 @@ export function buildMyAvatarsColumns({
         },
         {
             id: 'name',
+            size: 240,
+            minSize: 160,
             accessorFn: (row) => row?.name || '',
             meta: { label: t('dialog.avatar.info.name') },
             header: ({ column }) => (
@@ -84,15 +94,17 @@ export function buildMyAvatarsColumns({
                 <Button
                     type="button"
                     variant="ghost"
-                    className="hover:text-primary h-auto p-0 text-left font-medium"
+                    className="hover:text-primary h-auto max-w-full p-0 text-left text-sm font-medium"
                     onClick={() => openAvatarDetails(row.original)}
                 >
-                    {row.original?.name || ''}
+                    <span className="truncate">{row.original?.name || ''}</span>
                 </Button>
             )
         },
         {
             id: 'customTags',
+            size: 220,
+            minSize: 140,
             accessorFn: (row) =>
                 (row?.$tags || []).map((entry) => entry.tag).join(', '),
             meta: { label: t('dialog.avatar.info.tags') },
@@ -101,11 +113,12 @@ export function buildMyAvatarsColumns({
             ),
             cell: ({ row }) =>
                 (row.original?.$tags || []).length ? (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex max-h-7 flex-wrap gap-1 overflow-hidden">
                         {row.original.$tags.map((entry) => (
                             <Badge
                                 key={`${row.original.id}:${entry.tag}`}
                                 variant="secondary"
+                                className="rounded-sm px-1 py-0 text-xs leading-tight"
                                 style={resolveMyAvatarTagBadgeStyle(entry)}
                             >
                                 {entry.tag}
@@ -116,6 +129,8 @@ export function buildMyAvatarsColumns({
         },
         {
             id: 'platforms',
+            size: 110,
+            minSize: 90,
             accessorFn: (row) => (row?.unityPackages?.length ? 1 : 0),
             meta: { label: t('dialog.avatar.info.platform') },
             header: () => (
@@ -130,6 +145,8 @@ export function buildMyAvatarsColumns({
         },
         {
             id: 'visibility',
+            size: 110,
+            minSize: 90,
             accessorFn: (row) => row?.releaseStatus || '',
             meta: { label: t('dialog.avatar.info.visibility') },
             header: ({ column }) => (
@@ -148,17 +165,25 @@ export function buildMyAvatarsColumns({
         },
         {
             id: 'timeSpent',
+            size: 116,
+            minSize: 104,
             accessorFn: (row) => Number(row?.$timeSpent) || 0,
-            meta: { label: t('dialog.avatar.info.time_spent') },
+            meta: {
+                label: t('dialog.avatar.info.time_spent'),
+                tableHeadClassName: 'text-right',
+                tableCellClassName: 'text-right tabular-nums'
+            },
             header: ({ column }) => (
-                <SortButton
-                    column={column}
-                    label={t('dialog.avatar.info.time_spent')}
-                    descFirst
-                />
+                <div className="flex w-full min-w-0 justify-end overflow-hidden">
+                    <SortButton
+                        column={column}
+                        label={t('dialog.avatar.info.time_spent')}
+                        descFirst
+                    />
+                </div>
             ),
             cell: ({ row }) => (
-                <span>
+                <span className="block">
                     {row.original?.$timeSpent
                         ? timeToText(row.original.$timeSpent)
                         : '-'}
@@ -167,19 +192,31 @@ export function buildMyAvatarsColumns({
         },
         {
             id: 'version',
+            size: 80,
+            minSize: 64,
             accessorFn: (row) => Number(row?.version) || 0,
-            meta: { label: t('dialog.avatar.info.version') },
+            meta: {
+                label: t('dialog.avatar.info.version'),
+                tableHeadClassName: 'text-right',
+                tableCellClassName: 'text-right tabular-nums'
+            },
             header: ({ column }) => (
-                <SortButton
-                    column={column}
-                    label={t('dialog.avatar.info.version')}
-                    descFirst
-                />
+                <div className="flex w-full min-w-0 justify-end overflow-hidden">
+                    <SortButton
+                        column={column}
+                        label={t('dialog.avatar.info.version')}
+                        descFirst
+                    />
+                </div>
             ),
-            cell: ({ row }) => <span>{row.original?.version ?? '-'}</span>
+            cell: ({ row }) => (
+                <span className="block">{row.original?.version ?? '-'}</span>
+            )
         },
         {
             id: 'pcPerf',
+            size: 140,
+            minSize: 110,
             accessorFn: (row) =>
                 getMyAvatarPlatformInfo(row)?.pc?.performanceRating || '',
             meta: { label: t('dialog.avatar.info.pc_performance') },
@@ -202,6 +239,8 @@ export function buildMyAvatarsColumns({
         },
         {
             id: 'androidPerf',
+            size: 160,
+            minSize: 130,
             accessorFn: (row) =>
                 getMyAvatarPlatformInfo(row)?.android?.performanceRating || '',
             meta: { label: t('dialog.avatar.info.android_performance') },
@@ -224,6 +263,8 @@ export function buildMyAvatarsColumns({
         },
         {
             id: 'iosPerf',
+            size: 140,
+            minSize: 110,
             accessorFn: (row) =>
                 getMyAvatarPlatformInfo(row)?.ios?.performanceRating || '',
             meta: { label: t('dialog.avatar.info.ios_performance') },
@@ -246,6 +287,8 @@ export function buildMyAvatarsColumns({
         },
         {
             id: 'updated_at',
+            size: 170,
+            minSize: 130,
             accessorFn: (row) => row?.updated_at || '',
             meta: { label: t('dialog.avatar.info.last_updated') },
             header: ({ column }) => (
@@ -265,6 +308,8 @@ export function buildMyAvatarsColumns({
         },
         {
             id: 'created_at',
+            size: 170,
+            minSize: 130,
             accessorFn: (row) => row?.created_at || '',
             meta: { label: t('dialog.avatar.info.created_at') },
             header: ({ column }) => (
@@ -284,8 +329,19 @@ export function buildMyAvatarsColumns({
         },
         {
             id: 'actions',
+            size: 48,
+            minSize: 48,
+            maxSize: 56,
             enableSorting: false,
-            meta: { label: t('table.import.action') },
+            enableResizing: false,
+            meta: {
+                label: t('table.import.action'),
+                disableReorder: true,
+                disableVisibilityToggle: true,
+                tableHeadClassName: 'bg-background sticky right-0 z-20 border-l',
+                tableCellClassName:
+                    'bg-background group-hover:bg-muted/50 sticky right-0 z-10 border-l'
+            },
             header: () => null,
             cell: ({ row }) => {
                 const isUpdating =

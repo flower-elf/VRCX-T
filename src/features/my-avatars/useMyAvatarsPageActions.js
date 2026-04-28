@@ -1,3 +1,11 @@
+import { useDialogStore } from '@/state/dialogStore.js';
+
+function avatarIdFromValue(avatar) {
+    return typeof avatar?.id === 'string'
+        ? avatar.id.trim()
+        : String(avatar?.id ?? '').trim();
+}
+
 export function useMyAvatarsPageActions({
     avatarProfileRepository,
     avatars,
@@ -14,14 +22,14 @@ export function useMyAvatarsPageActions({
     mediaRepository,
     myAvatarRepository,
     openAvatarDetails,
-    prompt,
     readFileAsBase64,
     setAvatars,
+    setContentTagsAvatar,
     setDetail,
+    setEditDetailsAvatar,
     setImageCropRequest,
     setManageTagsAvatar,
     setSavingTagsAvatarId,
-    setStylesAvatar,
     setUpdatingAvatarId,
     setUploadingImageAvatarId,
     setViewMode,
@@ -30,6 +38,20 @@ export function useMyAvatarsPageActions({
     validateImageUploadFile,
     withUploadTimeout
 }) {
+    function closeActiveAvatarDialog(avatar) {
+        const avatarId = avatarIdFromValue(avatar);
+        if (!avatarId) {
+            return;
+        }
+        const { activeDialog, closeDialog } = useDialogStore.getState();
+        if (
+            activeDialog?.kind === 'avatar' &&
+            String(activeDialog.entityId ?? '').trim() === avatarId
+        ) {
+            closeDialog();
+        }
+    }
+
     async function handleSaveAvatarTags({ avatarId, tags }) {
         const avatar = avatars.find((entry) => entry.id === avatarId);
         const previousTags = avatar?.$tags || [];
@@ -89,7 +111,7 @@ export function useMyAvatarsPageActions({
         );
     }
     async function saveAvatarPatch(avatar, params, successMessage) {
-        const avatarId = typeof avatar?.id === 'string' ? avatar.id.trim() : '';
+        const avatarId = avatarIdFromValue(avatar);
         if (!avatarId || !currentUserId) {
             return;
         }
@@ -131,56 +153,8 @@ export function useMyAvatarsPageActions({
             );
         }
     }
-    async function renameAvatar(avatar) {
-        const result = await prompt({
-            title: t('view.my_avatars.generated_modal.rename_avatar'),
-            description: avatar?.name || avatar?.id || '',
-            inputValue: avatar?.name || '',
-            confirmText: t('view.my_avatars.generated_modal.rename'),
-            cancelText: t('common.actions.cancel')
-        });
-        if (!result.ok) {
-            return;
-        }
-        const nextName = String(result.value || '').trim();
-        if (!nextName || nextName === avatar?.name) {
-            return;
-        }
-        await saveAvatarPatch(
-            avatar,
-            {
-                name: nextName
-            },
-            t('prompt.rename_avatar.message.success')
-        );
-    }
-    async function changeAvatarDescription(avatar) {
-        const result = await prompt({
-            title: t(
-                'view.my_avatars.generated_modal.change_avatar_description'
-            ),
-            description: avatar?.name || avatar?.id || '',
-            inputValue: avatar?.description || '',
-            confirmText: t('common.actions.save'),
-            cancelText: t('common.actions.cancel')
-        });
-        if (!result.ok) {
-            return;
-        }
-        const nextDescription = String(result.value || '').trim();
-        if (nextDescription === (avatar?.description || '')) {
-            return;
-        }
-        await saveAvatarPatch(
-            avatar,
-            {
-                description: nextDescription
-            },
-            t('view.my_avatars.generated.avatar_description_updated')
-        );
-    }
     async function wearAvatar(avatar) {
-        const avatarId = typeof avatar?.id === 'string' ? avatar.id.trim() : '';
+        const avatarId = avatarIdFromValue(avatar);
         if (!avatarId || !currentUserId || avatarId === currentAvatarId) {
             return;
         }
@@ -271,17 +245,22 @@ export function useMyAvatarsPageActions({
                 : t('view.my_avatars.generated.avatar_made_private')
         );
     }
-    function openAvatarContentTags(avatar) {
-        openAvatarDetails(avatar);
-    }
-    function openAvatarStyles(avatar) {
+    function openAvatarEditDetails(avatar) {
         if (!avatar?.id) {
             return;
         }
-        setStylesAvatar(avatar);
+        closeActiveAvatarDialog(avatar);
+        setEditDetailsAvatar(avatar);
+    }
+    function openAvatarContentTags(avatar) {
+        if (!avatar?.id) {
+            return;
+        }
+        closeActiveAvatarDialog(avatar);
+        setContentTagsAvatar(avatar);
     }
     async function createAvatarImpostor(avatar) {
-        const avatarId = typeof avatar?.id === 'string' ? avatar.id.trim() : '';
+        const avatarId = avatarIdFromValue(avatar);
         if (!avatarId || !currentUserId) {
             return;
         }
@@ -335,10 +314,11 @@ export function useMyAvatarsPageActions({
         }
     }
     function beginAvatarImageUpload(avatar) {
-        const avatarId = typeof avatar?.id === 'string' ? avatar.id.trim() : '';
+        const avatarId = avatarIdFromValue(avatar);
         if (!avatarId || !currentUserId) {
             return;
         }
+        closeActiveAvatarDialog(avatar);
         imageUploadAvatarRef.current = avatar;
         imageUploadAuthTargetRef.current = {
             currentUserId,
@@ -357,21 +337,15 @@ export function useMyAvatarsPageActions({
             case 'manageTags':
                 setManageTagsAvatar(avatar);
                 break;
+            case 'editDetails':
+                openAvatarEditDetails(avatar);
+                break;
             case 'makePrivate':
             case 'makePublic':
                 await toggleAvatarReleaseStatus(avatar);
                 break;
-            case 'rename':
-                await renameAvatar(avatar);
-                break;
-            case 'changeDescription':
-                await changeAvatarDescription(avatar);
-                break;
-            case 'changeTags':
+            case 'changeContentTags':
                 openAvatarContentTags(avatar);
-                break;
-            case 'changeStyles':
-                openAvatarStyles(avatar);
                 break;
             case 'changeImage':
                 beginAvatarImageUpload(avatar);
@@ -399,7 +373,7 @@ export function useMyAvatarsPageActions({
             return;
         }
         const avatar = imageUploadAvatarRef.current;
-        const avatarId = typeof avatar?.id === 'string' ? avatar.id.trim() : '';
+        const avatarId = avatarIdFromValue(avatar);
         const authTarget = imageUploadAuthTargetRef.current;
         if (!avatarId || !authTarget || !isRuntimeAuthTarget(authTarget)) {
             return;
@@ -418,7 +392,7 @@ export function useMyAvatarsPageActions({
     async function confirmAvatarImageUpload(blob) {
         const request = imageCropRequest;
         const avatar = request?.avatar;
-        const avatarId = typeof avatar?.id === 'string' ? avatar.id.trim() : '';
+        const avatarId = avatarIdFromValue(avatar);
         const authTarget = request?.authTarget;
         if (
             !blob ||

@@ -6,11 +6,12 @@ import {
     getVisibleMyAvatarsGridRows
 } from './myAvatarsGrid.js';
 
+const MY_AVATARS_GRID_HORIZONTAL_INSET = 12;
+
 export function useMyAvatarsGridVirtualization({
-    cardScale,
-    cardSpacing,
     deferredSearchQuery,
     filteredAvatars,
+    gridDensity,
     platformFilter,
     releaseStatusFilter,
     tagFilters,
@@ -88,21 +89,28 @@ export function useMyAvatarsGridVirtualization({
             scrollTop: 0
         }));
     }, [
-        cardScale,
-        cardSpacing,
         deferredSearchQuery,
         filteredAvatars.length,
+        gridDensity,
         platformFilter,
         releaseStatusFilter,
         tagFilters,
         viewMode
     ]);
 
-    const { gridGap, gridMinWidth, gridColumnCount, gridRowHeight } =
+    const {
+        densityConfig,
+        gridGap,
+        gridMinWidth,
+        gridColumnCount,
+        gridRowHeight
+    } =
         getMyAvatarsGridMetrics({
-            cardScale,
-            cardSpacing,
-            width: gridScrollMetrics.width
+            gridDensity,
+            width: Math.max(
+                0,
+                gridScrollMetrics.width - MY_AVATARS_GRID_HORIZONTAL_INSET
+            )
         });
     const gridRows = useMemo(
         () =>
@@ -128,6 +136,7 @@ export function useMyAvatarsGridVirtualization({
     );
 
     return {
+        densityConfig,
         gridGap,
         gridColumnCount,
         gridMinWidth,
