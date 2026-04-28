@@ -31,14 +31,67 @@ export function SearchLoadingState() {
     return <LoadingState label={t('common.loading')} className="min-h-56" />;
 }
 
-export function AvatarCard({ avatar }) {
-    const imageUrl = avatar.thumbnailImageUrl || avatar.imageUrl;
+const searchMediaTextStyle = {
+    textShadow: '0 1px 2px rgb(0 0 0 / 0.9), 0 0 10px rgb(0 0 0 / 0.65)'
+};
 
+function SearchMediaCard({
+    imageUrl,
+    imageAlt,
+    title,
+    subtitle,
+    FallbackIcon,
+    onClick
+}) {
     return (
         <Button
             type="button"
             variant="outline"
-            className="h-auto w-full min-w-0 flex-col items-stretch justify-start p-3 text-left font-normal whitespace-normal"
+            className="group/search-media h-auto w-full min-w-0 flex-col items-stretch justify-start overflow-hidden p-0 text-left font-normal whitespace-normal"
+            onClick={onClick}
+        >
+            <div className="bg-muted relative aspect-[16/10] w-full overflow-hidden">
+                {imageUrl ? (
+                    <img
+                        src={imageUrl}
+                        alt={imageAlt}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-200 group-hover/search-media:scale-[1.02] group-focus-visible/search-media:scale-[1.02]"
+                    />
+                ) : (
+                    <div className="text-muted-foreground grid h-full w-full place-items-center [&>svg]:size-8">
+                        <FallbackIcon />
+                    </div>
+                )}
+                <div className="absolute right-0 bottom-0 left-0 flex min-w-0 flex-col gap-1 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-3 pt-10 pb-3">
+                    <span
+                        className="block truncate text-sm font-semibold text-white"
+                        style={searchMediaTextStyle}
+                    >
+                        {title || ''}
+                    </span>
+                    <span
+                        className="block min-h-4 truncate text-xs font-medium text-white/75"
+                        style={searchMediaTextStyle}
+                    >
+                        {subtitle || ''}
+                    </span>
+                </div>
+            </div>
+        </Button>
+    );
+}
+
+export function AvatarCard({ avatar }) {
+    const imageUrl = avatar.thumbnailImageUrl || avatar.imageUrl;
+
+    return (
+        <SearchMediaCard
+            imageUrl={imageUrl}
+            imageAlt={avatar.name || 'Avatar'}
+            title={avatar.name || ''}
+            subtitle={avatar.authorName || ''}
+            FallbackIcon={UserIcon}
             onClick={() =>
                 openAvatarDialog({
                     avatarId: avatar.id,
@@ -46,37 +99,22 @@ export function AvatarCard({ avatar }) {
                     seedData: avatar
                 })
             }
-        >
-            {imageUrl ? (
-                <img
-                    src={imageUrl}
-                    alt={avatar.name}
-                    loading="lazy"
-                    className="aspect-[16/10] w-full rounded-lg object-cover"
-                />
-            ) : (
-                <div className="bg-muted text-muted-foreground flex aspect-[16/10] w-full items-center justify-center rounded-lg [&>svg]:size-8">
-                    <UserIcon />
-                </div>
-            )}
-            <div className="mt-2 flex min-w-0 flex-col gap-1">
-                <div className="truncate text-sm font-medium">
-                    {avatar.name || ''}
-                </div>
-                <div className="text-muted-foreground truncate text-xs">
-                    {avatar.authorName || ''}
-                </div>
-            </div>
-        </Button>
+        />
     );
 }
 
 export function WorldCard({ world }) {
+    const subtitle = world.occupants
+        ? `${world.authorName || ''} (${world.occupants})`
+        : world.authorName || '';
+
     return (
-        <Button
-            type="button"
-            variant="outline"
-            className="h-auto w-full min-w-0 flex-col items-stretch justify-start p-3 text-left font-normal whitespace-normal"
+        <SearchMediaCard
+            imageUrl={world.thumbnailImageUrl}
+            imageAlt={world.name || 'World'}
+            title={world.name || ''}
+            subtitle={subtitle}
+            FallbackIcon={GlobeIcon}
             onClick={() =>
                 openWorldDialog({
                     worldId: world.id,
@@ -84,28 +122,7 @@ export function WorldCard({ world }) {
                     seedData: world
                 })
             }
-        >
-            {world.thumbnailImageUrl ? (
-                <img
-                    src={world.thumbnailImageUrl}
-                    alt={world.name}
-                    loading="lazy"
-                    className="aspect-[16/10] w-full rounded-lg object-cover"
-                />
-            ) : (
-                <div className="bg-muted text-muted-foreground flex aspect-[16/10] w-full items-center justify-center rounded-lg [&>svg]:size-8">
-                    <GlobeIcon />
-                </div>
-            )}
-            <div className="mt-2 flex min-w-0 flex-col gap-1">
-                <div className="truncate text-sm font-medium">{world.name}</div>
-                <div className="text-muted-foreground truncate text-xs">
-                    {world.occupants
-                        ? `${world.authorName || ''} (${world.occupants})`
-                        : world.authorName || ''}
-                </div>
-            </div>
-        </Button>
+        />
     );
 }
 

@@ -132,7 +132,9 @@ export function SearchWorldTabPanel({
                                 id="search-world-community-lab"
                                 checked={includeCommunityLabs}
                                 onCheckedChange={(checked) =>
-                                    onIncludeCommunityLabsChange(checked === true)
+                                    onIncludeCommunityLabsChange(
+                                        checked === true
+                                    )
                                 }
                             />
                             <FieldLabel htmlFor="search-world-community-lab">
@@ -168,7 +170,7 @@ export function SearchWorldTabPanel({
                     {isLoading ? (
                         <SearchLoadingState />
                     ) : results.length > 0 ? (
-                        <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-3">
+                        <div className="grid [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))] gap-4">
                             {results.map((world) => (
                                 <WorldCard key={world.id} world={world} />
                             ))}
@@ -254,7 +256,7 @@ export function SearchAvatarTabPanel({
                     {isLoading ? (
                         <SearchLoadingState />
                     ) : results.length > 0 ? (
-                        <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-3">
+                        <div className="grid [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))] gap-4">
                             {results.map((avatar) => (
                                 <AvatarCard key={avatar.id} avatar={avatar} />
                             ))}
@@ -275,21 +277,14 @@ export function SearchAvatarTabPanel({
     );
 }
 
-export function SearchGroupTabPanel({
-    isLoading,
-    results,
-    pagination
-}) {
+export function SearchGroupTabPanel({ isLoading, results, pagination }) {
     return (
         <TabsContent
             value="group"
             forceMount
             className="m-0 flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"
         >
-            <div
-                className="min-h-0 flex-1 overflow-y-auto"
-                style={{ flex: 9 }}
-            >
+            <div className="min-h-0 flex-1 overflow-y-auto" style={{ flex: 9 }}>
                 {isLoading ? (
                     <SearchLoadingState />
                 ) : results.length > 0 ? (
