@@ -1,5 +1,3 @@
-import { languageMappings } from '@/shared/constants/language.js';
-
 export const statusPresetsConfigKey = 'VRCX_statusPresets';
 export const maxStatusPresets = 10;
 export const selfStatusBaseOptions = [
@@ -16,6 +14,16 @@ const allowedSelfStatuses = new Set([
     'busy',
     'offline'
 ]);
+
+export {
+    fallbackLanguageOptions,
+    languageDisplayName,
+    languageFlagClassName,
+    languageOptionLabel,
+    normalizeLanguageKey,
+    normalizeLanguageOptionsFromConfig,
+    normalizeProfileLanguageRows
+} from '@/shared/utils/userLanguage.js';
 
 export function normalizeUserId(value) {
     return typeof value === 'string'
@@ -61,102 +69,6 @@ export function normalizeSelfStatusInput(value) {
         return normalized;
     }
     return '';
-}
-
-export function normalizeLanguageKey(value) {
-    return normalizeUserId(value)
-        .toLowerCase()
-        .replace(/^language_/, '');
-}
-
-export function languageFlagClassName(languageKey) {
-    const key = normalizeLanguageKey(languageKey);
-    return languageMappings[key] || key || 'unknown';
-}
-
-export function languageDisplayName(option) {
-    const key = normalizeLanguageKey(option?.key || option?.value);
-    return normalizeUserId(
-        option?.value || option?.label || option?.name || key.toUpperCase()
-    );
-}
-
-export function languageOptionLabel(option) {
-    const key = normalizeLanguageKey(option?.key || option?.value);
-    const value = languageDisplayName(option);
-    return key ? `${value || key.toUpperCase()} (${key.toUpperCase()})` : value;
-}
-
-export function fallbackLanguageOptions() {
-    return Object.keys(languageMappings)
-        .sort()
-        .map((key) => ({ key, value: key.toUpperCase() }));
-}
-
-export function normalizeLanguageOptionsFromConfig(json) {
-    const options = json?.constants?.LANGUAGE?.SPOKEN_LANGUAGE_OPTIONS;
-    if (!options || typeof options !== 'object') {
-        return [];
-    }
-
-    return Object.entries(options)
-        .map(([key, value]) => ({
-            key: normalizeLanguageKey(key),
-            value: normalizeUserId(value)
-        }))
-        .filter((option) => option.key && option.value)
-        .sort((left, right) => left.value.localeCompare(right.value));
-}
-
-export function normalizeProfileLanguageRows(
-    profile,
-    languageOptionMap = new Map()
-) {
-    const rows = [];
-    const seen = new Set();
-    const addRow = (entry) => {
-        const key = normalizeLanguageKey(
-            typeof entry === 'string'
-                ? entry
-                : entry?.key ||
-                      entry?.id ||
-                      entry?.value ||
-                      entry?.label ||
-                      entry?.name
-        );
-        if (!key || seen.has(key)) {
-            return;
-        }
-        const option = languageOptionMap.get(key);
-        rows.push({
-            key,
-            value: normalizeUserId(
-                option?.value ||
-                    entry?.value ||
-                    entry?.label ||
-                    entry?.name ||
-                    key.toUpperCase()
-            )
-        });
-        seen.add(key);
-    };
-
-    if (Array.isArray(profile?.$languages)) {
-        profile.$languages.forEach(addRow);
-    }
-    if (Array.isArray(profile?.languages)) {
-        profile.languages.forEach(addRow);
-    }
-    if (Array.isArray(profile?.tags)) {
-        profile.tags.forEach((tag) => {
-            const normalizedTag = normalizeUserId(tag).toLowerCase();
-            if (normalizedTag.startsWith('language_')) {
-                addRow(normalizedTag);
-            }
-        });
-    }
-
-    return rows;
 }
 
 export function normalizeStatusHistoryRows(profile, currentUserSnapshot) {

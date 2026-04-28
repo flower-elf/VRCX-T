@@ -11,6 +11,7 @@ import {
     vrchatSearchRepository,
     worldProfileRepository
 } from '@/repositories/index.js';
+import { normalizeLanguageOptionsFromConfig } from '@/shared/utils/userLanguage.js';
 import { usePreferencesStore } from '@/state/preferencesStore.js';
 import { Tabs } from '@/ui/shadcn/tabs';
 
@@ -45,6 +46,9 @@ export function SearchPage() {
     const [searchUserSortByLastLoggedIn, setSearchUserSortByLastLoggedIn] =
         useState(false);
     const [worldCategories, setWorldCategories] = useState([]);
+    const [languageOptionsMap, setLanguageOptionsMap] = useState(
+        () => new Map()
+    );
     const [selectedWorldCategory, setSelectedWorldCategory] = useState('');
     const [includeCommunityLabs, setIncludeCommunityLabs] = useState(false);
     const [userRequest, setUserRequest] = useState(null);
@@ -90,6 +94,13 @@ export function SearchPage() {
                 setWorldCategories(
                     emptyArray(json?.dynamicWorldRows).filter(
                         (row) => row?.index != null
+                    )
+                );
+                setLanguageOptionsMap(
+                    new Map(
+                        normalizeLanguageOptionsFromConfig(json).map(
+                            (option) => [option.key, option]
+                        )
                     )
                 );
             })
@@ -475,6 +486,7 @@ export function SearchPage() {
                     results={userResults}
                     randomUserColours={randomUserColours}
                     isDarkMode={isDarkMode}
+                    languageOptionsMap={languageOptionsMap}
                     pagination={pagination}
                 />
                 <SearchWorldTabPanel

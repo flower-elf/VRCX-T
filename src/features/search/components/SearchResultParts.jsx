@@ -14,10 +14,14 @@ import {
     openUserDialog,
     openWorldDialog
 } from '@/services/dialogService.js';
+import {
+    languageOptionLabel,
+    normalizeProfileLanguageRows
+} from '@/shared/utils/userLanguage.js';
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/shadcn/avatar';
+import { Badge } from '@/ui/shadcn/badge';
 import { Button } from '@/ui/shadcn/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/shadcn/tooltip';
-
-import { languageFlagLabel, resolveUserLanguages } from '../searchDisplay.js';
 
 export function SearchEmptyState() {
     const { t } = useTranslation();
@@ -82,6 +86,121 @@ function SearchMediaCard({
     );
 }
 
+function SearchEntityCard({
+    imageUrl,
+    imageAlt,
+    imageShape = 'user',
+    FallbackIcon,
+    title,
+    titleStyle,
+    titleMeta,
+    meta,
+    description,
+    onClick
+}) {
+    const imageClassName =
+        imageShape === 'group' ? 'rounded-lg' : 'rounded-full';
+    const frameClassName =
+        imageShape === 'group' ? 'after:rounded-lg' : 'after:rounded-full';
+
+    return (
+        <Button
+            type="button"
+            variant="outline"
+            className="h-auto w-full min-w-0 items-start justify-start gap-3 overflow-hidden p-3 text-left font-normal whitespace-normal"
+            onClick={onClick}
+        >
+            <Avatar className={cn('size-14', imageClassName, frameClassName)}>
+                {imageUrl ? (
+                    <AvatarImage
+                        src={imageUrl}
+                        alt={imageAlt}
+                        loading="lazy"
+                        className={imageClassName}
+                    />
+                ) : null}
+                <AvatarFallback
+                    className={cn(imageClassName, '[&>svg]:size-5')}
+                >
+                    <FallbackIcon aria-hidden="true" />
+                </AvatarFallback>
+            </Avatar>
+            <span className="flex min-w-0 flex-1 flex-col gap-2 overflow-hidden">
+                <span className="flex max-w-full min-w-0 items-center gap-1.5">
+                    <span
+                        className="min-w-0 truncate text-sm font-semibold"
+                        style={titleStyle}
+                    >
+                        {title || ''}
+                    </span>
+                    {titleMeta}
+                </span>
+                {meta ? (
+                    <span className="flex max-w-full min-w-0 flex-wrap items-center gap-1 overflow-hidden">
+                        {meta}
+                    </span>
+                ) : null}
+                {description ? (
+                    <span className="text-muted-foreground line-clamp-2 text-xs leading-snug break-words">
+                        {description}
+                    </span>
+                ) : null}
+            </span>
+        </Button>
+    );
+}
+
+function TruncatedBadge({ children, tooltip, className }) {
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Badge
+                    variant="outline"
+                    className={cn(
+                        'max-w-36 min-w-0 justify-start rounded-sm px-1.5',
+                        className
+                    )}
+                >
+                    <span className="min-w-0 truncate">{children}</span>
+                </Badge>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-72 break-words">
+                {tooltip || children}
+            </TooltipContent>
+        </Tooltip>
+    );
+}
+
+function UserLanguageBadges({ user, languages }) {
+    const visibleLanguages = languages.slice(0, 2);
+    const hiddenLanguages = languages.slice(visibleLanguages.length);
+    const hiddenLabel = hiddenLanguages.map(languageOptionLabel).join(', ');
+
+    return (
+        <>
+            {visibleLanguages.map((language) => {
+                const label = languageOptionLabel(language);
+                return (
+                    <TruncatedBadge
+                        key={`${user.id}:${language.key}:${language.value}`}
+                        tooltip={label}
+                    >
+                        {label}
+                    </TruncatedBadge>
+                );
+            })}
+            {hiddenLanguages.length ? (
+                <TruncatedBadge
+                    className="max-w-none shrink-0"
+                    tooltip={hiddenLabel}
+                >
+                    +{hiddenLanguages.length}
+                </TruncatedBadge>
+            ) : null}
+        </>
+    );
+}
+
 export function AvatarCard({ avatar }) {
     const imageUrl = avatar.thumbnailImageUrl || avatar.imageUrl;
 
@@ -126,9 +245,14 @@ export function WorldCard({ world }) {
     );
 }
 
-export function UserRow({ user, randomUserColours, isDarkMode }) {
+export function UserRow({
+    user,
+    randomUserColours,
+    isDarkMode,
+    languageOptionsMap
+}) {
     const imageUrl = userImage(user, true);
-    const languages = resolveUserLanguages(user);
+    const languages = normalizeProfileLanguageRows(user, languageOptionsMap);
     const trustStyle =
         randomUserColours && user?.id
             ? { color: getNameColour(user.id, isDarkMode) }
@@ -137,10 +261,31 @@ export function UserRow({ user, randomUserColours, isDarkMode }) {
               : undefined;
 
     return (
-        <Button
-            type="button"
-            variant="ghost"
-            className="h-auto w-full justify-start gap-3 rounded-none border-b px-3 py-2 text-left font-normal whitespace-normal"
+        <SearchEntityCard
+            imageUrl={imageUrl}
+            imageAlt={user.displayName || user.id || 'User'}
+            imageShape="user"
+            FallbackIcon={UserIcon}
+            title={user.displayName || ''}
+            titleMeta={
+                user.$trustLevel ? (
+                    <span
+                        className={cn(
+                            'shrink-0 text-xs font-medium',
+                            user.$trustClass || 'text-muted-foreground'
+                        )}
+                        style={trustStyle}
+                    >
+                        {user.$trustLevel}
+                    </span>
+                ) : null
+            }
+            meta={
+                languages.length ? (
+                    <UserLanguageBadges user={user} languages={languages} />
+                ) : null
+            }
+            description={user.bio || ''}
             onClick={() =>
                 openUserDialog({
                     userId: user.id,
@@ -148,53 +293,7 @@ export function UserRow({ user, randomUserColours, isDarkMode }) {
                     seedData: user
                 })
             }
-        >
-            {imageUrl ? (
-                <img
-                    src={imageUrl}
-                    alt={user.displayName || user.id}
-                    loading="lazy"
-                    className="size-14 rounded-full object-cover"
-                />
-            ) : (
-                <div className="bg-muted text-muted-foreground flex size-14 items-center justify-center rounded-full [&>svg]:size-5">
-                    <UserIcon />
-                </div>
-            )}
-            <div className="min-w-0 flex-1">
-                <div className="flex max-w-full items-center gap-1.5">
-                    <div className="truncate text-sm font-medium">
-                        {user.displayName || ''}
-                    </div>
-                    <span
-                        className={cn(
-                            'shrink-0 text-xs font-normal',
-                            user.$trustClass || 'text-muted-foreground'
-                        )}
-                        style={trustStyle}
-                    >
-                        {user.$trustLevel || ''}
-                    </span>
-                    {languages.map((entry) => (
-                        <Tooltip key={`${user.id}-${entry.key}-${entry.value}`}>
-                            <TooltipTrigger asChild>
-                                <span className="shrink-0 text-sm leading-none">
-                                    {languageFlagLabel(entry.key)}
-                                </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                {entry.value || entry.key}
-                            </TooltipContent>
-                        </Tooltip>
-                    ))}
-                </div>
-                {user.bio ? (
-                    <div className="text-muted-foreground line-clamp-1 text-xs">
-                        {user.bio}
-                    </div>
-                ) : null}
-            </div>
-        </Button>
+        />
     );
 }
 
@@ -206,10 +305,32 @@ export function GroupRow({ group }) {
             : group.shortCode || group.discriminator || null;
 
     return (
-        <Button
-            type="button"
-            variant="ghost"
-            className="h-auto w-full justify-start gap-3 rounded-none border-b px-3 py-2 text-left font-normal whitespace-normal"
+        <SearchEntityCard
+            imageUrl={imageUrl}
+            imageAlt={group.name || 'Group'}
+            imageShape="group"
+            FallbackIcon={UsersIcon}
+            title={group.name || ''}
+            titleMeta={
+                <Badge
+                    variant="secondary"
+                    className="shrink-0 rounded-sm px-1.5 tabular-nums"
+                >
+                    <UsersIcon data-icon="inline-start" />
+                    {group.memberCount ?? 0}
+                </Badge>
+            }
+            meta={
+                groupCode ? (
+                    <TruncatedBadge
+                        className="max-w-full font-mono"
+                        tooltip={groupCode}
+                    >
+                        {groupCode}
+                    </TruncatedBadge>
+                ) : null
+            }
+            description={group.description || ''}
             onClick={() =>
                 openGroupDialog({
                     groupId: group.id,
@@ -217,37 +338,6 @@ export function GroupRow({ group }) {
                     seedData: group
                 })
             }
-        >
-            {imageUrl ? (
-                <img
-                    src={imageUrl}
-                    alt={group.name}
-                    loading="lazy"
-                    className="size-14 rounded-lg object-cover"
-                />
-            ) : (
-                <div className="bg-muted text-muted-foreground flex size-14 items-center justify-center rounded-lg [&>svg]:size-5">
-                    <UsersIcon />
-                </div>
-            )}
-            <div className="min-w-0 flex-1">
-                <div className="flex max-w-full items-center gap-1.5">
-                    <div className="truncate text-sm font-medium">
-                        {group.name}
-                    </div>
-                    <span className="shrink-0 text-xs font-normal">
-                        ({group.memberCount ?? 0})
-                    </span>
-                    {groupCode ? (
-                        <span className="text-muted-foreground shrink-0 font-mono text-xs">
-                            {groupCode}
-                        </span>
-                    ) : null}
-                </div>
-                <div className="text-muted-foreground truncate text-xs">
-                    {group.description || ''}
-                </div>
-            </div>
-        </Button>
+        />
     );
 }

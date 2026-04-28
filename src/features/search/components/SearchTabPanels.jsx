@@ -33,6 +33,7 @@ export function SearchUserTabPanel({
     results,
     randomUserColours,
     isDarkMode,
+    languageOptionsMap,
     pagination
 }) {
     return (
@@ -78,13 +79,14 @@ export function SearchUserTabPanel({
                     {isLoading ? (
                         <SearchLoadingState />
                     ) : results.length > 0 ? (
-                        <div>
+                        <div className="grid [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))] gap-3">
                             {results.map((user) => (
                                 <UserRow
                                     key={user.id}
                                     user={user}
                                     randomUserColours={randomUserColours}
                                     isDarkMode={isDarkMode}
+                                    languageOptionsMap={languageOptionsMap}
                                 />
                             ))}
                         </div>
@@ -288,7 +290,7 @@ export function SearchGroupTabPanel({ isLoading, results, pagination }) {
                 {isLoading ? (
                     <SearchLoadingState />
                 ) : results.length > 0 ? (
-                    <div>
+                    <div className="grid [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))] gap-3">
                         {results.map((group) => (
                             <GroupRow key={group.id} group={group} />
                         ))}
