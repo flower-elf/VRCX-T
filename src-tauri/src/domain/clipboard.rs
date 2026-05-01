@@ -182,7 +182,7 @@ pub fn copy_image_to_clipboard(path: &str) -> Result<(), AppError> {
     #[cfg(windows)]
     {
         set_windows_file_drop_list(path)?;
-        return Ok(());
+        Ok(())
     }
 
     #[cfg(target_os = "linux")]

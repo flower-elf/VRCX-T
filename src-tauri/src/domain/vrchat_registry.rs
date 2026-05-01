@@ -53,7 +53,7 @@ pub fn get_registry_key(key: &str) -> Result<serde_json::Value, AppError> {
                 _ => {}
             }
         }
-        return Ok(serde_json::Value::Null);
+        Ok(serde_json::Value::Null)
     }
 
     #[cfg(target_os = "linux")]
@@ -78,7 +78,7 @@ pub fn has_registry_folder() -> Result<bool, AppError> {
         use winreg::enums::*;
         use winreg::RegKey;
         let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-        return Ok(hkcu.open_subkey("SOFTWARE\\VRChat\\VRChat").is_ok());
+        Ok(hkcu.open_subkey("SOFTWARE\\VRChat\\VRChat").is_ok())
     }
     #[cfg(target_os = "linux")]
     {
@@ -99,7 +99,7 @@ pub fn delete_registry_folder() -> Result<(), AppError> {
         if let Ok(key) = hkcu.open_subkey("SOFTWARE\\VRChat") {
             let _ = key.delete_subkey_all("VRChat");
         }
-        return Ok(());
+        Ok(())
     }
     #[cfg(target_os = "linux")]
     {
@@ -178,7 +178,7 @@ pub fn set_registry_key(
                 )));
             }
         }
-        return Ok(true);
+        Ok(true)
     }
 
     #[cfg(target_os = "linux")]
@@ -248,7 +248,7 @@ pub fn get_registry() -> Result<HashMap<String, HashMap<String, serde_json::Valu
                 result.insert(key_name.to_string(), entry);
             }
         }
-        return Ok(result);
+        Ok(result)
     }
 
     #[cfg(target_os = "linux")]
@@ -332,7 +332,7 @@ pub fn set_registry(json: &str) -> Result<(), AppError> {
                 _ => return Err(AppError::Custom(format!("unknown type: {vtype_int}"))),
             }
         }
-        return Ok(());
+        Ok(())
     }
     #[cfg(target_os = "linux")]
     {

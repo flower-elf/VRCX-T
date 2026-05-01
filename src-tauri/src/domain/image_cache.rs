@@ -164,7 +164,7 @@ impl ImageCache {
             return;
         }
 
-        dirs.sort_by(|a, b| b.1.cmp(&a.1));
+        dirs.sort_by_key(|entry| std::cmp::Reverse(entry.1));
 
         for (path, _) in dirs.iter().skip(1000) {
             let _ = std::fs::remove_dir_all(path);
