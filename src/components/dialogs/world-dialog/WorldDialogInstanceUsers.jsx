@@ -1,4 +1,3 @@
-import { UserIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -8,11 +7,13 @@ import {
     mergeInstanceUsers,
     normalizeInstanceUsers
 } from '@/components/instances/instanceRoster.js';
+import { resolveSidebarStatusDotClassName } from '@/components/sidebar/friends-sidebar/friendsSidebarModel.js';
+import { UserStatusAvatar } from '@/components/UserStatusAvatar.jsx';
 import { timeToText } from '@/lib/dateTime.js';
 import { userImage } from '@/lib/entityMedia.js';
-import { userStatusDotClassName, userStatusLabel } from '@/lib/userStatus.js';
-import { cn } from '@/lib/utils.js';
+import { userStatusLabel } from '@/lib/userStatus.js';
 import { openUserDialog } from '@/services/dialogService.js';
+import { useRuntimeStore } from '@/state/runtimeStore.js';
 import { Button } from '@/ui/shadcn/button';
 import { Spinner } from '@/ui/shadcn/spinner';
 
@@ -72,6 +73,9 @@ function instanceUserSubtitle(user, t) {
 
 export function InstanceUserTiles({ instance }) {
     const { t } = useTranslation();
+    const currentUserSnapshot = useRuntimeStore(
+        (state) => state.auth.currentUserSnapshot
+    );
     const userMap = new Map();
     const pushUser = (user) => {
         const row = createInstanceUserRow(user);
@@ -124,7 +128,14 @@ export function InstanceUserTiles({ instance }) {
                     user?.target_user_id
                 );
                 const image = userImage(user, true);
-                const dotClassName = userStatusDotClassName(user);
+                const isCurrentUser = Boolean(
+                    userId && userId === currentUserSnapshot?.id
+                );
+                const dotClassName = resolveSidebarStatusDotClassName(
+                    user,
+                    currentUserSnapshot,
+                    isCurrentUser
+                );
                 const displayName = firstText(
                     user?.displayName,
                     user?.display_name,
@@ -150,27 +161,10 @@ export function InstanceUserTiles({ instance }) {
                             })
                         }
                     >
-                        <span className="relative size-9 shrink-0">
-                            {image ? (
-                                <img
-                                    src={image}
-                                    alt=""
-                                    className="size-9 rounded-full object-cover"
-                                />
-                            ) : (
-                                <span className="bg-muted flex size-9 items-center justify-center rounded-full [&>svg]:size-4">
-                                    <UserIcon className="text-muted-foreground" />
-                                </span>
-                            )}
-                            {dotClassName ? (
-                                <span
-                                    className={cn(
-                                        'border-background absolute right-0 bottom-0 z-10 size-2.5 rounded-full border',
-                                        dotClassName
-                                    )}
-                                />
-                            ) : null}
-                        </span>
+                        <UserStatusAvatar
+                            imageUrl={image}
+                            statusDotClassName={dotClassName}
+                        />
                         <span className="min-w-0 flex-1 overflow-hidden">
                             <span
                                 className="block truncate leading-snug font-medium"

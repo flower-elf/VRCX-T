@@ -1,8 +1,9 @@
 import { UserIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { UserStatusAvatar } from '@/components/UserStatusAvatar.jsx';
+import { resolveSidebarStatusDotClassName } from '@/components/sidebar/friends-sidebar/friendsSidebarModel.js';
 import { timeToText } from '@/lib/dateTime.js';
-import { userStatusDotClassName } from '@/lib/userStatus.js';
 import { cn } from '@/lib/utils.js';
 import { useRuntimeStore } from '@/state/runtimeStore.js';
 import { Button } from '@/ui/shadcn/button';
@@ -10,6 +11,7 @@ import { Spinner } from '@/ui/shadcn/spinner';
 
 import {
     summarizeEntityRow,
+    userIdForRow,
     userRowSubtitle,
     userTravelingTimestamp,
     worldOccupantSubtitle
@@ -23,6 +25,9 @@ export function EntityList({ rows, kind = '', loading = false, error = '' }) {
     const { t } = useTranslation();
     const currentEndpoint = useRuntimeStore(
         (state) => state.auth.currentUserEndpoint
+    );
+    const currentUserSnapshot = useRuntimeStore(
+        (state) => state.auth.currentUserSnapshot
     );
 
     if (loading) {
@@ -65,8 +70,18 @@ export function EntityList({ rows, kind = '', loading = false, error = '' }) {
                     kind === 'user' ? 'rounded-full' : 'rounded-md';
                 const travelingTimestamp =
                     kind === 'user' ? userTravelingTimestamp(row) : 0;
+                const userId = kind === 'user' ? userIdForRow(row) : '';
+                const isCurrentUserRow = Boolean(
+                    userId && userId === currentUserSnapshot?.id
+                );
                 const dotClassName =
-                    kind === 'user' ? userStatusDotClassName(row) : '';
+                    kind === 'user'
+                        ? resolveSidebarStatusDotClassName(
+                              row,
+                              currentUserSnapshot,
+                              isCurrentUserRow
+                          )
+                        : '';
 
                 return (
                     <Button
@@ -76,35 +91,34 @@ export function EntityList({ rows, kind = '', loading = false, error = '' }) {
                         className="h-auto min-w-0 justify-start gap-2 px-1.5 py-1.5 text-left font-normal"
                         onClick={() => openRow(row, kind)}
                     >
-                        <span className="relative size-9 shrink-0">
-                            {image ? (
-                                <img
-                                    src={image}
-                                    alt=""
-                                    className={cn(
-                                        'size-9 object-cover',
-                                        imageRoundedClassName
-                                    )}
-                                />
-                            ) : (
-                                <span
-                                    className={cn(
-                                        'bg-muted flex size-9 items-center justify-center [&>svg]:size-4',
-                                        imageRoundedClassName
-                                    )}
-                                >
-                                    <UserIcon className="text-muted-foreground" />
-                                </span>
-                            )}
-                            {dotClassName ? (
-                                <span
-                                    className={cn(
-                                        'border-background absolute right-0 bottom-0 z-10 size-2.5 rounded-full border',
-                                        dotClassName
-                                    )}
-                                />
-                            ) : null}
-                        </span>
+                        {kind === 'user' ? (
+                            <UserStatusAvatar
+                                imageUrl={image}
+                                statusDotClassName={dotClassName}
+                            />
+                        ) : (
+                            <span className="relative size-9 shrink-0">
+                                {image ? (
+                                    <img
+                                        src={image}
+                                        alt=""
+                                        className={cn(
+                                            'size-9 object-cover',
+                                            imageRoundedClassName
+                                        )}
+                                    />
+                                ) : (
+                                    <span
+                                        className={cn(
+                                            'bg-muted flex size-9 items-center justify-center [&>svg]:size-4',
+                                            imageRoundedClassName
+                                        )}
+                                    >
+                                        <UserIcon className="text-muted-foreground" />
+                                    </span>
+                                )}
+                            </span>
+                        )}
                         <span className="min-w-0 flex-1 overflow-hidden">
                             <span
                                 className="block truncate leading-snug font-medium"
