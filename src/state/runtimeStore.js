@@ -71,7 +71,7 @@ function createHostCapabilities() {
             acc[key] = createCapabilityStatus();
             return acc;
         },
-        { platform: 'unknown' }
+        { platform: 'unknown', arch: 'unknown' }
     );
 }
 

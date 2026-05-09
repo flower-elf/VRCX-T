@@ -8,33 +8,59 @@ import {
     parseReleaseVersion
 } from '@/shared/utils/releaseVersion.js';
 
-const INSTALLABLE_PLATFORMS = new Set(['windows', 'linux']);
+const INSTALLABLE_PLATFORMS = new Set(['windows', 'linux', 'macos']);
 let updateInstallInFlight = null;
 
-function platformIdForHost(hostPlatform) {
-    return hostPlatform === 'linux'
-        ? 'linux-x86_64'
-        : hostPlatform === 'windows'
-          ? 'windows-x86_64'
-          : '';
+function normalizeHostArch(hostArch) {
+    const normalized = String(hostArch || '').toLowerCase();
+    if (normalized === 'arm64') {
+        return 'aarch64';
+    }
+    if (normalized === 'amd64' || normalized === 'x64') {
+        return 'x86_64';
+    }
+    return normalized;
 }
 
-function getUpdaterTarget(hostPlatform) {
-    const platformId = platformIdForHost(hostPlatform);
+function platformIdForHost(hostPlatform, hostArch = '') {
+    const normalizedArch = normalizeHostArch(hostArch);
+    if (hostPlatform === 'linux') {
+        return 'linux-x86_64';
+    }
+    if (hostPlatform === 'windows') {
+        return 'windows-x86_64';
+    }
+    if (hostPlatform === 'macos' && normalizedArch === 'aarch64') {
+        return 'darwin-aarch64';
+    }
+    if (hostPlatform === 'macos' && normalizedArch === 'x86_64') {
+        return 'darwin-x86_64';
+    }
+    return '';
+}
+
+function getUpdaterTarget(hostPlatform, hostArch = '') {
+    const platformId = platformIdForHost(hostPlatform, hostArch);
     return platformId ? `${platformId}-stable` : '';
 }
 
-function getUpdaterManifestAssetName(hostPlatform) {
-    const target = getUpdaterTarget(hostPlatform);
-    return target ? `vrcx-0-updater-${target}.json` : '';
+function getUpdaterManifestAssetName(hostPlatform, hostArch = '') {
+    const target = getUpdaterTarget(hostPlatform, hostArch);
+    if (!target) {
+        return '';
+    }
+    if (hostPlatform === 'macos') {
+        return 'vrcx-0-updater-linux-x86_64-stable.json';
+    }
+    return `vrcx-0-updater-${target}.json`;
 }
 
 function canInstallUpdatesOnPlatform(hostPlatform) {
     return INSTALLABLE_PLATFORMS.has(hostPlatform);
 }
 
-function getTauriManifestAssetOfInterest(assets = [], hostPlatform) {
-    const manifestName = getUpdaterManifestAssetName(hostPlatform);
+function getTauriManifestAssetOfInterest(assets = [], hostPlatform, hostArch) {
+    const manifestName = getUpdaterManifestAssetName(hostPlatform, hostArch);
     if (!manifestName) {
         return null;
     }
@@ -48,14 +74,18 @@ function getTauriManifestAssetOfInterest(assets = [], hostPlatform) {
 
     return {
         manifestUrl: asset.browser_download_url,
-        target: getUpdaterTarget(hostPlatform),
+        target: getUpdaterTarget(hostPlatform, hostArch),
         updaterType: 'tauri'
     };
 }
 
 function normalizeGitHubRelease(
     release,
-    { hostPlatform = 'unknown', requireInstallerAsset = true } = {}
+    {
+        hostPlatform = 'unknown',
+        hostArch = 'unknown',
+        requireInstallerAsset = true
+    } = {}
 ) {
     const parsedVersion = parseReleaseVersion(release?.tag_name);
     if (!parsedVersion) {
@@ -64,7 +94,8 @@ function normalizeGitHubRelease(
 
     const tauriAsset = getTauriManifestAssetOfInterest(
         release.assets,
-        hostPlatform
+        hostPlatform,
+        hostArch
     );
     const asset = tauriAsset;
     if (requireInstallerAsset && !asset) {
@@ -174,12 +205,12 @@ function shouldAllowDowngradesForBranch() {
     return false;
 }
 
-async function buildTauriUpdaterRequest(release, hostPlatform) {
+async function buildTauriUpdaterRequest(release, hostPlatform, hostArch) {
     if (!canInstallUpdatesOnPlatform(hostPlatform)) {
         throw new Error(`Updates are not installable on ${hostPlatform}.`);
     }
 
-    const target = release?.target || getUpdaterTarget(hostPlatform);
+    const target = release?.target || getUpdaterTarget(hostPlatform, hostArch);
     if (!target) {
         throw new Error('No Tauri updater target is available.');
     }
@@ -199,7 +230,8 @@ async function buildTauriUpdaterRequest(release, hostPlatform) {
 async function checkTauriUpdateForRelease(release, options = {}) {
     const request = await buildTauriUpdaterRequest(
         release,
-        options.hostPlatform || 'unknown'
+        options.hostPlatform || 'unknown',
+        options.hostArch || 'unknown'
     );
     return invoke('app__check_tauri_update', request);
 }
@@ -219,13 +251,14 @@ function handleTauriDownloadEvent(event, onProgress) {
 
 async function checkInstallableUpdate(
     branch,
-    { hostPlatform = 'unknown' } = {}
+    { hostPlatform = 'unknown', hostArch = 'unknown' } = {}
 ) {
     if (!canInstallUpdatesOnPlatform(hostPlatform)) {
         return null;
     }
 
     const release = await fetchLatestBranchRelease(branch, {
+        hostArch,
         hostPlatform,
         requireInstallerAsset: true
     });
@@ -233,7 +266,11 @@ async function checkInstallableUpdate(
         return null;
     }
 
-    return checkTauriUpdateForRelease(release, { branch, hostPlatform });
+    return checkTauriUpdateForRelease(release, {
+        branch,
+        hostArch,
+        hostPlatform
+    });
 }
 
 async function downloadAndInstallUpdate(release, options = {}) {
@@ -248,7 +285,11 @@ async function downloadAndInstallUpdate(release, options = {}) {
     updateInstallInFlight = (async () => {
         let downloaded = 0;
         let contentLength = 0;
-        const request = await buildTauriUpdaterRequest(release, hostPlatform);
+        const request = await buildTauriUpdaterRequest(
+            release,
+            hostPlatform,
+            options.hostArch || 'unknown'
+        );
         const onEvent = new Channel((event) => {
             const state = handleTauriDownloadEvent(event, options.onProgress);
             if (state) {

@@ -62,15 +62,23 @@ jobs:
                     - label: macOS DMG (Apple Silicon)
                       os: macos-15
                       rust_target: aarch64-apple-darwin
+                      updater_target: darwin-aarch64-stable
                       build_command: npm run tauri:build -- --target aarch64-apple-darwin --bundles dmg
                       artifact_name: macos-aarch64-dmg
-                      artifact_path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+                      artifact_path: |
+                          src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+                          src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz
+                          src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
                     - label: macOS DMG (Intel)
                       os: macos-15-intel
                       rust_target: x86_64-apple-darwin
+                      updater_target: darwin-x86_64-stable
                       build_command: npm run tauri:build -- --target x86_64-apple-darwin --bundles dmg
                       artifact_name: macos-x86_64-dmg
-                      artifact_path: src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+                      artifact_path: |
+                          src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+                          src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
+                          src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
         steps:
             - uses: actions/checkout@v6
 
@@ -112,13 +120,12 @@ jobs:
                   node build-scripts/prepare-release-version.js \
                       --version "${{ inputs.version }}"
 
-            - name: Inject Linux updater public key
-              if: runner.os == 'Linux'
+            - name: Inject updater public key
               env:
                   TAURI_UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
               run: |
                   if [[ -z "$TAURI_UPDATER_PUBLIC_KEY" ]]; then
-                      echo "TAURI_UPDATER_PUBLIC_KEY repository variable is required for Linux updater artifacts" >&2
+                      echo "TAURI_UPDATER_PUBLIC_KEY repository variable is required for updater artifacts" >&2
                       exit 1
                   fi
                   node -e "const fs = require('node:fs'); const path = 'src-tauri/tauri.conf.json'; const config = JSON.parse(fs.readFileSync(path, 'utf8')); config.plugins ??= {}; config.plugins.updater ??= {}; config.plugins.updater.pubkey = process.env.TAURI_UPDATER_PUBLIC_KEY; fs.writeFileSync(path, JSON.stringify(config, null, 4) + '\n');"
@@ -152,6 +159,24 @@ jobs:
                       --signature-file "$signature_path" \
                       --out "src-tauri/target/release/bundle/appimage/vrcx-0-updater-linux-x86_64-stable.json"
 
+            - name: Prepare macOS updater assets
+              if: runner.os == 'macOS'
+              run: |
+                  updater_dir="src-tauri/target/${{ matrix.rust_target }}/release/bundle/macos"
+                  archive_path="$(find "$updater_dir" -maxdepth 1 -name '*.app.tar.gz' | sort | head -n 1)"
+                  if [[ -z "$archive_path" ]]; then
+                      echo "No macOS updater archive found in $updater_dir" >&2
+                      exit 1
+                  fi
+                  signature_path="${archive_path}.sig"
+                  if [[ ! -f "$signature_path" ]]; then
+                      echo "No macOS updater signature found at $signature_path" >&2
+                      exit 1
+                  fi
+                  renamed_archive="$updater_dir/VRCX-0_${{ needs.prepare.outputs.build_version }}_${{ matrix.updater_target }}.app.tar.gz"
+                  mv "$archive_path" "$renamed_archive"
+                  mv "$signature_path" "$renamed_archive.sig"
+
             - uses: actions/upload-artifact@v7
               with:
                   name: release-${{ matrix.artifact_name }}
@@ -165,13 +190,56 @@ jobs:
             - package
         runs-on: ubuntu-24.04
         steps:
+            - uses: actions/checkout@v6
+
             - uses: actions/download-artifact@v7
               with:
                   path: release-assets
                   merge-multiple: true
 
+            - name: Flatten release assets
+              run: |
+                  find release-assets -mindepth 2 -type f -print0 | while IFS= read -r -d '' file; do
+                      destination="release-assets/$(basename "$file")"
+                      if [[ -e "$destination" ]]; then
+                          echo "Duplicate release asset basename: $destination" >&2
+                          exit 1
+                      fi
+                      mv "$file" "$destination"
+                  done
+                  find release-assets -mindepth 1 -type d -empty -delete
+
             - name: List release assets
               run: find release-assets -type f | sort
+
+            - name: Add macOS updater entries to Linux manifest
+              run: |
+                  manifest_path="release-assets/vrcx-0-updater-linux-x86_64-stable.json"
+                  if [[ ! -f "$manifest_path" ]]; then
+                      echo "No Linux updater manifest found at $manifest_path" >&2
+                      exit 1
+                  fi
+
+                  for target in darwin-aarch64-stable darwin-x86_64-stable; do
+                      archive_path="$(find release-assets -maxdepth 1 -type f -name "*_${target}.app.tar.gz" | sort | head -n 1)"
+                      if [[ -z "$archive_path" ]]; then
+                          echo "No macOS updater archive found for $target" >&2
+                          exit 1
+                      fi
+                      signature_path="${archive_path}.sig"
+                      if [[ ! -f "$signature_path" ]]; then
+                          echo "No macOS updater signature found at $signature_path" >&2
+                          exit 1
+                      fi
+                      node build-scripts/create-tauri-updater-manifest.js \
+                          --version "${{ needs.prepare.outputs.build_version }}" \
+                          --tag "${{ needs.prepare.outputs.tag }}" \
+                          --target "$target" \
+                          --asset-name "$(basename "$archive_path")" \
+                          --signature-file "$signature_path" \
+                          --base "$manifest_path" \
+                          --out "$manifest_path"
+                  done
 
             - uses: softprops/action-gh-release@v2
               with:

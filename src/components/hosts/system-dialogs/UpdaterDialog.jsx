@@ -31,6 +31,7 @@ export function UpdaterDialog({ open, onOpenChange }) {
     const hostPlatform = useRuntimeStore(
         (state) => state.hostCapabilities.platform
     );
+    const hostArch = useRuntimeStore((state) => state.hostCapabilities.arch);
     const canInstallUpdates = canInstallUpdatesOnPlatform(hostPlatform);
 
     const [latestRelease, setLatestRelease] = useState(null);
@@ -70,6 +71,7 @@ export function UpdaterDialog({ open, onOpenChange }) {
         setDetail('Checking update state.');
 
         fetchLatestBranchRelease(STABLE_BRANCH, {
+            hostArch,
             hostPlatform,
             requireInstallerAsset: canInstallUpdates
         })
@@ -106,7 +108,7 @@ export function UpdaterDialog({ open, onOpenChange }) {
         return () => {
             active = false;
         };
-    }, [canInstallUpdates, hostPlatform, open]);
+    }, [canInstallUpdates, hostArch, hostPlatform, open]);
 
     async function handleInstallUpdate() {
         if (
@@ -127,6 +129,7 @@ export function UpdaterDialog({ open, onOpenChange }) {
         );
         try {
             await downloadAndInstallUpdate(latestRelease, {
+                hostArch,
                 hostPlatform,
                 onProgress: setProgress
             });

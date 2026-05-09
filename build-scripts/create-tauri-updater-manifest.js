@@ -30,7 +30,10 @@ function requireArg(argName) {
 }
 
 function validateTarget(target) {
-    if (/^(linux|windows)-x86_64-stable$/.test(target) === false) {
+    if (
+        /^(linux|windows)-x86_64-stable$/.test(target) === false &&
+        /^darwin-(aarch64|x86_64)-stable$/.test(target) === false
+    ) {
         throw new Error(`Invalid updater target: ${target}`);
     }
 }
@@ -46,6 +49,23 @@ function releaseAssetUrl(tag, assetName) {
     return `${REPO_RELEASE_DOWNLOAD_BASE}/${encodeURIComponent(tag)}/${encodeURIComponent(assetName)}`;
 }
 
+function readBaseManifest(basePath, version) {
+    if (!basePath) {
+        return null;
+    }
+
+    const manifest = JSON.parse(fs.readFileSync(basePath, 'utf8'));
+    if (manifest.version !== version) {
+        throw new Error(
+            `Base manifest version ${manifest.version} does not match ${version}.`
+        );
+    }
+    if (!manifest.platforms || typeof manifest.platforms !== 'object') {
+        throw new Error(`Base manifest has no platforms object: ${basePath}`);
+    }
+    return manifest;
+}
+
 function main() {
     const version = requireArg('version');
     const tag = requireArg('tag');
@@ -54,6 +74,7 @@ function main() {
     const signatureFile = requireArg('signature-file');
     const out = requireArg('out');
     const notesFile = readArg('notes-file');
+    const base = readArg('base');
 
     validateTarget(target);
 
@@ -62,16 +83,15 @@ function main() {
         throw new Error(`Signature file is empty: ${signatureFile}`);
     }
 
-    const manifest = {
+    const manifest = readBaseManifest(base, version) || {
         version,
         notes: readNotes(notesFile),
         pub_date: new Date().toISOString(),
-        platforms: {
-            [target]: {
-                signature,
-                url: releaseAssetUrl(tag, assetName)
-            }
-        }
+        platforms: {}
+    };
+    manifest.platforms[target] = {
+        signature,
+        url: releaseAssetUrl(tag, assetName)
     };
 
     fs.mkdirSync(path.dirname(out), { recursive: true });

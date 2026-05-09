@@ -16,6 +16,7 @@ pub struct CapabilityStatus {
 #[serde(rename_all = "camelCase")]
 pub struct HostCapabilities {
     pub platform: String,
+    pub arch: String,
     pub local_database: CapabilityStatus,
     pub websocket_runtime: CapabilityStatus,
     pub game_log_watcher: CapabilityStatus,
@@ -114,13 +115,25 @@ pub fn current_platform() -> &'static str {
     }
 }
 
+pub fn current_arch() -> &'static str {
+    if cfg!(target_arch = "aarch64") {
+        "aarch64"
+    } else if cfg!(target_arch = "x86_64") {
+        "x86_64"
+    } else {
+        "unknown"
+    }
+}
+
 pub fn current_host_capabilities() -> HostCapabilities {
     let platform = current_platform();
+    let arch = current_arch();
     let available = CapabilityStatus::available();
 
     match platform {
         "windows" => HostCapabilities {
             platform: platform.to_string(),
+            arch: arch.to_string(),
             local_database: available.clone(),
             websocket_runtime: available.clone(),
             game_log_watcher: available.clone(),
@@ -138,6 +151,7 @@ pub fn current_host_capabilities() -> HostCapabilities {
         "linux" => linux_host_capabilities(platform, &available),
         "macos" => HostCapabilities {
             platform: platform.to_string(),
+            arch: arch.to_string(),
             local_database: available.clone(),
             websocket_runtime: available,
             game_log_watcher: CapabilityStatus::unsupported("GameLog watcher", "macOS"),
@@ -159,6 +173,7 @@ pub fn current_host_capabilities() -> HostCapabilities {
         },
         _ => HostCapabilities {
             platform: platform.to_string(),
+            arch: arch.to_string(),
             local_database: available.clone(),
             websocket_runtime: available,
             game_log_watcher: CapabilityStatus::unsupported("GameLog watcher", platform),
@@ -219,6 +234,7 @@ fn linux_host_capabilities(platform: &str, available: &CapabilityStatus) -> Host
 
     HostCapabilities {
         platform: platform.to_string(),
+        arch: current_arch().to_string(),
         local_database: available.clone(),
         websocket_runtime: available.clone(),
         game_log_watcher,

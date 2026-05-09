@@ -684,7 +684,9 @@ async function checkAutoBackupRestoreVrcRegistry() {
 }
 
 async function checkForAppUpdate({ includeRegistryBackup = true } = {}) {
-    const hostPlatform = useRuntimeStore.getState().hostCapabilities.platform;
+    const hostCapabilities = useRuntimeStore.getState().hostCapabilities;
+    const hostPlatform = hostCapabilities.platform;
+    const hostArch = hostCapabilities.arch;
     const canInstallUpdates = canInstallUpdatesOnPlatform(hostPlatform);
     let autoUpdateMode = await configRepository.getString(
         'autoUpdateVRCX',
@@ -719,6 +721,7 @@ async function checkForAppUpdate({ includeRegistryBackup = true } = {}) {
 
             if (canInstallUpdates) {
                 const update = await checkInstallableUpdate(branch, {
+                    hostArch,
                     hostPlatform
                 });
                 if (update) {
@@ -745,6 +748,7 @@ async function checkForAppUpdate({ includeRegistryBackup = true } = {}) {
                 }
             } else {
                 const latestRelease = await fetchLatestBranchRelease(branch, {
+                    hostArch,
                     hostPlatform,
                     requireInstallerAsset: false
                 });
