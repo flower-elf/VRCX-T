@@ -3,8 +3,6 @@ import {
     configRepository,
     databaseMaintenanceRepository,
     groupProfileRepository,
-    playerListRepository,
-    userProfileRepository,
     vrchatAuthRepository,
     vrchatModerationRepository
 } from '@/repositories/index.js';
@@ -21,8 +19,6 @@ import {
     sanitizeBranch
 } from '@/services/updateService.js';
 import { parseLocation } from '@/shared/utils/locationParser.js';
-import { useFavoriteStore } from '@/state/favoriteStore.js';
-import { useFriendRosterStore } from '@/state/friendRosterStore.js';
 import { useModalStore } from '@/state/modalStore.js';
 import { useNotificationStore } from '@/state/notificationStore.js';
 import { useRuntimeStore } from '@/state/runtimeStore.js';
@@ -42,6 +38,10 @@ import {
     bootstrapFriendRoster,
     syncFriendRosterStateFromCurrentUserSnapshot
 } from './friendBootstrapService.js';
+import {
+    resetPresenceAutomationExecutor,
+    runPresenceAutomation
+} from './presence-automation/index.js';
 
 const timers = {
     currentUserRefresh: 300,
@@ -509,163 +509,8 @@ async function refreshDiscordPresence() {
     await updateDiscordPresence();
 }
 
-function isLiveLocation(location) {
-    const normalized = typeof location === 'string' ? location.trim() : '';
-    return Boolean(
-        normalized && normalized !== 'traveling' && normalized !== 'offline'
-    );
-}
-
-function hasSelectedFriendInInstance(players, selectedGroups) {
-    const friendIds = new Set();
-    const favoriteState = useFavoriteStore.getState();
-
-    for (const groupKey of selectedGroups) {
-        if (groupKey.startsWith('local:')) {
-            const groupName = groupKey.slice(6);
-            const localIds =
-                favoriteState.localFriendFavorites[groupName] || [];
-            for (const userId of localIds) {
-                friendIds.add(userId);
-            }
-            continue;
-        }
-
-        const remoteIds =
-            favoriteState.groupedFavoriteFriendIdsByGroupKey[groupKey] || [];
-        for (const userId of remoteIds) {
-            friendIds.add(userId);
-        }
-    }
-
-    return players.some(
-        (player) => player.userId && friendIds.has(player.userId)
-    );
-}
-
 async function updateAutoStateChange() {
-    if (!(await configRepository.getBool('autoStateChangeEnabled', false))) {
-        return;
-    }
-
-    const runtimeState = useRuntimeStore.getState();
-    const auth = getRuntimeAuth();
-    const currentUser = auth.currentUserSnapshot;
-    const currentLocation =
-        runtimeState.gameState.currentLocation || currentUser?.location || '';
-
-    if (
-        !runtimeState.gameState.isGameRunning ||
-        !currentUser?.id ||
-        !isLiveLocation(currentLocation)
-    ) {
-        return;
-    }
-
-    const location = parseLocation(currentLocation);
-    let instanceType = location.accessType || '';
-    if (instanceType === 'group') {
-        if (location.groupAccessType === 'members') {
-            instanceType = 'groupOnly';
-        } else if (location.groupAccessType === 'plus') {
-            instanceType = 'groupPlus';
-        } else {
-            instanceType = 'groupPublic';
-        }
-    }
-
-    const selectedInstanceTypes = safeJsonParse(
-        await configRepository.getString('autoStateChangeInstanceTypes', '[]'),
-        []
-    );
-    if (
-        Array.isArray(selectedInstanceTypes) &&
-        selectedInstanceTypes.length > 0 &&
-        !selectedInstanceTypes.includes(instanceType)
-    ) {
-        return;
-    }
-
-    const snapshot = await playerListRepository.getCurrentInstanceSnapshot({
-        currentUserId: auth.currentUserId,
-        currentLocation
-    });
-    let withCompany = snapshot.players.length > 0;
-
-    if (await configRepository.getBool('autoStateChangeNoFriends', false)) {
-        const selectedGroups = safeJsonParse(
-            await configRepository.getString('autoStateChangeGroups', '[]'),
-            []
-        );
-        if (Array.isArray(selectedGroups) && selectedGroups.length > 0) {
-            withCompany = hasSelectedFriendInInstance(
-                snapshot.players,
-                selectedGroups
-            );
-        } else {
-            const friendsById = useFriendRosterStore.getState().friendsById;
-            withCompany = snapshot.players.some(
-                (player) => player.userId && friendsById[player.userId]
-            );
-        }
-    }
-
-    const nextStatus = withCompany
-        ? await configRepository.getString(
-              'autoStateChangeCompanyStatus',
-              'busy'
-          )
-        : await configRepository.getString(
-              'autoStateChangeAloneStatus',
-              'join me'
-          );
-    if (!nextStatus || currentUser.status === nextStatus) {
-        return;
-    }
-
-    const params = { status: nextStatus };
-    if (
-        withCompany &&
-        (await configRepository.getBool(
-            'autoStateChangeCompanyDescEnabled',
-            false
-        ))
-    ) {
-        params.statusDescription = await configRepository.getString(
-            'autoStateChangeCompanyDesc',
-            ''
-        );
-    } else if (
-        !withCompany &&
-        (await configRepository.getBool(
-            'autoStateChangeAloneDescEnabled',
-            false
-        ))
-    ) {
-        params.statusDescription = await configRepository.getString(
-            'autoStateChangeAloneDesc',
-            ''
-        );
-    }
-
-    const updatedUser = await userProfileRepository.updateCurrentUser({
-        userId: currentUser.id,
-        endpoint: auth.currentUserEndpoint,
-        params
-    });
-    useRuntimeStore.getState().setAuthBootstrap({
-        currentUserSnapshot: {
-            ...currentUser,
-            ...updatedUser
-        }
-    });
-    useNotificationStore.getState().pushNotification({
-        level: 'info',
-        title: i18n.t(
-            'service.background_maintenance.generated.status_automatically_changed'
-        ),
-        message: nextStatus
-    });
+    await runPresenceAutomation();
 }
 
 async function backupVrcRegistry(name) {
@@ -978,4 +823,5 @@ export async function runBackgroundMaintenanceTick() {
 
 export function resetBackgroundMaintenance() {
     resetTimers();
+    resetPresenceAutomationExecutor();
 }

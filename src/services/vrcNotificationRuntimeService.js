@@ -11,6 +11,7 @@ import { useRuntimeStore } from '@/state/runtimeStore.js';
 import { useShellStore } from '@/state/shellStore.js';
 import { useVrcNotificationStore } from '@/state/vrcNotificationStore.js';
 
+import { handleInviteAutomationNotification } from './inviteAutomationService.js';
 import { deliverRuntimeNotification } from './notificationDeliveryService.js';
 
 function parseObject(value) {
@@ -158,6 +159,13 @@ async function markV2NotificationSeen(id) {
     });
 }
 
+async function runInviteAutomation(notification) {
+    return handleInviteAutomationNotification(notification).catch((error) => {
+        console.warn('Failed to handle invite automation notification:', error);
+        return { handled: false, reason: 'error' };
+    });
+}
+
 export async function handleRealtimeNotificationEvent(type, content) {
     const store = useVrcNotificationStore.getState();
     const auth = getCurrentAuth();
@@ -166,11 +174,16 @@ export async function handleRealtimeNotificationEvent(type, content) {
         case 'notification': {
             const notification = normalizeV1Notification(content);
             store.upsertNotification(notification);
+            await persistV1Notification(notification);
+            const automationResult = await runInviteAutomation(notification);
+            if (automationResult.handled) {
+                clearNotificationMenuIfNoUnseen();
+                return true;
+            }
             notifyNotificationMenu(notification);
             void deliverRuntimeNotification(notification).catch((error) => {
                 console.warn('Failed to deliver runtime notification:', error);
             });
-            await persistV1Notification(notification);
             return true;
         }
         case 'notification-v2': {
@@ -179,11 +192,16 @@ export async function handleRealtimeNotificationEvent(type, content) {
                 auth.currentUserEndpoint
             );
             store.upsertNotification(notification);
+            await persistV2Notification(notification);
+            const automationResult = await runInviteAutomation(notification);
+            if (automationResult.handled) {
+                clearNotificationMenuIfNoUnseen();
+                return true;
+            }
             notifyNotificationMenu(notification);
             void deliverRuntimeNotification(notification).catch((error) => {
                 console.warn('Failed to deliver runtime notification:', error);
             });
-            await persistV2Notification(notification);
             return true;
         }
         case 'notification-v2-update': {

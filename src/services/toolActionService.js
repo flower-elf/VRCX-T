@@ -17,13 +17,19 @@ const toolRouteMap = {
 };
 
 const toolDialogHostMap = {
-    'auto-change-status': 'autoChangeStatusOpen',
+    'presence-schedule': 'presenceScheduleOpen',
+    'presence-room-rules': 'presenceRoomRulesOpen',
+    'presence-invite-requests': 'presenceInviteRequestsOpen',
     'group-calendar': 'groupCalendarOpen',
     'export-discord-names': 'exportDiscordNamesOpen',
     'note-export': 'noteExportOpen',
     'export-friends-list': 'exportFriendsListOpen',
     'export-avatars-list': 'exportAvatarsListOpen',
     'edit-invite-messages': 'editInviteMessagesOpen'
+};
+
+const legacyToolAliases = {
+    'auto-change-status': 'presence-room-rules'
 };
 
 export function isToolCapabilityAvailable(tool) {
@@ -44,7 +50,8 @@ export function getToolCapabilityUnavailableReason(tool) {
 }
 
 export async function triggerToolByKey(toolKey, { navigate, t }) {
-    const tool = toolDefinitionMap.get(toolKey);
+    const resolvedToolKey = legacyToolAliases[toolKey] ?? toolKey;
+    const tool = toolDefinitionMap.get(resolvedToolKey);
     const action = tool?.action;
     if (!action) {
         toast.error(

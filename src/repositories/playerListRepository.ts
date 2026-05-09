@@ -245,6 +245,7 @@ async function getCurrentInstanceSnapshot({
 
     const playersByKey = new Map();
     const normalizedCurrentUserId = normalizeString(currentUserId);
+    let observedPlayerEventCount = 0;
 
     for (const [rowIndex, row] of (Array.isArray(rows) ? rows : []).entries()) {
         const event = mapJoinLeaveRow(row);
@@ -252,6 +253,7 @@ async function getCurrentInstanceSnapshot({
         if (startedAtMs && (!eventTime || eventTime < startedAtMs)) {
             continue;
         }
+        observedPlayerEventCount += 1;
 
         const playerKey =
             buildPlayerKey(event.userId) ||
@@ -308,7 +310,9 @@ async function getCurrentInstanceSnapshot({
     return {
         context: {
             ...context,
-            playerCount: players.length
+            playerCount: players.length,
+            observedPlayerEventCount,
+            playerFactsKnown: observedPlayerEventCount > 0
         },
         players
     };

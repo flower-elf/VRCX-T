@@ -1,7 +1,6 @@
 import { InviteMessageTemplatesDialog } from '@/components/dialogs/InviteMessageDialog.jsx';
 import { useRuntimeStore } from '@/state/runtimeStore.js';
 
-import { AutoChangeStatusDialog } from './tools-dialogs/AutoChangeStatusDialog.jsx';
 import {
     ExportAvatarsListDialog,
     ExportDiscordNamesDialog,
@@ -10,13 +9,24 @@ import {
 import { GroupCalendarDialog } from './tools-dialogs/GroupCalendarDialog.jsx';
 import { NoteExportDialog } from './tools-dialogs/NoteExportDialog.jsx';
 import {
+    PresenceInviteRequestsDialog,
+    PresenceRoomRulesDialog,
+    PresenceScheduleDialog
+} from './tools-dialogs/presence-automation/PresenceAutomationDialog.js';
+import {
     getCurrentUserId,
     getEndpoint
 } from './tools-dialogs/toolsDialogUtils.js';
 
 export function ToolsDialogsHost() {
-    const autoChangeStatusOpen = useRuntimeStore(
-        (state) => state.systemHosts.autoChangeStatusOpen
+    const presenceScheduleOpen = useRuntimeStore(
+        (state) => state.systemHosts.presenceScheduleOpen
+    );
+    const presenceRoomRulesOpen = useRuntimeStore(
+        (state) => state.systemHosts.presenceRoomRulesOpen
+    );
+    const presenceInviteRequestsOpen = useRuntimeStore(
+        (state) => state.systemHosts.presenceInviteRequestsOpen
     );
     const groupCalendarOpen = useRuntimeStore(
         (state) => state.systemHosts.groupCalendarOpen
@@ -42,10 +52,22 @@ export function ToolsDialogsHost() {
 
     return (
         <>
-            <AutoChangeStatusDialog
-                open={Boolean(autoChangeStatusOpen)}
+            <PresenceScheduleDialog
+                open={Boolean(presenceScheduleOpen)}
                 onOpenChange={(open) =>
-                    setSystemHostOpen('autoChangeStatusOpen', open)
+                    setSystemHostOpen('presenceScheduleOpen', open)
+                }
+            />
+            <PresenceRoomRulesDialog
+                open={Boolean(presenceRoomRulesOpen)}
+                onOpenChange={(open) =>
+                    setSystemHostOpen('presenceRoomRulesOpen', open)
+                }
+            />
+            <PresenceInviteRequestsDialog
+                open={Boolean(presenceInviteRequestsOpen)}
+                onOpenChange={(open) =>
+                    setSystemHostOpen('presenceInviteRequestsOpen', open)
                 }
             />
             <GroupCalendarDialog

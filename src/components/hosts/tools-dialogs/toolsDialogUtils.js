@@ -82,7 +82,10 @@ export function delay(ms) {
 }
 
 export function normalizeAutoAcceptValue(value) {
-    if (value === 'Selected Favorites' || value === 'All Favorites') {
+    if (value === true || value === 'true' || value === 'All Favorites') {
+        return 'All Favorites';
+    }
+    if (value === 'Selected Favorites') {
         return value;
     }
     return 'Off';

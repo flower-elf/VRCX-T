@@ -125,12 +125,28 @@ export const ConfigKeys = {
     // ── Settings - VR Background ─────────────────────
     // ── Auto State Change ────────────────────────────
     autoStateChangeEnabled: { type: 'bool', default: false },
+    autoStateChangeAloneStatus: { type: 'string', default: 'join me' },
+    autoStateChangeCompanyStatus: { type: 'string', default: 'busy' },
+    autoStateChangeInstanceTypes: { type: 'string', default: '[]' },
+    autoStateChangeAloneDescEnabled: { type: 'bool', default: false },
     autoStateChangeAloneDesc: { type: 'string', default: null },
+    autoStateChangeCompanyDescEnabled: { type: 'bool', default: false },
     autoStateChangeCompanyDesc: { type: 'string', default: null },
     autoStateChangeNoFriends: { type: 'bool', default: false },
     autoStateChangeGroups: { type: 'string', default: null },
-    autoAcceptInviteRequests: { type: 'bool', default: false },
+    autoAcceptInviteRequests: { type: 'string', default: 'Off' },
     autoAcceptInviteGroups: { type: 'string', default: null },
+    presenceAutomationTimeRules: { type: 'string', default: '[]' },
+    presenceAutomationContextRules: { type: 'string', default: '[]' },
+    presenceAutomationMinStatusWriteIntervalMs: {
+        type: 'int',
+        default: 60000
+    },
+    presenceAutomationMinDescriptionWriteIntervalMs: {
+        type: 'int',
+        default: 60000
+    },
+    presenceAutomationStableLocationMs: { type: 'int', default: 30000 },
 
     // ── Registry Backup ──────────────────────────────
     vrcRegistryAutoBackup: { type: 'bool', default: true },

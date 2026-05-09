@@ -2,6 +2,7 @@ type ToolCategoryKey =
     | 'image'
     | 'shortcuts'
     | 'group'
+    | 'social'
     | 'system'
     | 'user'
     | 'other';
@@ -25,7 +26,10 @@ type ToolAction =
               | 'showLaunchOptions'
               | 'showRegistryBackupDialog';
       }
-    | { type: 'dialog'; dialogKey: string };
+    | {
+          type: 'dialog';
+          dialogKey: string;
+      };
 
 interface ToolCategory {
     key: ToolCategoryKey;
@@ -59,6 +63,7 @@ const toolCategories: ToolCategory[] = [
     { key: 'image', labelKey: 'view.tools.pictures.header' },
     { key: 'shortcuts', labelKey: 'view.tools.shortcuts.header' },
     { key: 'group', labelKey: 'view.tools.group.header' },
+    { key: 'social', labelKey: 'view.tools.social_automation.header' },
     { key: 'system', labelKey: 'view.tools.system_tools.header' },
     { key: 'user', labelKey: 'view.tools.export.header' },
     { key: 'other', labelKey: 'view.tools.other.header' }
@@ -224,15 +229,46 @@ const toolDefinitions: ToolDefinition[] = [
         }
     },
     {
-        key: 'auto-change-status',
-        category: 'system',
-        iconKey: 'bot',
-        navIcon: 'lucide:Bot',
-        titleKey: 'view.settings.general.automation.auto_change_status',
+        key: 'presence-schedule',
+        category: 'social',
+        iconKey: 'calendar',
+        navIcon: 'lucide:CalendarDays',
+        titleKey: 'view.tools.social_automation.status_schedule',
         descriptionKey:
-            'view.settings.general.automation.auto_state_change_tooltip',
+            'view.tools.social_automation.status_schedule_description',
         navEligible: true,
-        action: { type: 'dialog', dialogKey: 'auto-change-status' }
+        action: {
+            type: 'dialog',
+            dialogKey: 'presence-schedule'
+        }
+    },
+    {
+        key: 'presence-room-rules',
+        category: 'social',
+        iconKey: 'users',
+        navIcon: 'lucide:UsersRound',
+        titleKey: 'view.tools.social_automation.room_status_rules',
+        descriptionKey:
+            'view.tools.social_automation.room_status_rules_description',
+        navEligible: true,
+        action: {
+            type: 'dialog',
+            dialogKey: 'presence-room-rules'
+        }
+    },
+    {
+        key: 'presence-invite-requests',
+        category: 'social',
+        iconKey: 'message',
+        navIcon: 'lucide:MessageSquareText',
+        titleKey: 'view.tools.social_automation.invite_request_auto_reply',
+        descriptionKey:
+            'view.tools.social_automation.invite_request_auto_reply_description',
+        navEligible: true,
+        action: {
+            type: 'dialog',
+            dialogKey: 'presence-invite-requests'
+        }
     },
     {
         key: 'group-calendar',
@@ -300,7 +336,7 @@ const toolDefinitionMap = new Map<string, ToolDefinition>(
     toolDefinitions.map((tool) => [tool.key, tool])
 );
 
-const toolNavDefinitions: ToolNavDefinition[] = toolDefinitions
+const generatedToolNavDefinitions: ToolNavDefinition[] = toolDefinitions
     .filter((tool) => tool.navEligible)
     .map((tool) => ({
         key: `tool-${tool.key}`,
@@ -317,6 +353,23 @@ const toolNavDefinitions: ToolNavDefinition[] = toolDefinitions
                   },
         defaultHidden: true
     }));
+
+const legacyToolNavDefinitions: ToolNavDefinition[] = [
+    {
+        key: 'tool-auto-change-status',
+        icon: 'lucide:Bot',
+        tooltip: 'view.tools.social_automation.room_status_rules',
+        labelKey: 'view.tools.social_automation.room_status_rules',
+        routeName: null,
+        action: { type: 'tool', toolKey: 'auto-change-status' },
+        defaultHidden: true
+    }
+];
+
+const toolNavDefinitions: ToolNavDefinition[] = [
+    ...generatedToolNavDefinitions,
+    ...legacyToolNavDefinitions
+];
 
 const defaultHiddenToolNavKeys = toolNavDefinitions.map((tool) => tool.key);
 const isToolNavKey = (key: unknown): key is string =>

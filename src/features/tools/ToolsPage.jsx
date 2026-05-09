@@ -1,4 +1,5 @@
 import {
+    BotIcon,
     ChevronDownIcon,
     DownloadIcon,
     FolderOpenIcon,
@@ -42,6 +43,7 @@ const defaultCollapsedState = {
     group: false,
     image: false,
     shortcuts: false,
+    social: false,
     system: false,
     user: false,
     other: false
@@ -57,10 +59,34 @@ const categoryIconByKey = {
     image: ImageIcon,
     shortcuts: FolderOpenIcon,
     group: UsersIcon,
+    social: BotIcon,
     system: WrenchIcon,
     user: DownloadIcon,
     other: MoreHorizontalIcon
 };
+
+const legacyPinnedToolAliases = {
+    'auto-change-status': 'presence-room-rules'
+};
+
+function normalizePinnedToolKey(toolKey) {
+    return legacyPinnedToolAliases[toolKey] ?? toolKey;
+}
+
+function getEquivalentToolNavKeys(toolKey) {
+    const normalizedToolKey = normalizePinnedToolKey(toolKey);
+    const equivalentToolKeys = new Set([normalizedToolKey]);
+
+    for (const [legacyToolKey, targetToolKey] of Object.entries(
+        legacyPinnedToolAliases
+    )) {
+        if (targetToolKey === normalizedToolKey) {
+            equivalentToolKeys.add(legacyToolKey);
+        }
+    }
+
+    return Array.from(equivalentToolKeys).map((key) => `tool-${key}`);
+}
 
 function ToolItem({
     icon: Icon,
@@ -161,15 +187,19 @@ function insertToolNavItem(layout, navKey) {
 }
 
 function removeToolNavItem(layout, navKey) {
+    const navKeys = new Set(Array.isArray(navKey) ? navKey : [navKey]);
+
     return (layout || [])
         .map((entry) => {
             if (entry.type === 'item') {
-                return entry.key === navKey ? null : entry;
+                return navKeys.has(entry.key) ? null : entry;
             }
             if (entry.type === 'folder') {
                 const nextItems = (entry.items || []).filter(
                     (item) =>
-                        (typeof item === 'string' ? item : item?.key) !== navKey
+                        !navKeys.has(
+                            typeof item === 'string' ? item : item?.key
+                        )
                 );
                 return nextItems.length ? { ...entry, items: nextItems } : null;
             }
@@ -269,7 +299,9 @@ export function ToolsPage() {
         return new Set(
             Array.from(keys)
                 .filter((key) => String(key).startsWith('tool-'))
-                .map((key) => String(key).replace(/^tool-/, ''))
+                .map((key) =>
+                    normalizePinnedToolKey(String(key).replace(/^tool-/, ''))
+                )
         );
     }, [navLayout]);
 
@@ -350,7 +382,7 @@ export function ToolsPage() {
         if (!tool?.navEligible) {
             return;
         }
-        const navKey = `tool-${tool.key}`;
+        const navKey = getEquivalentToolNavKeys(tool.key);
         try {
             const model = await saveNavMenuModel({
                 layout: removeToolNavItem(navLayout, navKey),
