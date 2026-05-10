@@ -480,15 +480,35 @@ export function UserDialogHeaderSection({ state = {}, actions = {}, t }) {
             {profile.statusDescription ? (
                 <>
                     <Separator />
-                    <div className="text-muted-foreground flex max-h-24 min-w-0 items-start gap-2 overflow-auto text-sm whitespace-pre-wrap">
-                        <PencilIcon
-                            data-icon="inline-start"
-                            className="mt-1 size-3 shrink-0"
-                        />
-                        <span className="min-w-0">
-                            {profile.statusDescription}
-                        </span>
-                    </div>
+                    {isCurrentUser && onEditSelfStatus ? (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="text-muted-foreground hover:text-primary h-auto max-h-24 w-full min-w-0 justify-start overflow-auto p-0 text-left text-sm whitespace-pre-wrap"
+                            title={t('dialog.user.actions.edit_status')}
+                            onClick={onEditSelfStatus}
+                        >
+                            <span className="flex min-w-0 items-start gap-2">
+                                <PencilIcon
+                                    data-icon="inline-start"
+                                    className="mt-1 size-3 shrink-0"
+                                />
+                                <span className="min-w-0">
+                                    {profile.statusDescription}
+                                </span>
+                            </span>
+                        </Button>
+                    ) : (
+                        <div className="text-muted-foreground flex max-h-24 min-w-0 items-start gap-2 overflow-auto text-sm whitespace-pre-wrap">
+                            <PencilIcon
+                                data-icon="inline-start"
+                                className="mt-1 size-3 shrink-0"
+                            />
+                            <span className="min-w-0">
+                                {profile.statusDescription}
+                            </span>
+                        </div>
+                    )}
                 </>
             ) : null}
 

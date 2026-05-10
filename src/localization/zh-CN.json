@@ -1827,6 +1827,18 @@
                 "header": "编辑线上备注和本地备注",
                 "cancel": "取消",
                 "confirm": "确定"
+            },
+            "generated": {
+                "edit_social_status": "编辑社交状态",
+                "update_your_social_status_and_status_description": "更新你的社交状态和签名",
+                "status_description": "签名",
+                "clear_status_description": "清除签名",
+                "status_history": "签名历史",
+                "no_status_history": "暂无签名历史",
+                "social_status": "社交状态",
+                "save_preset": "保存预设",
+                "update": "更新",
+                "failed_to_update_social_status": "更新社交状态失败"
             }
         },
         "world": {

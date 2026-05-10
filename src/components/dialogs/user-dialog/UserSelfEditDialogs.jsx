@@ -1,6 +1,5 @@
 import {
     BookmarkIcon,
-    CheckIcon,
     HistoryIcon,
     PlusIcon,
     XIcon
@@ -94,8 +93,8 @@ export function UserSocialStatusDialog({
                         <FieldLabel htmlFor="user-social-status-description">
                             {t('dialog.user.generated.status_description')}
                         </FieldLabel>
-                        <div className="flex items-center gap-2">
-                            <Input
+                        <InputGroup>
+                            <InputGroupInput
                                 id="user-social-status-description"
                                 value={draft.statusDescription}
                                 maxLength={32}
@@ -111,78 +110,82 @@ export function UserSocialStatusDialog({
                                     }));
                                 }}
                             />
-                            {draft.statusDescription ? (
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    disabled={busy}
-                                    aria-label="Clear status description"
-                                    onClick={() => {
-                                        setDraft((current) => ({
-                                            ...current,
-                                            statusDescription: ''
-                                        }));
-                                    }}
-                                >
-                                    <XIcon data-icon="inline-start" />
-                                </Button>
-                            ) : null}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="icon"
+                            <InputGroupAddon align="inline-end">
+                                {draft.statusDescription ? (
+                                    <InputGroupButton
+                                        size="icon-xs"
                                         disabled={busy}
-                                        aria-label="Status history"
-                                    >
-                                        <HistoryIcon data-icon="inline-start" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                    align="end"
-                                    className="max-w-72"
-                                >
-                                    <DropdownMenuGroup>
-                                        {statusHistoryRows.length ? (
-                                            statusHistoryRows.map(
-                                                (status, index) => (
-                                                    <DropdownMenuItem
-                                                        key={`${status}:${index}`}
-                                                        onSelect={() => {
-                                                            setDraft(
-                                                                (current) => ({
-                                                                    ...current,
-                                                                    statusDescription:
-                                                                        status.slice(
-                                                                            0,
-                                                                            32
-                                                                        )
-                                                                })
-                                                            );
-                                                        }}
-                                                    >
-                                                        <span className="truncate">
-                                                            {status}
-                                                        </span>
-                                                    </DropdownMenuItem>
-                                                )
-                                            )
-                                        ) : (
-                                            <DropdownMenuItem disabled>
-                                                {t(
-                                                    'dialog.user.generated.no_status_history'
-                                                )}
-                                            </DropdownMenuItem>
+                                        aria-label={t(
+                                            'dialog.user.generated.clear_status_description'
                                         )}
-                                    </DropdownMenuGroup>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                        <div className="text-muted-foreground text-xs">
+                                        onClick={() => {
+                                            setDraft((current) => ({
+                                                ...current,
+                                                statusDescription: ''
+                                            }));
+                                        }}
+                                    >
+                                        <XIcon data-icon="inline-start" />
+                                    </InputGroupButton>
+                                ) : null}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <InputGroupButton
+                                            size="icon-xs"
+                                            disabled={busy}
+                                            aria-label={t(
+                                                'dialog.user.generated.status_history'
+                                            )}
+                                        >
+                                            <HistoryIcon data-icon="inline-start" />
+                                        </InputGroupButton>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                        align="end"
+                                        className="max-w-72"
+                                    >
+                                        <DropdownMenuGroup>
+                                            {statusHistoryRows.length ? (
+                                                statusHistoryRows.map(
+                                                    (status, index) => (
+                                                        <DropdownMenuItem
+                                                            key={`${status}:${index}`}
+                                                            onSelect={() => {
+                                                                setDraft(
+                                                                    (
+                                                                        current
+                                                                    ) => ({
+                                                                        ...current,
+                                                                        statusDescription:
+                                                                            status.slice(
+                                                                                0,
+                                                                                32
+                                                                            )
+                                                                    })
+                                                                );
+                                                            }}
+                                                        >
+                                                            <span className="truncate">
+                                                                {status}
+                                                            </span>
+                                                        </DropdownMenuItem>
+                                                    )
+                                                )
+                                            ) : (
+                                                <DropdownMenuItem disabled>
+                                                    {t(
+                                                        'dialog.user.generated.no_status_history'
+                                                    )}
+                                                </DropdownMenuItem>
+                                            )}
+                                        </DropdownMenuGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </InputGroupAddon>
+                        </InputGroup>
+                        <FieldDescription className="text-right text-xs">
                             {draft.statusDescription.length}/32
-                        </div>
+                        </FieldDescription>
                     </Field>
                     <Field>
                         <FieldLabel>
@@ -192,10 +195,9 @@ export function UserSocialStatusDialog({
                             type="single"
                             variant="outline"
                             value={draft.status}
-                            orientation="vertical"
                             spacing={2}
-                            className="w-full"
-                            aria-label="Social status"
+                            className="w-full flex-wrap"
+                            aria-label={t('dialog.user.generated.social_status')}
                             onValueChange={(nextStatus) => {
                                 if (!nextStatus) {
                                     return;
@@ -207,14 +209,13 @@ export function UserSocialStatusDialog({
                             }}
                         >
                             {statusOptions.map((option) => {
-                                const selected = draft.status === option.value;
                                 return (
                                     <ToggleGroupItem
                                         key={option.value}
                                         value={option.value}
                                         aria-label={option.label}
                                         disabled={busy}
-                                        className="h-auto w-full justify-start gap-3 px-3 py-2"
+                                        className="h-9 min-w-0 flex-1 basis-[calc(50%-0.25rem)] justify-center gap-2 px-2 sm:basis-0"
                                     >
                                         <i
                                             className={userStatusIndicatorClassName(
@@ -225,22 +226,31 @@ export function UserSocialStatusDialog({
                                                 }
                                             )}
                                         />
-                                        <span className="min-w-0 flex-1 truncate">
+                                        <span className="min-w-0 truncate">
                                             {option.label}
                                         </span>
-                                        {selected ? (
-                                            <CheckIcon data-icon="inline-end" />
-                                        ) : null}
                                     </ToggleGroupItem>
                                 );
                             })}
                         </ToggleGroup>
                     </Field>
-                    {statusPresets.length ? (
-                        <Field>
+                    <Field>
+                        <div className="flex items-center justify-between gap-3">
                             <FieldLabel>
                                 {t('dialog.social_status.presets')}
                             </FieldLabel>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="xs"
+                                disabled={busy}
+                                onClick={onSavePreset}
+                            >
+                                <BookmarkIcon data-icon="inline-start" />
+                                {t('dialog.user.generated.save_preset')}
+                            </Button>
+                        </div>
+                        {statusPresets.length ? (
                             <div className="flex flex-wrap gap-2">
                                 {statusPresets.map((preset, index) => {
                                     const presetStatus =
@@ -305,19 +315,10 @@ export function UserSocialStatusDialog({
                                     );
                                 })}
                             </div>
-                        </Field>
-                    ) : null}
+                        ) : null}
+                    </Field>
                 </FieldGroup>
                 <DialogFooter>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        disabled={busy}
-                        onClick={onSavePreset}
-                    >
-                        <BookmarkIcon data-icon="inline-start" />
-                        {t('dialog.user.generated.save_preset')}
-                    </Button>
                     <Button
                         type="button"
                         variant="outline"
