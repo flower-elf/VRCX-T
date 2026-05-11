@@ -387,7 +387,7 @@
             "forgotPassword": "Forgot Password?",
             "updater": "Updater",
             "proxy_settings": "Proxy Settings",
-            "proxy_description": "Set the proxy server used before login and optional development endpoints.",
+            "proxy_description": "Set the proxy server used before login. Supports 127.0.0.1:7890, http://127.0.0.1:7890, and socks5://127.0.0.1:7890.",
             "settings": "Settings",
             "language": "Language",
             "field": {
@@ -4264,9 +4264,9 @@
         },
         "proxy_settings": {
             "header": "Proxy Settings",
-            "description": "Enter proxy server address and port",
+            "description": "Enter the proxy server address and port. Supports 127.0.0.1:7890, http://127.0.0.1:7890, and socks5://127.0.0.1:7890.",
             "close": "Close",
-            "restart": "Restart"
+            "restart": "Save & Restart"
         },
         "redeem": {
             "header": "Redeem Code",

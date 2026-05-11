@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use tauri::http::{header::CONTENT_TYPE, Request, Response, StatusCode};
 use tauri::menu::{Menu, MenuItem};
-use tauri::Manager;
+use tauri::{Manager, WebviewWindowBuilder};
 use tauri_plugin_autostart::ManagerExt as _;
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
@@ -116,6 +116,9 @@ pub fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>>
     let app_state = AppState::new().expect("failed to initialize app state");
     app.manage(app_state);
 
+    let state = app.state::<AppState>();
+    create_main_window(app, state.web.proxy_url())?;
+
     disable_windows_default_context_menu(app);
 
     let state = app.state::<AppState>();
@@ -125,6 +128,36 @@ pub fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>>
     start_host_services(app, &state);
     open_devtools_if_enabled(app);
 
+    Ok(())
+}
+
+fn create_main_window(
+    app: &tauri::App,
+    proxy_url: Option<&str>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if app.get_webview_window("main").is_some() {
+        return Ok(());
+    }
+
+    let window_config = app
+        .config()
+        .app
+        .windows
+        .iter()
+        .find(|config| config.label == "main")
+        .ok_or_else(|| {
+            std::io::Error::new(std::io::ErrorKind::NotFound, "missing main window config")
+        })?;
+
+    let mut builder = WebviewWindowBuilder::from_config(app.handle(), window_config)?;
+    if let Some(proxy_url) = proxy_url {
+        let proxy_url = proxy_url
+            .parse()
+            .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidInput, error))?;
+        builder = builder.proxy_url(proxy_url);
+    }
+
+    builder.build()?;
     Ok(())
 }
 

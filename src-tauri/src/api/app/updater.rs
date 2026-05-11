@@ -4,6 +4,7 @@ use serde::Serialize;
 use tauri::{ipc::Channel, AppHandle, Url};
 use tauri_plugin_updater::{Update, UpdaterExt};
 
+use crate::domain::proxy::normalize_proxy_url;
 use crate::error::AppError;
 
 #[derive(Clone, Serialize)]
@@ -74,10 +75,14 @@ async fn find_update(
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
     {
-        let proxy: Url = proxy_url
-            .parse()
-            .map_err(|error| updater_error("Invalid update proxy URL", error))?;
-        builder = builder.proxy(proxy);
+        if let Some(proxy_url) = normalize_proxy_url(&proxy_url)
+            .map_err(|error| updater_error("Invalid update proxy URL", error))?
+        {
+            let proxy: Url = proxy_url
+                .parse()
+                .map_err(|error| updater_error("Invalid update proxy URL", error))?;
+            builder = builder.proxy(proxy);
+        }
     }
 
     let updater = builder

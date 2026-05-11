@@ -20,6 +20,7 @@ pub mod log_watcher;
 pub mod media_files;
 pub mod png;
 pub mod process_monitor;
+pub mod proxy;
 pub mod screenshot;
 pub mod shell_actions;
 pub mod storage;

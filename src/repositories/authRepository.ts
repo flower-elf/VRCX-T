@@ -46,8 +46,8 @@ function normalizeLoginParams(entry: RawSavedCredentialRecord): LoginParams {
     return {
         username: asString(rawLoginParams.username, ''),
         password: asString(rawLoginParams.password, ''),
-        endpoint: asString(rawLoginParams.endpoint, ''),
-        websocket: asString(rawLoginParams.websocket, '')
+        endpoint: '',
+        websocket: ''
     };
 }
 
@@ -89,11 +89,15 @@ function normalizeSavedCredentialRecord(key: string, entry: unknown) {
         record.loginParams ?? {},
         'websocket'
     );
+    const hasLegacyEndpointValue =
+        asString((record.loginParams ?? {}).endpoint, '') !== '' ||
+        asString((record.loginParams ?? {}).websocket, '') !== '';
     const edited =
         userId !== key ||
         Boolean(record.loginParmas) ||
         !hasEndpointField ||
-        !hasWebsocketField;
+        !hasWebsocketField ||
+        hasLegacyEndpointValue;
 
     return {
         edited,
@@ -245,11 +249,6 @@ async function deleteSavedCredential(userId: string) {
     return getSavedAuthSnapshot();
 }
 
-async function setCustomEndpointEnabled(value: unknown) {
-    await configRepository.setBool('enableCustomEndpoint', Boolean(value));
-    return getSavedAuthSnapshot();
-}
-
 async function recordLoginSuccess({
     user,
     loginParams = {},
@@ -339,14 +338,12 @@ async function getSavedAuthSnapshot() {
         savedCredentials,
         lastUserLoggedIn,
         legacyPrimaryPasswordEnabled,
-        enableCustomEndpoint,
         autoLoginDelayEnabled,
         autoLoginDelaySeconds
     ] = await Promise.all([
         getSavedCredentialsMap(),
         configRepository.getString('lastUserLoggedIn', null),
         configRepository.getBool('enablePrimaryPassword', false),
-        configRepository.getBool('enableCustomEndpoint', false),
         configRepository.getBool('autoLoginDelayEnabled', false),
         configRepository.getInt('autoLoginDelaySeconds', 0)
     ]);
@@ -376,7 +373,6 @@ async function getSavedAuthSnapshot() {
             savedCredentials,
             lastUserLoggedIn
         ),
-        enableCustomEndpoint: Boolean(enableCustomEndpoint),
         autoLoginDelayEnabled: Boolean(autoLoginDelayEnabled),
         autoLoginDelaySeconds: normalizedAutoLoginDelaySeconds,
         autoLoginStatus: autoLogin.status,
@@ -388,7 +384,6 @@ const authRepository = Object.freeze({
     getSavedCredentialsMap,
     getSavedCredential,
     deleteSavedCredential,
-    setCustomEndpointEnabled,
     recordLoginSuccess,
     recordLogout,
     getSavedAuthSnapshot
@@ -398,7 +393,6 @@ export {
     getSavedCredentialsMap,
     getSavedCredential,
     deleteSavedCredential,
-    setCustomEndpointEnabled,
     recordLoginSuccess,
     recordLogout,
     getSavedAuthSnapshot

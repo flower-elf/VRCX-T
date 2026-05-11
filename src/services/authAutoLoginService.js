@@ -41,8 +41,7 @@ function shouldAttemptCookieRestore(snapshot) {
 
 function getAutoLoginThrottleKey(savedCredential) {
     const userId = savedCredential?.user?.id || '';
-    const endpoint = savedCredential?.loginParams?.endpoint || '';
-    return `${userId}\u0000${endpoint}`;
+    return userId;
 }
 
 function isMissingCredentialsError(error) {
@@ -191,7 +190,6 @@ export async function executeReactAutoLogin(
         'saved account';
 
     const cookieRestoreEligible = shouldAttemptCookieRestore(snapshot);
-    const restoreEndpoint = savedCredential?.loginParams?.endpoint || '';
     const savedCredentialFallbackAvailable =
         snapshot?.autoLoginStatus === 'available' && Boolean(savedCredential);
 
@@ -225,9 +223,7 @@ export async function executeReactAutoLogin(
             }
 
             try {
-                const restoredSnapshot = await executeCookieSessionRestore({
-                    endpoint: restoreEndpoint
-                });
+                const restoredSnapshot = await executeCookieSessionRestore();
                 toast.success(await i18n.t('message.auth.auto_login_success'));
                 return {
                     status: 'success',

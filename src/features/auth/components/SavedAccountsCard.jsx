@@ -87,11 +87,6 @@ export function SavedAccountsCard({
                                                 {entry.user.username ||
                                                     entry.user.id}
                                             </div>
-                                            {entry.loginParams.endpoint ? (
-                                                <div className="text-muted-foreground truncate text-xs">
-                                                    {entry.loginParams.endpoint}
-                                                </div>
-                                            ) : null}
                                         </div>
                                         {isRelogging ? (
                                             <Spinner

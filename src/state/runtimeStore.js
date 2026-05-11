@@ -94,7 +94,6 @@ const initialState = {
         savedCredentialCount: 0,
         autoLoginStatus: 'idle',
         autoLoginReason: '',
-        enableCustomEndpoint: false,
         autoLoginDelayEnabled: false,
         autoLoginDelaySeconds: 0
     },

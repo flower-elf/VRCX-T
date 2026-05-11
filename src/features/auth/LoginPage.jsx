@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -11,8 +11,7 @@ import {
 } from '@/services/authExecutionService.js';
 import {
     deleteSavedAuthSnapshot,
-    refreshSavedAuthSnapshot,
-    setSavedAuthCustomEndpointEnabled
+    refreshSavedAuthSnapshot
 } from '@/services/authSnapshotService.js';
 import {
     loadPreferenceSnapshot,
@@ -37,7 +36,6 @@ import {
     getLoginUserDisplayName as getUserDisplayName,
     shouldShowLegacyMigrationAction
 } from './loginDisplay.js';
-import { getSnapshotLoginParams } from './loginSession.js';
 import { useLoginAutoLogin } from './useLoginAutoLogin.js';
 
 export function LoginPage() {
@@ -59,16 +57,12 @@ export function LoginPage() {
     const [isProxyDialogOpen, setIsProxyDialogOpen] = useState(false);
     const [proxyInput, setProxyInput] = useState('');
     const [isSavingProxySettings, setIsSavingProxySettings] = useState(false);
-    const [isUpdatingEndpointSetting, setIsUpdatingEndpointSetting] =
-        useState(false);
+    const isSavingProxySettingsRef = useRef(false);
     const [activeSavedUserId, setActiveSavedUserId] = useState('');
     const [loginForm, setLoginForm] = useState({
         username: '',
         password: '',
-        saveCredentials: false,
-        enableCustomEndpoint: false,
-        endpoint: '',
-        websocket: ''
+        saveCredentials: false
     });
     const [loginErrors, setLoginErrors] = useState({
         username: '',
@@ -80,18 +74,7 @@ export function LoginPage() {
     }, [proxyServer]);
 
     function applySnapshot(nextSnapshot) {
-        const loginParams = getSnapshotLoginParams(nextSnapshot);
         setSnapshot(nextSnapshot);
-        setLoginForm((current) => ({
-            ...current,
-            enableCustomEndpoint: Boolean(nextSnapshot?.enableCustomEndpoint),
-            endpoint: nextSnapshot?.enableCustomEndpoint
-                ? loginParams.endpoint || current.endpoint || ''
-                : '',
-            websocket: nextSnapshot?.enableCustomEndpoint
-                ? loginParams.websocket || current.websocket || ''
-                : ''
-        }));
         return nextSnapshot;
     }
     const {
@@ -190,16 +173,14 @@ export function LoginPage() {
 
     async function saveProxySettings(event) {
         event.preventDefault();
+        if (isSavingProxySettingsRef.current) {
+            return;
+        }
+        isSavingProxySettingsRef.current = true;
         setIsSavingProxySettings(true);
         try {
             const nextProxyServer = proxyInput.trim();
-            const currentProxyServer =
-                usePreferencesStore.getState().proxyServer || '';
-            if (nextProxyServer !== currentProxyServer) {
-                await setProxyServerPreference(nextProxyServer);
-                return;
-            }
-            setIsProxyDialogOpen(false);
+            await setProxyServerPreference(nextProxyServer);
         } catch (error) {
             toast.error(
                 error instanceof Error
@@ -209,44 +190,8 @@ export function LoginPage() {
                       )
             );
         } finally {
+            isSavingProxySettingsRef.current = false;
             setIsSavingProxySettings(false);
-        }
-    }
-
-    async function handleCustomEndpointToggle(checked) {
-        cancelPendingAutoLogin(t('view.auth.auto_login.skipped_form_changed'));
-        const previousValue = Boolean(snapshot?.enableCustomEndpoint);
-        const nextValue = checked === true;
-
-        setLoginForm((current) => ({
-            ...current,
-            enableCustomEndpoint: nextValue,
-            endpoint: nextValue ? current.endpoint : '',
-            websocket: nextValue ? current.websocket : ''
-        }));
-        setIsUpdatingEndpointSetting(true);
-
-        try {
-            const nextSnapshot =
-                await setSavedAuthCustomEndpointEnabled(nextValue);
-            applySnapshot(nextSnapshot);
-        } catch (error) {
-            setLoginForm((current) => ({
-                ...current,
-                enableCustomEndpoint: previousValue,
-                endpoint: previousValue ? current.endpoint : '',
-                websocket: previousValue ? current.websocket : ''
-            }));
-            toast.error(
-                getErrorMessage(
-                    error,
-                    t(
-                        'view.auth.generated_toast.failed_to_update_endpoint_preference'
-                    )
-                )
-            );
-        } finally {
-            setIsUpdatingEndpointSetting(false);
         }
     }
 
@@ -314,12 +259,6 @@ export function LoginPage() {
             const nextSnapshot = await executeManualLogin({
                 username: loginForm.username,
                 password: loginForm.password,
-                endpoint: loginForm.enableCustomEndpoint
-                    ? loginForm.endpoint
-                    : '',
-                websocket: loginForm.enableCustomEndpoint
-                    ? loginForm.websocket
-                    : '',
                 saveCredentials: loginForm.saveCredentials
             });
             applySnapshot(nextSnapshot);
@@ -481,16 +420,10 @@ export function LoginPage() {
                     proxyInput,
                     setProxyInput
                 }}
-                loginForm={loginForm}
-                setLoginForm={setLoginForm}
                 flags={{
-                    isSavingProxySettings,
-                    isUpdatingEndpointSetting,
-                    isAuthBusy
+                    isSavingProxySettings
                 }}
                 onSubmit={saveProxySettings}
-                onCustomEndpointToggle={handleCustomEndpointToggle}
-                onCancelAutoLogin={cancelPendingAutoLogin}
             />
             <DeleteSavedAccountDialog
                 deleteTarget={deleteTarget}

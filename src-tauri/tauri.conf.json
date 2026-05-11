@@ -30,6 +30,8 @@
         },
         "windows": [
             {
+                "label": "main",
+                "create": false,
                 "title": "VRCX-0",
                 "width": 1024,
                 "height": 768,

@@ -11,6 +11,7 @@ use serde_json::Value;
 
 use crate::domain::database::DatabaseService;
 use crate::domain::image_processing;
+use crate::domain::proxy::load_proxy_url;
 use crate::domain::storage::StorageService;
 use crate::error::AppError;
 
@@ -32,7 +33,7 @@ pub struct WebClient {
 
 impl WebClient {
     pub fn new(storage: &StorageService, db: &DatabaseService) -> Result<Self, AppError> {
-        let proxy_url = storage.get("VRCX_ProxyServer").filter(|s| !s.is_empty());
+        let proxy_url = load_proxy_url(storage);
 
         let cookie_store = reqwest_cookie_store::CookieStore::default();
         let jar = Arc::new(CookieStoreMutex::new(cookie_store));

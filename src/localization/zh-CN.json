@@ -387,7 +387,7 @@
             "forgotPassword": "忘记密码？",
             "updater": "检查更新",
             "proxy_settings": "代理设置",
-            "proxy_description": "设置登录前使用的代理服务器和可选的开发端点。",
+            "proxy_description": "设置登录前使用的代理服务器。支持 127.0.0.1:7890、http://127.0.0.1:7890 和 socks5://127.0.0.1:7890。",
             "settings": "设置",
             "language": "语言",
             "field": {
@@ -4264,7 +4264,7 @@
         },
         "proxy_settings": {
             "header": "代理服务器设置",
-            "description": "输入代理地址和端口 (Socks)",
+            "description": "输入代理地址和端口。支持 127.0.0.1:7890、http://127.0.0.1:7890 和 socks5://127.0.0.1:7890。",
             "close": "关闭",
             "restart": "保存并重启"
         },

@@ -45,14 +45,8 @@ function normalizeLoginParams(loginParams = {}) {
             typeof loginParams.password === 'string'
                 ? loginParams.password
                 : '',
-        endpoint:
-            typeof loginParams.endpoint === 'string'
-                ? loginParams.endpoint.trim()
-                : '',
-        websocket:
-            typeof loginParams.websocket === 'string'
-                ? loginParams.websocket.trim()
-                : ''
+        endpoint: '',
+        websocket: ''
     };
 }
 
@@ -502,16 +496,12 @@ export async function executeCookieSessionRestore({ endpoint = '' } = {}) {
 export async function executeManualLogin({
     username,
     password,
-    endpoint = '',
-    websocket = '',
     saveCredentials = false
 }) {
     const runtimeStore = useRuntimeStore.getState();
     const loginParams = normalizeLoginParams({
         username,
-        password,
-        endpoint,
-        websocket
+        password
     });
 
     if (!loginParams.username || !loginParams.password) {
@@ -585,7 +575,11 @@ export async function executeSavedCredentialLogin(savedCredential) {
         userId ||
         'saved account';
 
-    let loginParams = normalizeLoginParams(savedCredential?.loginParams);
+    const loginParams = {
+        ...normalizeLoginParams(savedCredential?.loginParams),
+        endpoint: '',
+        websocket: ''
+    };
     if (!loginParams.username || !loginParams.password) {
         throw createAuthExecutionError(
             'The saved account is missing username or password data.',

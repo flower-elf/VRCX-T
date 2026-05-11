@@ -63,7 +63,6 @@ export function useLoginAutoLogin({
 
         return JSON.stringify({
             userId,
-            endpoint: savedCredential?.loginParams?.endpoint || '',
             username: savedCredential?.loginParams?.username || '',
             hasCookies: Boolean(savedCredential?.cookies),
             hasSavedCredential: Boolean(savedCredential),

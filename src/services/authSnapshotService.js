@@ -31,7 +31,6 @@ export function applySavedAuthSnapshot(snapshot) {
         savedCredentialCount: snapshot.savedCredentialCount,
         autoLoginStatus: snapshot.autoLoginStatus,
         autoLoginReason: snapshot.autoLoginReason,
-        enableCustomEndpoint: snapshot.enableCustomEndpoint,
         autoLoginDelayEnabled: snapshot.autoLoginDelayEnabled,
         autoLoginDelaySeconds: snapshot.autoLoginDelaySeconds
     });
@@ -48,10 +47,5 @@ export async function refreshSavedAuthSnapshot() {
 
 export async function deleteSavedAuthSnapshot(userId) {
     const snapshot = await authRepository.deleteSavedCredential(userId);
-    return applySavedAuthSnapshot(snapshot);
-}
-
-export async function setSavedAuthCustomEndpointEnabled(value) {
-    const snapshot = await authRepository.setCustomEndpointEnabled(value);
     return applySavedAuthSnapshot(snapshot);
 }
