@@ -614,6 +614,7 @@
                 "showing": "表示中",
                 "of": "/",
                 "avatar": "アバター",
+                "avatars": "アバター",
                 "no_avatars_match_the_current_filters": "現在のフィルターに一致するアバターはありません",
                 "broaden_the_filters_or_search_query_to_see_more_avatars": "フィルターまたは検索条件を広げると、さらにアバターを表示できます",
                 "change_avatar_image": "アバター画像を変更",

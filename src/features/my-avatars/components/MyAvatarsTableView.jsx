@@ -220,8 +220,11 @@ export function MyAvatarsTableView({
                     <span className="text-foreground font-medium">
                         {filteredCount}
                     </span>{' '}
-                    {t('view.my_avatars.generated.avatar')}
-                    {filteredCount === 1 ? '' : 's'}
+                    {t(
+                        filteredCount === 1
+                            ? 'view.my_avatars.generated.avatar'
+                            : 'view.my_avatars.generated.avatars'
+                    )}
                 </div>
                 <DataTablePagination
                     table={table}

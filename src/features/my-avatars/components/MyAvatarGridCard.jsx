@@ -12,7 +12,6 @@ import { useTranslation } from 'react-i18next';
 
 import { getAvailablePlatforms } from '@/lib/avatarPlatform.js';
 import { cn } from '@/lib/utils.js';
-import { getTagColor } from '@/shared/constants/tags.js';
 import { Badge } from '@/ui/shadcn/badge';
 import { Button } from '@/ui/shadcn/button';
 import {
@@ -33,7 +32,11 @@ import {
 } from '@/ui/shadcn/dropdown-menu';
 import { Spinner } from '@/ui/shadcn/spinner';
 
-import { resolveMyAvatarActionDisabled } from '../myAvatarsDisplay.js';
+import {
+    MY_AVATAR_TAG_BADGE_CLASS_NAME,
+    resolveMyAvatarActionDisabled,
+    resolveMyAvatarTagBadgeStyle
+} from '../myAvatarsDisplay.js';
 
 export function AvatarActionMenuItems({
     avatar,
@@ -251,29 +254,31 @@ export function MyAvatarGridCard({
                                 </span>
                                 {tags.length ? (
                                     <div className="flex min-w-0 flex-nowrap gap-1 overflow-hidden">
-                                        {visibleTags.map((entry) => {
-                                            const color = getTagColor(
-                                                entry.tag
-                                            );
-                                            return (
-                                                <Badge
-                                                    key={`${avatar.id}:${entry.tag}`}
-                                                    variant="outline"
-                                                    className="bg-background/75 shrink-0 truncate rounded-sm px-1 py-0 leading-tight shadow-sm backdrop-blur-[1px]"
-                                                    style={{
-                                                        fontSize: `${densityConfig.tagFontSize}px`,
-                                                        borderColor: color.bg,
-                                                        color: color.text
-                                                    }}
-                                                >
-                                                    {entry.tag}
-                                                </Badge>
-                                            );
-                                        })}
+                                        {visibleTags.map((entry) => (
+                                            <Badge
+                                                key={`${avatar.id}:${entry.tag}`}
+                                                variant="secondary"
+                                                className={cn(
+                                                    MY_AVATAR_TAG_BADGE_CLASS_NAME,
+                                                    'shrink-0 truncate shadow-sm'
+                                                )}
+                                                style={{
+                                                    ...resolveMyAvatarTagBadgeStyle(
+                                                        entry
+                                                    ),
+                                                    fontSize: `${densityConfig.tagFontSize}px`
+                                                }}
+                                            >
+                                                {entry.tag}
+                                            </Badge>
+                                        ))}
                                         {hiddenTagCount ? (
                                             <Badge
                                                 variant="outline"
-                                                className="bg-background/75 text-foreground/90 shrink-0 rounded-sm px-1 py-0 leading-tight shadow-sm backdrop-blur-[1px]"
+                                                className={cn(
+                                                    MY_AVATAR_TAG_BADGE_CLASS_NAME,
+                                                    'bg-background/75 text-foreground/90 shrink-0 shadow-sm backdrop-blur-[1px]'
+                                                )}
                                                 style={{
                                                     fontSize: `${densityConfig.tagFontSize}px`
                                                 }}

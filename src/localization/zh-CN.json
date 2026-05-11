@@ -614,6 +614,7 @@
                 "showing": "显示",
                 "of": "共",
                 "avatar": "个模型",
+                "avatars": "个模型",
                 "no_avatars_match_the_current_filters": "没有符合当前筛选的模型",
                 "broaden_the_filters_or_search_query_to_see_more_avatars": "放宽筛选或搜索条件以查看更多模型",
                 "change_avatar_image": "更换模型图片",

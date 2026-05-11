@@ -5,6 +5,7 @@ import { Badge } from '@/ui/shadcn/badge';
 import { Button } from '@/ui/shadcn/button';
 
 import {
+    MY_AVATAR_TAG_BADGE_CLASS_NAME,
     getMyAvatarPlatformInfo,
     resolveMyAvatarPerformanceLabel,
     resolveMyAvatarTagBadgeStyle
@@ -121,7 +122,7 @@ export function buildMyAvatarsColumns({
                             <Badge
                                 key={`${row.original.id}:${entry.tag}`}
                                 variant="secondary"
-                                className="rounded-sm px-1 py-0 text-xs leading-tight"
+                                className={MY_AVATAR_TAG_BADGE_CLASS_NAME}
                                 style={resolveMyAvatarTagBadgeStyle(entry)}
                             >
                                 {entry.tag}

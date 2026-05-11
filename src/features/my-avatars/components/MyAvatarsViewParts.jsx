@@ -12,8 +12,8 @@ import { useTranslation } from 'react-i18next';
 
 import { EmptyState } from '@/components/layout/PageScaffold.jsx';
 import { getAvailablePlatforms } from '@/lib/avatarPlatform.js';
+import { cn } from '@/lib/utils.js';
 import { openAvatarDialog } from '@/services/dialogService.js';
-import { getTagColor } from '@/shared/constants/tags.js';
 import { Badge } from '@/ui/shadcn/badge';
 import { Button } from '@/ui/shadcn/button';
 import {
@@ -29,7 +29,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/ui/shadcn/popover';
 import { Spinner } from '@/ui/shadcn/spinner';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/shadcn/toggle-group';
 
-import { resolveMyAvatarActionDisabled } from '../myAvatarsDisplay.js';
+import {
+    MY_AVATAR_TAG_BADGE_CLASS_NAME,
+    resolveMyAvatarActionDisabled,
+    resolveMyAvatarTagBadgeStyle
+} from '../myAvatarsDisplay.js';
 import { toggleMyAvatarsTagFilter } from '../myAvatarsFilters.js';
 import {
     MY_AVATARS_GRID_DENSITY_OPTIONS,
@@ -172,6 +176,20 @@ export function MyAvatarFilterPopover({
     onClearFilters
 }) {
     const { t } = useTranslation();
+    const visibilityFilterLabel = (option) =>
+        option === 'all'
+            ? t('view.search.avatar.all')
+            : option === 'public'
+              ? t('view.search.avatar.public')
+              : t('view.search.avatar.private');
+    const platformFilterLabel = (option) =>
+        option === 'all'
+            ? t('view.search.avatar.all')
+            : option === 'pc'
+              ? 'PC'
+              : option === 'android'
+                ? 'Android'
+                : 'iOS';
 
     return (
         <Popover>
@@ -207,21 +225,11 @@ export function MyAvatarFilterPopover({
                                 <ToggleGroupItem
                                     key={option}
                                     value={option}
-                                    aria-label={
-                                        option === 'all'
-                                            ? t('search.avatar.all')
-                                            : option === 'public'
-                                              ? t('search.avatar.public')
-                                              : t('search.avatar.private')
-                                    }
+                                    aria-label={visibilityFilterLabel(option)}
                                     className="w-full min-w-0 justify-center px-2"
                                 >
                                     <span className="truncate">
-                                        {option === 'all'
-                                            ? t('search.avatar.all')
-                                            : option === 'public'
-                                              ? t('search.avatar.public')
-                                              : t('search.avatar.private')}
+                                        {visibilityFilterLabel(option)}
                                     </span>
                                 </ToggleGroupItem>
                             ))}
@@ -245,14 +253,7 @@ export function MyAvatarFilterPopover({
                             className="grid w-full grid-cols-4"
                         >
                             {MY_AVATARS_PLATFORM_OPTIONS.map((option) => {
-                                const label =
-                                    option === 'all'
-                                        ? t('search.avatar.all')
-                                        : option === 'pc'
-                                          ? 'PC'
-                                          : option === 'android'
-                                            ? 'Android'
-                                            : 'iOS';
+                                const label = platformFilterLabel(option);
                                 return (
                                     <ToggleGroupItem
                                         key={option}
@@ -275,38 +276,38 @@ export function MyAvatarFilterPopover({
                             </div>
                             <div className="flex max-h-40 flex-wrap gap-1 overflow-y-auto">
                                 {allTags.map((tag) => {
-                                    const color = getTagColor(tag);
+                                    const selected = tagFilters.has(tag);
                                     return (
                                         <Badge
                                             key={tag}
-                                            variant={
-                                                tagFilters.has(tag)
-                                                    ? 'default'
-                                                    : 'outline'
-                                            }
-                                            className="cursor-pointer select-none"
-                                            style={
-                                                tagFilters.has(tag)
-                                                    ? {
-                                                          backgroundColor:
-                                                              color.bg,
-                                                          color: color.text
-                                                      }
-                                                    : {
-                                                          borderColor: color.bg,
-                                                          color: color.text
-                                                      }
-                                            }
-                                            onClick={() =>
-                                                onTagFiltersChange((current) =>
-                                                    toggleMyAvatarsTagFilter(
-                                                        current,
-                                                        tag
-                                                    )
-                                                )
-                                            }
+                                            asChild
+                                            variant="secondary"
+                                            className={cn(
+                                                MY_AVATAR_TAG_BADGE_CLASS_NAME,
+                                                'cursor-pointer select-none',
+                                                selected
+                                                    ? 'border-ring'
+                                                    : 'border-transparent opacity-80 hover:opacity-100'
+                                            )}
+                                            style={resolveMyAvatarTagBadgeStyle(
+                                                { tag }
+                                            )}
                                         >
-                                            {tag}
+                                            <button
+                                                type="button"
+                                                aria-pressed={selected}
+                                                onClick={() =>
+                                                    onTagFiltersChange(
+                                                        (current) =>
+                                                            toggleMyAvatarsTagFilter(
+                                                                current,
+                                                                tag
+                                                            )
+                                                    )
+                                                }
+                                            >
+                                                {tag}
+                                            </button>
                                         </Badge>
                                     );
                                 })}

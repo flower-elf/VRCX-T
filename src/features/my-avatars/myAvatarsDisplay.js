@@ -17,6 +17,9 @@ export function resolveMyAvatarActionDisabled(avatar, isUpdating) {
     return isUpdating || !avatar?.id;
 }
 
+export const MY_AVATAR_TAG_BADGE_CLASS_NAME =
+    'rounded-sm px-1 py-0 text-xs leading-tight';
+
 export function resolveMyAvatarTagBadgeStyle(entry) {
     const color = entry?.color
         ? {

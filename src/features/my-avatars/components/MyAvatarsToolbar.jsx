@@ -50,7 +50,6 @@ export function MyAvatarsToolbar({
                     type="single"
                     variant="outline"
                     size="sm"
-                    spacing={1}
                     value={viewMode}
                     onValueChange={(nextValue) => {
                         if (nextValue) {
