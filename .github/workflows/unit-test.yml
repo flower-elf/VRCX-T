@@ -21,6 +21,7 @@ permissions:
 
 jobs:
     frontend:
+        name: Vitest
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -32,6 +33,7 @@ jobs:
             - run: npm run test
 
     tauri-windows:
+        name: Tauri Rust (windows-latest)
         runs-on: windows-latest
         defaults:
             run:
@@ -45,6 +47,7 @@ jobs:
             - run: cargo test --manifest-path src-tauri/Cargo.toml
 
     tauri-linux:
+        name: Tauri Rust (ubuntu-24.04)
         runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@v4
@@ -56,6 +59,20 @@ jobs:
                       libgtk-3-dev \
                       libayatana-appindicator3-dev \
                       librsvg2-dev
+            - uses: dtolnay/rust-toolchain@stable
+            - uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: src-tauri -> target
+            - run: cargo test --manifest-path src-tauri/Cargo.toml
+
+    tauri-macos:
+        name: Tauri Rust (macos-latest)
+        runs-on: macos-latest
+        defaults:
+            run:
+                shell: bash
+        steps:
+            - uses: actions/checkout@v4
             - uses: dtolnay/rust-toolchain@stable
             - uses: Swatinem/rust-cache@v2
               with:

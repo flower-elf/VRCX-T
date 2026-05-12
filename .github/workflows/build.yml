@@ -21,6 +21,7 @@ permissions:
 
 jobs:
     frontend:
+        name: Frontend React
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -37,7 +38,7 @@ jobs:
                   if-no-files-found: error
 
     tauri:
-        name: Tauri Rust (${{ matrix.os }})
+        name: Tauri Rust (${{ matrix.label }})
         runs-on: ${{ matrix.os }}
         defaults:
             run:
@@ -45,7 +46,19 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                os: [windows-latest, ubuntu-24.04]
+                include:
+                    - label: Windows
+                      os: windows-latest
+                      rust_target: ''
+                    - label: Linux
+                      os: ubuntu-24.04
+                      rust_target: ''
+                    - label: macOS Apple Silicon
+                      os: macos-latest
+                      rust_target: aarch64-apple-darwin
+                    - label: macOS Intel
+                      os: macos-latest
+                      rust_target: x86_64-apple-darwin
         steps:
             - uses: actions/checkout@v4
             - name: Install Linux dependencies
@@ -58,8 +71,19 @@ jobs:
                       libayatana-appindicator3-dev \
                       librsvg2-dev
             - uses: dtolnay/rust-toolchain@stable
+            - name: Install Rust target
+              if: matrix.rust_target != ''
+              run: rustup target add "${{ matrix.rust_target }}"
             - uses: Swatinem/rust-cache@v2
               with:
                   workspaces: src-tauri -> target
             - run: mkdir -p dist && printf '<!doctype html><html><body></body></html>' > dist/index.html
-            - run: cargo build --manifest-path src-tauri/Cargo.toml --locked
+            - name: Build Tauri crate
+              env:
+                  RUST_TARGET: ${{ matrix.rust_target }}
+              run: |
+                  if [[ -n "$RUST_TARGET" ]]; then
+                      cargo build --manifest-path src-tauri/Cargo.toml --locked --target "$RUST_TARGET"
+                  else
+                      cargo build --manifest-path src-tauri/Cargo.toml --locked
+                  fi
