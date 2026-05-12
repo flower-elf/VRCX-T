@@ -170,6 +170,7 @@ export function useSettingsPageController() {
     );
     const [prefs, setPrefs] = useState(() => createDefaultSettingsPrefs());
     const [sqliteTableSizes, setSqliteTableSizes] = useState({});
+    const [cacheStatsVisible, setCacheStatsVisible] = useState(false);
     const [cacheStats, setCacheStats] = useState({
         queryCache: 0,
         userCache: 0,
@@ -366,6 +367,7 @@ export function useSettingsPageController() {
         setAppLauncherPreference,
         setBoolConfigPreference,
         setCacheStats,
+        setCacheStatsVisible,
         setConfigTreeData,
         setCropInstancePrintsPreference,
         setCustomFontDialogOpen,
@@ -593,6 +595,7 @@ export function useSettingsPageController() {
             t,
             prefs,
             cacheStats,
+            cacheStatsVisible,
             avatarAutoCleanupOptions,
             sqliteTableSizes,
             sqliteTableSizeRows,

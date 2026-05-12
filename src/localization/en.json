@@ -1549,10 +1549,21 @@
                     "header": "Security"
                 },
                 "diagnostics": {
-                    "header": "Diagnostics"
+                    "header": "Diagnostics",
+                    "refresh_online_users": "Refresh online users",
+                    "refresh_config_json": "Read Config JSON",
+                    "clear_config_json": "Clear displayed JSON"
                 },
                 "diagnostics_maintenance": {
-                    "header": "Diagnostics & Maintenance"
+                    "header": "Maintenance",
+                    "clear_vrcx_cache": "Clear VRCX cache",
+                    "configure_auto_clear": "Set auto-clear interval",
+                    "refresh_cache_size": "Refresh cache size",
+                    "not_refreshed": "Not refreshed",
+                    "purge_avatar_history_description": "Open the cleanup confirmation before deleting old avatar change records.",
+                    "purge_avatar_history": "Purge avatar history",
+                    "refresh_sqlite_tables": "Refresh table sizes",
+                    "migrate_legacy_vrcx": "Migrate legacy VRCX data"
                 },
                 "database": {
                     "header": "Database"

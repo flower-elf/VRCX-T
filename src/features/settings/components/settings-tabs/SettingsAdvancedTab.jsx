@@ -10,6 +10,7 @@ export function SettingsAdvancedTab({
     t,
     prefs,
     cacheStats,
+    cacheStatsVisible,
     avatarAutoCleanupOptions,
     sqliteTableSizes,
     sqliteTableSizeRows,
@@ -212,6 +213,7 @@ export function SettingsAdvancedTab({
                 t={t}
                 prefs={prefs}
                 cacheStats={cacheStats}
+                cacheStatsVisible={cacheStatsVisible}
                 avatarAutoCleanupOptions={avatarAutoCleanupOptions}
                 sqliteTableSizes={sqliteTableSizes}
                 sqliteTableSizeRows={sqliteTableSizeRows}

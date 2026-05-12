@@ -1549,10 +1549,21 @@
                     "header": "安全"
                 },
                 "diagnostics": {
-                    "header": "诊断"
+                    "header": "诊断",
+                    "refresh_online_users": "刷新在线人数",
+                    "refresh_config_json": "读取 Config JSON",
+                    "clear_config_json": "清除显示结果"
                 },
                 "diagnostics_maintenance": {
-                    "header": "诊断与维护"
+                    "header": "维护",
+                    "clear_vrcx_cache": "清除 VRCX 缓存",
+                    "configure_auto_clear": "设置自动清理周期",
+                    "refresh_cache_size": "刷新缓存大小",
+                    "not_refreshed": "未刷新",
+                    "purge_avatar_history_description": "打开确认弹窗后再删除旧的模型变动记录。",
+                    "purge_avatar_history": "清理模型记录",
+                    "refresh_sqlite_tables": "刷新表大小",
+                    "migrate_legacy_vrcx": "迁移旧版 VRCX 数据"
                 },
                 "database": {
                     "header": "数据库"

@@ -4,6 +4,7 @@ export function SettingsAdvancedSection({ advanced }) {
         t,
         prefs,
         cacheStats,
+        cacheStatsVisible,
         avatarAutoCleanupOptions,
         sqliteTableSizes,
         sqliteTableSizeRows,
@@ -30,6 +31,7 @@ export function SettingsAdvancedSection({ advanced }) {
             t={t}
             prefs={prefs}
             cacheStats={cacheStats}
+            cacheStatsVisible={cacheStatsVisible}
             avatarAutoCleanupOptions={avatarAutoCleanupOptions}
             sqliteTableSizes={sqliteTableSizes}
             sqliteTableSizeRows={sqliteTableSizeRows}

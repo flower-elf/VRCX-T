@@ -1549,10 +1549,21 @@
                     "header": "セキュリティ"
                 },
                 "diagnostics": {
-                    "header": "診断情報"
+                    "header": "診断情報",
+                    "refresh_online_users": "オンライン数を更新",
+                    "refresh_config_json": "Config JSON を読み取り",
+                    "clear_config_json": "表示結果をクリア"
                 },
                 "diagnostics_maintenance": {
-                    "header": "診断とメンテナンス"
+                    "header": "メンテナンス",
+                    "clear_vrcx_cache": "VRCX キャッシュを消去",
+                    "configure_auto_clear": "自動消去間隔を設定",
+                    "refresh_cache_size": "キャッシュサイズを更新",
+                    "not_refreshed": "未更新",
+                    "purge_avatar_history_description": "古いアバター変更履歴を削除する前に、確認ダイアログを開きます。",
+                    "purge_avatar_history": "アバター履歴を削除",
+                    "refresh_sqlite_tables": "テーブルサイズを更新",
+                    "migrate_legacy_vrcx": "旧 VRCX データを移行"
                 },
                 "database": {
                     "header": "データベース"

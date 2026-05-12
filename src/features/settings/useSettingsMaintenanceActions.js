@@ -27,6 +27,7 @@ export function useSettingsMaintenanceActions({
     savePreferenceValue,
     saveStringPreference,
     setCacheStats,
+    setCacheStatsVisible,
     setCropInstancePrintsPreference,
     setIntConfigPreference,
     setPrefs,
@@ -107,6 +108,7 @@ export function useSettingsMaintenanceActions({
             favoriteDetailsPending: favoriteStats.detailPromiseCount,
             assetBundleCacheSize
         });
+        setCacheStatsVisible(true);
     }
     async function clearVrcxCache() {
         const queryCacheCount = getEntityQueryCacheSize();
