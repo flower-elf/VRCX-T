@@ -1,7 +1,13 @@
 import { useRuntimeStore } from '@/state/runtimeStore.js';
 import { useSessionStore } from '@/state/sessionStore.js';
 
-function joinPendingItems(items) {
+type StartupServicesStatus = {
+    completed: boolean;
+    pending: string[];
+    detail: string;
+};
+
+function joinPendingItems(items: string[]): string {
     if (items.length === 0) {
         return '';
     }
@@ -15,9 +21,9 @@ function joinPendingItems(items) {
     return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
 }
 
-export function getPendingStartupServices() {
+export function getPendingStartupServices(): string[] {
     const sessionState = useSessionStore.getState();
-    const pending = [];
+    const pending: string[] = [];
 
     if (!sessionState.isFriendsLoaded) {
         pending.push('friend roster baseline');
@@ -32,7 +38,9 @@ export function getPendingStartupServices() {
     return pending;
 }
 
-export function syncStartupServicesTask(baseParts = []) {
+export function syncStartupServicesTask(
+    baseParts: unknown[] = []
+): StartupServicesStatus {
     const runtimeStore = useRuntimeStore.getState();
     const currentStartupStatus = runtimeStore.startup.services.status;
     const pending = getPendingStartupServices();

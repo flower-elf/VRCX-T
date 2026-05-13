@@ -1,7 +1,21 @@
 import { authRepository } from '@/repositories/index.js';
 import { useRuntimeStore } from '@/state/runtimeStore.js';
 
-function describeAuthStartupTask(snapshot) {
+type SavedAuthSnapshot = Record<string, unknown> & {
+    lastUserLoggedIn: unknown;
+    savedCredentialCount: unknown;
+    autoLoginStatus: string;
+    autoLoginReason: string;
+    autoLoginDelayEnabled: unknown;
+    autoLoginDelaySeconds: unknown;
+};
+
+type AuthStartupTask = {
+    status: string;
+    detail: string;
+};
+
+function describeAuthStartupTask(snapshot: SavedAuthSnapshot): AuthStartupTask {
     switch (snapshot.autoLoginStatus) {
         case 'available':
             return {
@@ -24,7 +38,9 @@ function describeAuthStartupTask(snapshot) {
     }
 }
 
-export function applySavedAuthSnapshot(snapshot) {
+export function applySavedAuthSnapshot(
+    snapshot: SavedAuthSnapshot
+): SavedAuthSnapshot {
     const runtimeStore = useRuntimeStore.getState();
     runtimeStore.setAuthBootstrap({
         lastUserLoggedIn: snapshot.lastUserLoggedIn,
@@ -45,7 +61,7 @@ export async function refreshSavedAuthSnapshot() {
     return applySavedAuthSnapshot(snapshot);
 }
 
-export async function deleteSavedAuthSnapshot(userId) {
+export async function deleteSavedAuthSnapshot(userId: string) {
     const snapshot = await authRepository.deleteSavedCredential(userId);
     return applySavedAuthSnapshot(snapshot);
 }
