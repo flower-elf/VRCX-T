@@ -6040,6 +6040,7 @@ dependencies = [
  "tokio",
  "tracing-subscriber",
  "vrcx-0-application",
+ "vrcx-0-host",
  "vrcx-0-runtime-host",
 ]
 

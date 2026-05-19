@@ -17,6 +17,7 @@ mod proxy;
 mod realtime;
 mod registry_backup;
 mod runtime_lifecycle;
+mod runtime_output;
 mod screenshots;
 mod session;
 mod social_baseline;
@@ -105,6 +106,9 @@ pub use registry_backup::{
     RegistryBackupMaintenanceResult, RegistryBackupSnapshot,
 };
 pub use runtime_lifecycle::{RuntimeLifecycle, RuntimeLifecycleSnapshot};
+pub use runtime_output::{
+    format_runtime_output_event, RuntimeOutputLevel, RuntimeOutputLine, RuntimeOutputMode,
+};
 pub use screenshots::{
     add_screenshot_metadata, can_decode_image, delete_all_screenshot_metadata,
     delete_text_metadata, ensure_screenshot_thumbnail, extra_screenshot_data, find_screenshots,

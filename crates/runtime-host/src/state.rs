@@ -893,6 +893,7 @@ impl RuntimeHostState {
 
         let db = Arc::clone(&self.db);
         let backend_runtime = self.backend_runtime.clone();
+        let runtime_context = Arc::clone(&self.runtime_context);
         let background_jobs = self.runtime_context.background_jobs.clone();
         let running = Arc::clone(&self.registry_backup_maintenance_running);
         let registry_backup_lock = Arc::clone(&self.registry_backup_lock);
@@ -929,6 +930,11 @@ impl RuntimeHostState {
                         Ok(result) => {
                             if result.auto_backup_created {
                                 tracing::info!("background mode registry auto backup created");
+                                emit_background_info(
+                                    &runtime_context,
+                                    &backend_runtime,
+                                    result.detail.clone(),
+                                );
                             }
                             background_jobs
                                 .mark_completed(REGISTRY_BACKUP_MAINTENANCE_JOB, result.detail);
@@ -942,6 +948,11 @@ impl RuntimeHostState {
                             tracing::warn!(
                                 error = %error,
                                 "background registry backup maintenance failed"
+                            );
+                            emit_background_error(
+                                &runtime_context,
+                                &backend_runtime,
+                                format!("registry backup maintenance failed: {error}."),
                             );
                             background_jobs
                                 .mark_failed(REGISTRY_BACKUP_MAINTENANCE_JOB, error.to_string());
@@ -1040,6 +1051,7 @@ impl RuntimeHostState {
             .spawn_cancellable(move |stop_token| async move {
                 let mut presence_state = BackgroundPresenceAutomationState::default();
                 let mut discord_state = BackgroundDiscordPresenceState::default();
+                let mut discord_success_info: Option<String> = None;
                 let mut next_presence = Instant::now();
                 let mut next_discord = Instant::now();
                 let mut next_current_user = Instant::now();
@@ -1064,6 +1076,8 @@ impl RuntimeHostState {
                             &web,
                             &session_slot,
                             &realtime_runtime,
+                            &runtime_context,
+                            &backend_runtime,
                             &background_jobs,
                         )
                         .await;
@@ -1076,6 +1090,8 @@ impl RuntimeHostState {
                             &db,
                             &web,
                             &session_slot,
+                            &runtime_context,
+                            &backend_runtime,
                             &background_jobs,
                         )
                         .await;
@@ -1090,6 +1106,7 @@ impl RuntimeHostState {
                             &session_slot,
                             &realtime_runtime,
                             &runtime_context,
+                            &backend_runtime,
                             &background_jobs,
                             &mut favorite_friend_groups_by_key,
                         )
@@ -1104,6 +1121,7 @@ impl RuntimeHostState {
                             &web,
                             &session_slot,
                             &runtime_context,
+                            &backend_runtime,
                             &background_jobs,
                         )
                         .await;
@@ -1118,6 +1136,7 @@ impl RuntimeHostState {
                             &session_slot,
                             &realtime_runtime,
                             &runtime_context,
+                            &backend_runtime,
                             &background_jobs,
                             &mut presence_state,
                             &favorite_friend_groups_by_key,
@@ -1134,9 +1153,11 @@ impl RuntimeHostState {
                             &session_slot,
                             &realtime_runtime,
                             &runtime_context,
+                            &backend_runtime,
                             &background_jobs,
                             &discord_rpc,
                             &mut discord_state,
+                            &mut discord_success_info,
                             &favorite_friend_groups_by_key,
                         )
                         .await;
@@ -1194,6 +1215,63 @@ fn is_background_registry_maintenance_active(runtime: &BackendRuntime) -> bool {
         && snapshot.phase == BackendRuntimePhase::Running
 }
 
+fn emit_background_info(
+    runtime_context: &Arc<RuntimeHostContext>,
+    backend_runtime: &BackendRuntime,
+    detail: impl Into<String>,
+) {
+    emit_background_output(runtime_context, backend_runtime, "backgroundInfo", detail);
+}
+
+fn emit_background_error(
+    runtime_context: &Arc<RuntimeHostContext>,
+    backend_runtime: &BackendRuntime,
+    detail: impl Into<String>,
+) {
+    emit_background_output(runtime_context, backend_runtime, "backgroundError", detail);
+}
+
+fn emit_background_info_if_changed(
+    runtime_context: &Arc<RuntimeHostContext>,
+    backend_runtime: &BackendRuntime,
+    last_detail: &mut Option<String>,
+    detail: impl Into<String>,
+) {
+    let detail = detail.into();
+    if last_detail.as_deref() == Some(detail.as_str()) {
+        return;
+    }
+    emit_background_info(runtime_context, backend_runtime, detail.clone());
+    *last_detail = Some(detail);
+}
+
+fn emit_background_output(
+    runtime_context: &Arc<RuntimeHostContext>,
+    backend_runtime: &BackendRuntime,
+    kind: &str,
+    detail: impl Into<String>,
+) {
+    let snapshot = backend_runtime.snapshot();
+    if snapshot.mode != BackendRuntimeMode::Background
+        || !matches!(
+            snapshot.phase,
+            BackendRuntimePhase::Starting
+                | BackendRuntimePhase::Authenticating
+                | BackendRuntimePhase::Running
+        )
+    {
+        return;
+    }
+    runtime_context.event_bus.emit(
+        "backendRuntimeTelemetry",
+        BackendRuntimeTelemetry {
+            kind: kind.into(),
+            detail: detail.into(),
+            snapshot,
+        },
+    );
+}
+
 fn background_capability_session(
     session_slot: &Arc<Mutex<Option<BackendRuntimeFrontendSessionSnapshot>>>,
 ) -> Option<BackgroundCapabilitySession> {
@@ -1220,6 +1298,7 @@ async fn run_background_presence_tick(
     session_slot: &Arc<Mutex<Option<BackendRuntimeFrontendSessionSnapshot>>>,
     realtime_runtime: &Arc<RealtimeHostRuntime>,
     runtime_context: &Arc<RuntimeHostContext>,
+    backend_runtime: &BackendRuntime,
     background_jobs: &RuntimeBackgroundJobs,
     presence_state: &mut BackgroundPresenceAutomationState,
     favorite_friend_groups_by_key: &HashMap<String, Vec<String>>,
@@ -1257,6 +1336,11 @@ async fn run_background_presence_tick(
         Ok(facts) => facts,
         Err(error) => {
             tracing::warn!(error = %error, "background presence facts build failed");
+            emit_background_error(
+                runtime_context,
+                backend_runtime,
+                format!("presence automation facts failed: {error}."),
+            );
             background_jobs.mark_failed(BACKGROUND_PRESENCE_AUTOMATION_JOB, error.to_string());
             return;
         }
@@ -1273,6 +1357,11 @@ async fn run_background_presence_tick(
         Ok(result) => result,
         Err(error) => {
             tracing::warn!(error = %error, "background presence automation failed");
+            emit_background_error(
+                runtime_context,
+                backend_runtime,
+                format!("presence automation failed: {error}."),
+            );
             background_jobs.mark_failed(BACKGROUND_PRESENCE_AUTOMATION_JOB, error.to_string());
             return;
         }
@@ -1315,6 +1404,11 @@ async fn run_background_presence_tick(
             rules = ?result.matched_rule_ids,
             "background presence automation applied"
         );
+        emit_background_info(
+            runtime_context,
+            backend_runtime,
+            background_presence_applied_detail(&result.patch, result.matched_rule_ids.len()),
+        );
     }
     background_jobs.mark_completed(
         BACKGROUND_PRESENCE_AUTOMATION_JOB,
@@ -1333,9 +1427,11 @@ async fn run_background_discord_tick(
     session_slot: &Arc<Mutex<Option<BackendRuntimeFrontendSessionSnapshot>>>,
     realtime_runtime: &Arc<RealtimeHostRuntime>,
     runtime_context: &Arc<RuntimeHostContext>,
+    backend_runtime: &BackendRuntime,
     background_jobs: &RuntimeBackgroundJobs,
     discord_rpc: &Arc<DiscordRpc>,
     discord_state: &mut BackgroundDiscordPresenceState,
+    discord_success_info: &mut Option<String>,
     favorite_friend_groups_by_key: &HashMap<String, Vec<String>>,
 ) {
     background_jobs.mark_running(
@@ -1371,6 +1467,12 @@ async fn run_background_discord_tick(
         Ok(facts) => facts,
         Err(error) => {
             tracing::warn!(error = %error, "background Discord facts build failed");
+            *discord_success_info = None;
+            emit_background_error(
+                runtime_context,
+                backend_runtime,
+                format!("Discord presence facts failed: {error}."),
+            );
             background_jobs.mark_failed(BACKGROUND_DISCORD_PRESENCE_JOB, error.to_string());
             return;
         }
@@ -1388,6 +1490,12 @@ async fn run_background_discord_tick(
         Ok(command) => command,
         Err(error) => {
             tracing::warn!(error = %error, "background Discord presence compose failed");
+            *discord_success_info = None;
+            emit_background_error(
+                runtime_context,
+                backend_runtime,
+                format!("Discord presence compose failed: {error}."),
+            );
             background_jobs.mark_failed(BACKGROUND_DISCORD_PRESENCE_JOB, error.to_string());
             return;
         }
@@ -1400,17 +1508,38 @@ async fn run_background_discord_tick(
             match tokio::task::spawn_blocking(move || rpc.set_active(active)).await {
                 Ok(Ok(result)) => {
                     discord_state.apply_set_active_result(result);
+                    emit_background_info_if_changed(
+                        runtime_context,
+                        backend_runtime,
+                        discord_success_info,
+                        format!(
+                            "Discord presence {}: {detail}",
+                            if active { "connected" } else { "cleared" }
+                        ),
+                    );
                     detail
                 }
                 Ok(Err(error)) => {
                     discord_state.apply_set_active_result(false);
                     tracing::warn!(error = %error, "background Discord SetActive failed");
+                    *discord_success_info = None;
+                    emit_background_error(
+                        runtime_context,
+                        backend_runtime,
+                        format!("Discord SetActive failed: {error}."),
+                    );
                     background_jobs.mark_failed(BACKGROUND_DISCORD_PRESENCE_JOB, error.to_string());
                     return;
                 }
                 Err(error) => {
                     discord_state.apply_set_active_result(false);
                     tracing::warn!(error = %error, "background Discord SetActive task failed");
+                    *discord_success_info = None;
+                    emit_background_error(
+                        runtime_context,
+                        backend_runtime,
+                        format!("Discord SetActive task failed: {error}."),
+                    );
                     background_jobs.mark_failed(BACKGROUND_DISCORD_PRESENCE_JOB, error.to_string());
                     return;
                 }
@@ -1426,17 +1555,35 @@ async fn run_background_discord_tick(
             match tokio::task::spawn_blocking(move || rpc.set_assets(payload)).await {
                 Ok(Ok(result)) => {
                     discord_state.apply_set_assets_result(result);
+                    emit_background_info_if_changed(
+                        runtime_context,
+                        backend_runtime,
+                        discord_success_info,
+                        format!("Discord activity sent: {detail}"),
+                    );
                     detail
                 }
                 Ok(Err(error)) => {
                     discord_state.apply_set_assets_result(false);
                     tracing::warn!(error = %error, "background Discord SetAssets failed");
+                    *discord_success_info = None;
+                    emit_background_error(
+                        runtime_context,
+                        backend_runtime,
+                        format!("Discord SetAssets failed: {error}."),
+                    );
                     background_jobs.mark_failed(BACKGROUND_DISCORD_PRESENCE_JOB, error.to_string());
                     return;
                 }
                 Err(error) => {
                     discord_state.apply_set_assets_result(false);
                     tracing::warn!(error = %error, "background Discord SetAssets task failed");
+                    *discord_success_info = None;
+                    emit_background_error(
+                        runtime_context,
+                        backend_runtime,
+                        format!("Discord SetAssets task failed: {error}."),
+                    );
                     background_jobs.mark_failed(BACKGROUND_DISCORD_PRESENCE_JOB, error.to_string());
                     return;
                 }
@@ -1456,6 +1603,8 @@ async fn run_background_current_user_refresh(
     web: &Arc<WebClient>,
     session_slot: &Arc<Mutex<Option<BackendRuntimeFrontendSessionSnapshot>>>,
     realtime_runtime: &Arc<RealtimeHostRuntime>,
+    runtime_context: &Arc<RuntimeHostContext>,
+    backend_runtime: &BackendRuntime,
     background_jobs: &RuntimeBackgroundJobs,
 ) {
     background_jobs.mark_running(
@@ -1501,13 +1650,17 @@ async fn run_background_current_user_refresh(
             } else {
                 tracing::warn!("ignored background current user refresh rejected by realtime");
             }
-            background_jobs.mark_completed(
-                BACKGROUND_FACTS_REFRESH_JOB,
-                "Background current user facts refreshed.",
-            );
+            let detail = "current user facts refreshed.";
+            emit_background_info(runtime_context, backend_runtime, detail);
+            background_jobs.mark_completed(BACKGROUND_FACTS_REFRESH_JOB, detail);
         }
         Err(error) => {
             tracing::warn!(error = %error, "background current user refresh failed");
+            emit_background_error(
+                runtime_context,
+                backend_runtime,
+                format!("current user refresh failed: {error}."),
+            );
             background_jobs.mark_failed(BACKGROUND_FACTS_REFRESH_JOB, error.to_string());
         }
     }
@@ -1522,6 +1675,8 @@ async fn run_background_group_instance_refresh(
     db: &Arc<DatabaseService>,
     web: &Arc<WebClient>,
     session_slot: &Arc<Mutex<Option<BackendRuntimeFrontendSessionSnapshot>>>,
+    runtime_context: &Arc<RuntimeHostContext>,
+    backend_runtime: &BackendRuntime,
     background_jobs: &RuntimeBackgroundJobs,
 ) {
     background_jobs.mark_running(
@@ -1537,12 +1692,18 @@ async fn run_background_group_instance_refresh(
         return;
     };
     match refresh_background_group_instances(web.as_ref(), db.as_ref(), &session).await {
-        Ok(count) => background_jobs.mark_completed(
-            BACKGROUND_FACTS_REFRESH_JOB,
-            format!("Background group instance facts refreshed: {count} rows."),
-        ),
+        Ok(count) => {
+            let detail = format!("group instance facts refreshed: {count} rows.");
+            emit_background_info(runtime_context, backend_runtime, detail.clone());
+            background_jobs.mark_completed(BACKGROUND_FACTS_REFRESH_JOB, detail);
+        }
         Err(error) => {
             tracing::warn!(error = %error, "background group instance refresh failed");
+            emit_background_error(
+                runtime_context,
+                backend_runtime,
+                format!("group instance refresh failed: {error}."),
+            );
             background_jobs.mark_failed(BACKGROUND_FACTS_REFRESH_JOB, error.to_string());
         }
     }
@@ -1559,6 +1720,7 @@ async fn run_background_social_baseline_refresh(
     session_slot: &Arc<Mutex<Option<BackendRuntimeFrontendSessionSnapshot>>>,
     realtime_runtime: &Arc<RealtimeHostRuntime>,
     runtime_context: &Arc<RuntimeHostContext>,
+    backend_runtime: &BackendRuntime,
     background_jobs: &RuntimeBackgroundJobs,
     favorite_friend_groups_by_key: &mut HashMap<String, Vec<String>>,
 ) {
@@ -1637,14 +1799,18 @@ async fn run_background_social_baseline_refresh(
         }
         Err(error) => {
             tracing::warn!(error = %error, "background social baseline refresh failed");
+            emit_background_error(
+                runtime_context,
+                backend_runtime,
+                format!("social baseline refresh failed: {error}."),
+            );
             background_jobs.mark_failed(BACKGROUND_FACTS_REFRESH_JOB, error.to_string());
             return;
         }
     };
-    background_jobs.mark_completed(
-        BACKGROUND_FACTS_REFRESH_JOB,
-        format!("Background friend and favorite facts refreshed: {friend_count} friends."),
-    );
+    let detail = format!("friend and favorite facts refreshed: {friend_count} friends.");
+    emit_background_info(runtime_context, backend_runtime, detail.clone());
+    background_jobs.mark_completed(BACKGROUND_FACTS_REFRESH_JOB, detail);
     background_jobs.mark_scheduled(
         BACKGROUND_FACTS_REFRESH_JOB,
         "Next background friend and favorite facts refresh is waiting.",
@@ -1657,6 +1823,7 @@ async fn run_background_moderation_refresh(
     web: &Arc<WebClient>,
     session_slot: &Arc<Mutex<Option<BackendRuntimeFrontendSessionSnapshot>>>,
     runtime_context: &Arc<RuntimeHostContext>,
+    backend_runtime: &BackendRuntime,
     background_jobs: &RuntimeBackgroundJobs,
 ) {
     background_jobs.mark_running(
@@ -1686,15 +1853,21 @@ async fn run_background_moderation_refresh(
     )
     .await
     {
-        Ok(output) => background_jobs.mark_completed(
-            BACKGROUND_MODERATION_REFRESH_JOB,
-            format!(
-                "Background moderation facts refreshed: {} local rows.",
+        Ok(output) => {
+            let detail = format!(
+                "moderation facts refreshed: {} local rows.",
                 output.local_count
-            ),
-        ),
+            );
+            emit_background_info(runtime_context, backend_runtime, detail.clone());
+            background_jobs.mark_completed(BACKGROUND_MODERATION_REFRESH_JOB, detail);
+        }
         Err(error) => {
             tracing::warn!(error = %error, "background moderation refresh failed");
+            emit_background_error(
+                runtime_context,
+                backend_runtime,
+                format!("moderation refresh failed: {error}."),
+            );
             background_jobs.mark_failed(BACKGROUND_MODERATION_REFRESH_JOB, error.to_string());
         }
     }
@@ -1703,6 +1876,19 @@ async fn run_background_moderation_refresh(
         "Next background moderation refresh is waiting.",
         BACKGROUND_MODERATION_CADENCE_SECONDS,
     );
+}
+
+fn background_presence_applied_detail(patch: &Value, matched_rule_count: usize) -> String {
+    let fields = patch
+        .as_object()
+        .map(|object| {
+            let mut fields = object.keys().cloned().collect::<Vec<_>>();
+            fields.sort();
+            fields.join(", ")
+        })
+        .filter(|fields| !fields.is_empty())
+        .unwrap_or_else(|| "none".into());
+    format!("presence automation applied: fields {fields}; matched rules {matched_rule_count}.")
 }
 
 fn update_backend_frontend_session_user_if_session_matches(
@@ -1975,7 +2161,8 @@ fn parse_current_user_response(
         .is_some_and(|methods| !methods.is_empty())
     {
         return Err(NonInteractiveAuthError::InteractionRequired(
-            "需要 GUI 重新认证：账号需要 2FA/OTP。".into(),
+            "Re-authentication in the GUI is required because this account requires 2FA/OTP."
+                .into(),
         ));
     }
     if !(200..=399).contains(&response.status) {

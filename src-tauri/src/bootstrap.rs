@@ -13,6 +13,7 @@ use tracing_subscriber::Layer;
 
 use crate::state::{AppState, BACKGROUND_MODE_RESUME_ROUTE_STORAGE_KEY};
 use vrcx_0_application::RuntimeEventSink;
+use vrcx_0_application::{format_runtime_output_event, RuntimeOutputLevel, RuntimeOutputMode};
 use vrcx_0_application::{BackendRuntimeMode, BackendRuntimePhase};
 use vrcx_0_application::{RuntimeTask, RuntimeTaskExecutor, RuntimeTaskHandle};
 use vrcx_0_host::host_capabilities::{is_host_capability_available, HostCapability};
@@ -90,13 +91,7 @@ fn log_gui_background_runtime_info(
         {
             return;
         }
-        let status = json_string_field(payload, "status");
-        let reason = json_string_field(payload, "reason");
-        if reason.is_empty() {
-            tracing::info!("background mode ws status: {status}");
-        } else {
-            tracing::info!("background mode ws status: {status} ({reason})");
-        }
+        log_runtime_output_event(RuntimeOutputMode::Background, event, payload);
         return;
     }
 
@@ -106,10 +101,9 @@ fn log_gui_background_runtime_info(
 
     let snapshot = payload.get("snapshot").unwrap_or(&serde_json::Value::Null);
     let kind = json_string_field(payload, "kind");
-    let detail = json_string_field(payload, "detail");
     if kind == "runtimeStopped" {
         if json_string_field(snapshot, "mode") == "background" {
-            tracing::info!("background mode exited: {detail}");
+            log_runtime_output_event(RuntimeOutputMode::Background, event, payload);
         }
         return;
     }
@@ -133,49 +127,7 @@ fn log_gui_background_runtime_info(
         return;
     }
 
-    match kind.as_str() {
-        "authSuccess" => {
-            let name = json_string_field(snapshot, "authDisplayName");
-            let user_id = json_string_field(snapshot, "authUserId");
-            tracing::info!(
-                "background mode login success: {} ({})",
-                empty_log_fallback(&name, "unknown user"),
-                empty_log_fallback(&user_id, "unknown id")
-            );
-        }
-        "wsStatus" => {}
-        "wsMessage" => {
-            let total = snapshot
-                .get("wsMessageCounts")
-                .and_then(|counts| counts.get(&detail))
-                .and_then(serde_json::Value::as_u64)
-                .unwrap_or(0);
-            tracing::info!("background mode ws message: type={detail}, count={total}");
-        }
-        "wsPersisted" => {
-            let total = snapshot
-                .get("wsPersistedCount")
-                .and_then(serde_json::Value::as_u64)
-                .unwrap_or(0);
-            tracing::info!("background mode ws persisted to db: count={detail}, total={total}");
-        }
-        "processStatus" => match detail.as_str() {
-            "vrchatRunning" => tracing::info!("background mode vrchat started"),
-            "vrchatStopped" => tracing::info!("background mode vrchat stopped"),
-            _ => tracing::info!("background mode vrchat process status: {detail}"),
-        },
-        "gameLogPersisted" => {
-            let total = snapshot
-                .get("gameLogPersistedCount")
-                .and_then(serde_json::Value::as_u64)
-                .unwrap_or(0);
-            tracing::info!(
-                "background mode gamelog persisted to db: count={detail}, total={total}"
-            );
-        }
-        "gameLogWatcher" => tracing::info!("background mode gamelog watcher: {detail}"),
-        _ => {}
-    }
+    log_runtime_output_event(RuntimeOutputMode::Background, event, payload);
 }
 
 fn json_string_field(value: &serde_json::Value, key: &str) -> String {
@@ -187,19 +139,21 @@ fn json_string_field(value: &serde_json::Value, key: &str) -> String {
         .to_string()
 }
 
-fn empty_log_fallback<'a>(value: &'a str, fallback: &'a str) -> &'a str {
-    if value.trim().is_empty() {
-        fallback
-    } else {
-        value
-    }
-}
-
 fn is_background_runtime_info_phase(snapshot: &serde_json::Value) -> bool {
     matches!(
         json_string_field(snapshot, "phase").as_str(),
         "starting" | "authenticating" | "running"
     )
+}
+
+fn log_runtime_output_event(mode: RuntimeOutputMode, event: &str, payload: &serde_json::Value) {
+    let Some(line) = format_runtime_output_event(mode, event, payload) else {
+        return;
+    };
+    match line.level {
+        RuntimeOutputLevel::Info => tracing::info!("{}", line.message),
+        RuntimeOutputLevel::Error => tracing::error!("{}", line.message),
+    }
 }
 
 #[derive(Clone)]

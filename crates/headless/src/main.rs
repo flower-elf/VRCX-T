@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -7,8 +8,16 @@ use std::time::Duration;
 
 use serde_json::Value;
 use tokio::sync::mpsc;
+use tracing_subscriber::filter::LevelFilter;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::Layer;
 use vrcx_0_application::{
-    BackendRuntimeMode, RuntimeEventSink, RuntimeTask, RuntimeTaskExecutor, RuntimeTaskHandle,
+    format_runtime_output_event, BackendRuntimeMode, RuntimeEventSink, RuntimeOutputLevel,
+    RuntimeOutputLine, RuntimeOutputMode, RuntimeTask, RuntimeTaskExecutor, RuntimeTaskHandle,
+};
+use vrcx_0_host::error_log::{
+    append_headless_error_log, default_app_data_dir, ErrorLogWriter, HEADLESS_ERROR_LOG_FILE,
 };
 use vrcx_0_runtime_host::{RuntimeHostOptions, RuntimeHostState};
 
@@ -23,7 +32,10 @@ async fn main() -> ExitCode {
     }) {
         Ok(state) => state,
         Err(error) => {
-            eprintln!("headless startup failed: {error}");
+            report_headless_error(
+                "headless:startup",
+                format!("headless startup failed: {error}"),
+            );
             return ExitCode::from(1);
         }
     };
@@ -42,7 +54,7 @@ async fn main() -> ExitCode {
     {
         Ok(_) => {}
         Err(error) => {
-            eprintln!("headless login failed: {error}");
+            report_headless_error("headless:login", format!("headless login failed: {error}"));
             return ExitCode::from(1);
         }
     }
@@ -51,7 +63,7 @@ async fn main() -> ExitCode {
     tokio::select! {
         signal = tokio::signal::ctrl_c() => {
             if let Err(error) = signal {
-                eprintln!("failed to wait for Ctrl+C: {error}");
+                report_headless_error("headless:signal", format!("failed to wait for Ctrl+C: {error}"));
                 console_sink.begin_shutdown();
                 state.stop_backend_runtime("signal-error");
                 state.runtime_context.tasks.stop_all();
@@ -64,7 +76,10 @@ async fn main() -> ExitCode {
         }
         fatal = fatal_rx.recv() => {
             let reason = fatal.unwrap_or_else(|| "fatal runtime error".into());
-            eprintln!("headless runtime fatal error: {reason}");
+            report_headless_error(
+                "headless:fatal",
+                format!("headless runtime fatal error: {reason}"),
+            );
             console_sink.begin_shutdown();
             state.stop_backend_runtime("fatal-error");
             state.runtime_context.tasks.stop_all();
@@ -80,15 +95,47 @@ fn init_tls_crypto_provider() {
 fn init_tracing() {
     let filter = tracing_subscriber::EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| "vrcx_0=info".into());
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .with_target(false)
+    let Some(app_data) = default_app_data_dir() else {
+        tracing_subscriber::fmt()
+            .with_env_filter(filter)
+            .with_target(false)
+            .init();
+        return;
+    };
+
+    let tracing_app_data = app_data;
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_target(false)
+                .with_filter(filter),
+        )
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_ansi(false)
+                .with_writer(move || {
+                    ErrorLogWriter::with_file_name(
+                        tracing_app_data.clone(),
+                        HEADLESS_ERROR_LOG_FILE,
+                    )
+                })
+                .with_filter(LevelFilter::ERROR),
+        )
         .init();
+}
+
+fn report_headless_error(source: &str, message: impl AsRef<str>) {
+    let message = message.as_ref();
+    eprintln!("{message}");
+    if let Some(app_data) = default_app_data_dir() {
+        append_headless_error_log(&app_data, source, message);
+    }
 }
 
 #[derive(Clone)]
 struct ConsoleRuntimeEventSink {
     fatal_tx: mpsc::UnboundedSender<String>,
+    app_data: Option<PathBuf>,
     shutdown_started: Arc<AtomicBool>,
     output_lock: Arc<Mutex<()>>,
 }
@@ -97,6 +144,7 @@ impl ConsoleRuntimeEventSink {
     fn new(fatal_tx: mpsc::UnboundedSender<String>) -> Self {
         Self {
             fatal_tx,
+            app_data: default_app_data_dir(),
             shutdown_started: Arc::new(AtomicBool::new(false)),
             output_lock: Arc::new(Mutex::new(())),
         }
@@ -122,95 +170,37 @@ impl RuntimeEventSink for ConsoleRuntimeEventSink {
             return;
         }
 
-        if event == "realtimeWsStatus" {
-            let status = string_field(&payload, "status");
-            let reason = string_field(&payload, "reason");
-            if reason.is_empty() {
-                self.print_line(false, format!("ws status: {status}"));
-            } else {
-                self.print_line(false, format!("ws status: {status} ({reason})"));
-            }
-            if status == "authFailure" {
-                let detail = if reason.is_empty() {
-                    "websocket auth failure".into()
-                } else {
-                    reason
-                };
-                let _ = self.fatal_tx.send(detail);
-            }
+        let Some(output) =
+            format_runtime_output_event(RuntimeOutputMode::Headless, event, &payload)
+        else {
             return;
-        }
-
-        if event != "backendRuntimeTelemetry" {
-            return;
-        }
-
-        let kind = string_field(&payload, "kind");
-        let detail = string_field(&payload, "detail");
-        let snapshot = payload.get("snapshot").unwrap_or(&Value::Null);
-        match kind.as_str() {
-            "authSuccess" => {
-                let name = string_field(snapshot, "authDisplayName");
-                let user_id = string_field(snapshot, "authUserId");
-                self.print_line(
-                    false,
-                    format!(
-                        "login success: {} ({})",
-                        empty_fallback(&name, "unknown user"),
-                        empty_fallback(&user_id, "unknown id")
-                    ),
-                );
-            }
-            "wsStatus" => {}
-            "wsMessage" => {
-                let total = snapshot
-                    .get("wsMessageCounts")
-                    .and_then(|counts| counts.get(&detail))
-                    .and_then(Value::as_u64)
-                    .unwrap_or(0);
-                self.print_line(false, format!("ws message: type={detail}, count={total}"));
-            }
-            "wsPersisted" => {
-                let total = snapshot
-                    .get("wsPersistedCount")
-                    .and_then(Value::as_u64)
-                    .unwrap_or(0);
-                self.print_line(
-                    false,
-                    format!("ws persisted to db: count={detail}, total={total}"),
-                );
-            }
-            "processStatus" => match detail.as_str() {
-                "vrchatRunning" => self.print_line(false, "vrchat started"),
-                "vrchatStopped" => self.print_line(false, "vrchat stopped"),
-                _ => self.print_line(false, format!("vrchat process status: {detail}")),
-            },
-            "gameLogPersisted" => {
-                let total = snapshot
-                    .get("gameLogPersistedCount")
-                    .and_then(Value::as_u64)
-                    .unwrap_or(0);
-                self.print_line(
-                    false,
-                    format!("gamelog persisted to db: count={detail}, total={total}"),
-                );
-            }
-            "gameLogWatcher" => self.print_line(false, format!("gamelog watcher: {detail}")),
-            "runtimeStopped" => self.print_line(
-                allow_during_shutdown,
-                format!("headless runtime exited: {detail}"),
-            ),
-            _ => {}
+        };
+        let fatal_reason = output.fatal_reason.clone();
+        self.print_output(allow_during_shutdown, output);
+        if let Some(reason) = fatal_reason {
+            let _ = self.fatal_tx.send(reason);
         }
     }
 }
 
 impl ConsoleRuntimeEventSink {
-    fn print_line(&self, allow_during_shutdown: bool, line: impl AsRef<str>) {
+    fn print_output(&self, allow_during_shutdown: bool, output: RuntimeOutputLine) {
         if self.shutdown_started.load(Ordering::Acquire) && !allow_during_shutdown {
             return;
         }
-        println!("{}", line.as_ref());
+        match output.level {
+            RuntimeOutputLevel::Info => println!("{}", output.message),
+            RuntimeOutputLevel::Error => {
+                eprintln!("{}", output.message);
+                self.append_headless_error_log("headless:event", &output.message);
+            }
+        }
+    }
+
+    fn append_headless_error_log(&self, source: &str, message: &str) {
+        if let Some(app_data) = &self.app_data {
+            append_headless_error_log(app_data, source, message);
+        }
     }
 }
 
@@ -277,14 +267,6 @@ fn string_field(value: &Value, key: &str) -> String {
         .unwrap_or_default()
         .trim()
         .to_string()
-}
-
-fn empty_fallback<'a>(value: &'a str, fallback: &'a str) -> &'a str {
-    if value.trim().is_empty() {
-        fallback
-    } else {
-        value
-    }
 }
 
 fn is_runtime_stopped_event(event: &str, payload: &Value) -> bool {

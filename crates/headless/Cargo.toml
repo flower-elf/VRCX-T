@@ -13,4 +13,5 @@ serde_json = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal", "sync", "time"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 vrcx-0-application = { path = "../application" }
+vrcx-0-host = { path = "../host" }
 vrcx-0-runtime-host = { path = "../runtime-host" }
