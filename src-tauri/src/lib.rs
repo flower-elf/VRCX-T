@@ -11,16 +11,6 @@ use vrcx_0_application::{BackendRuntimeMode, BackendRuntimePhase};
 
 use state::AppState;
 
-fn destroy_main_window_for_background_mode(app: &tauri::AppHandle) {
-    if let Some(window) = app.get_webview_window("main") {
-        if let Err(error) = window.destroy() {
-            tracing::warn!(error = %error, "failed to destroy main window for background mode");
-            let _ = window.hide();
-            let _ = window.set_skip_taskbar(true);
-        }
-    }
-}
-
 fn refresh_tray_menu(app: &tauri::AppHandle, state: &AppState) {
     if let Err(error) = bootstrap::refresh_tray_menu(app, state) {
         tracing::warn!(error = %error, "failed to refresh tray background mode item");
@@ -28,10 +18,7 @@ fn refresh_tray_menu(app: &tauri::AppHandle, state: &AppState) {
 }
 
 fn stop_background_mode_and_show_window(app: &tauri::AppHandle, state: &AppState) {
-    state.log_watcher_compat_bridge.stop();
-    state.stop_backend_runtime("tray-toggle-background-mode");
-    refresh_tray_menu(app, state);
-    if let Err(error) = bootstrap::ensure_main_window(app) {
+    if let Err(error) = bootstrap::restore_foreground_window_from_background_mode(app, state) {
         tracing::warn!(
             error = %error,
             "failed to show main window after stopping background mode"
@@ -70,15 +57,18 @@ fn start_background_mode_and_hide_window(app: tauri::AppHandle) {
         let Some(state) = app.try_state::<AppState>() else {
             return;
         };
+        bootstrap::capture_background_resume_route(&app, &state);
         match state
             .start_backend_runtime(BackendRuntimeMode::Background)
             .await
         {
             Ok(snapshot) => {
+                let current = state.snapshot_backend_runtime();
                 if snapshot.mode == BackendRuntimeMode::Background
-                    && snapshot.phase == BackendRuntimePhase::Running
+                    && current.mode == BackendRuntimeMode::Background
+                    && current.phase == BackendRuntimePhase::Running
                 {
-                    destroy_main_window_for_background_mode(&app);
+                    bootstrap::destroy_main_window_for_background_mode(&app);
                 }
                 refresh_tray_menu(&app, &state);
             }
@@ -97,7 +87,13 @@ pub fn run() {
 
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            if let Err(error) = bootstrap::ensure_main_window(app) {
+            if let Some(state) = app.try_state::<AppState>() {
+                if let Err(error) =
+                    bootstrap::restore_foreground_window_from_background_mode(app, &state)
+                {
+                    tracing::warn!(error = %error, "failed to show main window from single instance");
+                }
+            } else if let Err(error) = bootstrap::ensure_main_window(app) {
                 tracing::warn!(error = %error, "failed to show main window from single instance");
             }
         }))
@@ -178,7 +174,13 @@ pub fn run() {
                 button: MouseButton::Left,
                 ..
             } => {
-                if let Err(error) = bootstrap::ensure_main_window(app) {
+                if let Some(state) = app.try_state::<AppState>() {
+                    if let Err(error) =
+                        bootstrap::restore_foreground_window_from_background_mode(app, &state)
+                    {
+                        tracing::warn!(error = %error, "failed to show main window from tray");
+                    }
+                } else if let Err(error) = bootstrap::ensure_main_window(app) {
                     tracing::warn!(error = %error, "failed to show main window from tray");
                 }
             }
@@ -188,8 +190,20 @@ pub fn run() {
         .on_menu_event(|app, event| {
             match event.id().0.as_str() {
                 "tray-open" => {
-                    if let Err(error) = bootstrap::ensure_main_window(app) {
-                        tracing::warn!(error = %error, "failed to open main window from tray menu");
+                    if let Some(state) = app.try_state::<AppState>() {
+                        if let Err(error) =
+                            bootstrap::restore_foreground_window_from_background_mode(app, &state)
+                        {
+                            tracing::warn!(
+                                error = %error,
+                                "failed to open main window from tray menu"
+                            );
+                        }
+                    } else if let Err(error) = bootstrap::ensure_main_window(app) {
+                        tracing::warn!(
+                            error = %error,
+                            "failed to open main window from tray menu"
+                        );
                     }
                 }
                 "tray-toggle-background-mode" | "tray-stop-background-mode" => {
@@ -248,6 +262,7 @@ pub fn run() {
             commands::application::background_mode::app__start_background_mode,
             commands::application::background_mode::app__stop_background_mode,
             commands::application::background_mode::app__get_backend_runtime_snapshot,
+            commands::application::background_mode::app__get_backend_runtime_frontend_session_snapshot,
             commands::application::background_mode::app__ensure_main_window,
             commands::local::config::app__config_set_values,
             commands::local::config::app__config_list_values,

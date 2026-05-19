@@ -1,0 +1,172 @@
+import { tauriClient } from '@/platform/tauri/client';
+import type { BackendRuntimeSnapshot } from '@/platform/tauri/appCommandTypes';
+import { useRuntimeStore } from '@/state/runtimeStore';
+import { useSessionStore } from '@/state/sessionStore';
+
+import { recordCurrentUserSnapshot } from './domainIngestionService';
+import { bootstrapAuthenticatedSession } from './sessionBootstrapService';
+
+function isRecord(value: unknown): value is Record<string, any> {
+    return Boolean(value && typeof value === 'object');
+}
+
+function normalizeString(value: unknown): string {
+    return typeof value === 'string'
+        ? value.trim()
+        : String(value ?? '').trim();
+}
+
+function isAuthenticatedBackendRuntime(
+    snapshot: BackendRuntimeSnapshot | Record<string, unknown> | null
+): snapshot is BackendRuntimeSnapshot {
+    return Boolean(
+        isRecord(snapshot) &&
+            snapshot.phase === 'running' &&
+            snapshot.authStatus === 'authenticated' &&
+            normalizeString(snapshot.authUserId)
+    );
+}
+
+function isCurrentAuthenticatedBackendRuntimeUser(userId: string): boolean {
+    const snapshot = useRuntimeStore.getState().backendRuntime;
+    return Boolean(
+        isAuthenticatedBackendRuntime(snapshot) &&
+            normalizeString(snapshot.authUserId) === userId
+    );
+}
+
+function frontendSessionMatchesUser(
+    frontendSessionSnapshot: Record<string, any> | null,
+    userId: string
+): boolean {
+    if (!frontendSessionSnapshot) {
+        return true;
+    }
+    const frontendUserId =
+        normalizeString(frontendSessionSnapshot.userId) ||
+        normalizeString(frontendSessionSnapshot.currentUserSnapshot?.id);
+    return (
+        frontendSessionSnapshot.authenticated === true &&
+        frontendUserId === userId
+    );
+}
+
+function buildMinimalCurrentUserSnapshot(
+    snapshot: BackendRuntimeSnapshot,
+    previousSnapshot: Record<string, any> | null
+): Record<string, any> {
+    const userId = normalizeString(snapshot.authUserId);
+    const displayName = normalizeString(snapshot.authDisplayName) || userId;
+    if (
+        previousSnapshot &&
+        normalizeString(previousSnapshot.id) === userId
+    ) {
+        return {
+            ...previousSnapshot,
+            id: userId,
+            displayName: previousSnapshot.displayName || displayName
+        };
+    }
+    return {
+        id: userId,
+        displayName
+    };
+}
+
+async function getBackendFrontendSessionSnapshot() {
+    return tauriClient.app
+        .GetBackendRuntimeFrontendSessionSnapshot()
+        .catch(() => null);
+}
+
+function buildCurrentUserSnapshotForResume({
+    runtimeSnapshot,
+    frontendSessionSnapshot,
+    previousSnapshot
+}: {
+    runtimeSnapshot: BackendRuntimeSnapshot;
+    frontendSessionSnapshot: Record<string, any> | null;
+    previousSnapshot: Record<string, any> | null;
+}): Record<string, any> {
+    const userId = normalizeString(runtimeSnapshot.authUserId);
+    const frontendUserSnapshot = isRecord(
+        frontendSessionSnapshot?.currentUserSnapshot
+    )
+        ? frontendSessionSnapshot.currentUserSnapshot
+        : null;
+    if (
+        frontendUserSnapshot &&
+        normalizeString(frontendUserSnapshot.id) === userId
+    ) {
+        return {
+            ...frontendUserSnapshot,
+            id: userId,
+            displayName:
+                normalizeString(frontendUserSnapshot.displayName) ||
+                normalizeString(runtimeSnapshot.authDisplayName) ||
+                userId
+        };
+    }
+
+    return buildMinimalCurrentUserSnapshot(runtimeSnapshot, previousSnapshot);
+}
+
+export async function resumeFrontendSessionFromBackendRuntime(
+    snapshot: BackendRuntimeSnapshot | Record<string, unknown> | null
+): Promise<boolean> {
+    if (!isAuthenticatedBackendRuntime(snapshot)) {
+        return false;
+    }
+
+    const userId = normalizeString(snapshot.authUserId);
+    const [scope, frontendSessionSnapshot] = await Promise.all([
+        tauriClient.app.RuntimeAuthScopeGet().catch(() => null),
+        getBackendFrontendSessionSnapshot()
+    ]);
+    if (
+        !isCurrentAuthenticatedBackendRuntimeUser(userId) ||
+        !frontendSessionMatchesUser(frontendSessionSnapshot, userId)
+    ) {
+        return false;
+    }
+
+    const currentRuntimeState = useRuntimeStore.getState();
+    const sessionState = useSessionStore.getState();
+    const endpoint =
+        normalizeString(frontendSessionSnapshot?.endpoint) ||
+        normalizeString(scope?.endpoint) ||
+        normalizeString(currentRuntimeState.auth.currentUserEndpoint);
+    const websocket =
+        normalizeString(frontendSessionSnapshot?.websocket) ||
+        normalizeString(currentRuntimeState.auth.currentUserWebsocket);
+    const currentUserSnapshot = buildCurrentUserSnapshotForResume({
+        runtimeSnapshot: snapshot,
+        frontendSessionSnapshot,
+        previousSnapshot: currentRuntimeState.auth.currentUserSnapshot
+    });
+    if (
+        sessionState.sessionPhase === 'ready' &&
+        normalizeString(currentRuntimeState.auth.currentUserId) === userId &&
+        normalizeString(currentRuntimeState.auth.currentUserEndpoint) ===
+            endpoint &&
+        normalizeString(currentRuntimeState.auth.currentUserWebsocket) ===
+            websocket
+    ) {
+        return false;
+    }
+
+    useRuntimeStore.getState().setAuthBootstrap({
+        currentUserId: userId,
+        currentUserDisplayName:
+            normalizeString(currentUserSnapshot.displayName) ||
+            normalizeString(snapshot.authDisplayName) ||
+            userId,
+        currentUserEndpoint: endpoint,
+        currentUserWebsocket: websocket,
+        currentUserSnapshot
+    });
+    recordCurrentUserSnapshot(currentUserSnapshot, { endpoint });
+
+    await bootstrapAuthenticatedSession(currentUserSnapshot);
+    return true;
+}

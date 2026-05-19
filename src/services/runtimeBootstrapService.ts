@@ -16,6 +16,7 @@ import {
     stopRealtimeTransport
 } from './realtimeTransportService';
 import { initializeReactRuntime } from './startupService';
+import { syncStartupServicesTask } from './startupServicesStatus';
 import { applyThemeMode } from './themeService';
 import { startRuntimeUpdateLoop } from './updateLoopService';
 import { startVrcStatusPolling } from './vrcStatusService';
@@ -73,6 +74,16 @@ let reactRuntimeConsumerCount = 0;
 let reactRuntimeStartPromise = null;
 let reactRuntimeCleanup = null;
 
+function isBackendRuntimeOwningRealtime(context: any): boolean {
+    const snapshot: any = useRuntimeStore.getState().backendRuntime;
+    return Boolean(
+        snapshot?.phase === 'running' &&
+            snapshot?.authStatus === 'authenticated' &&
+            snapshot?.authUserId === context?.userId &&
+            snapshot?.mode !== 'headless'
+    );
+}
+
 function cleanupReactRuntimeServices() {
     const cleanup = reactRuntimeCleanup;
     reactRuntimeCleanup = null;
@@ -107,6 +118,10 @@ function createReactRuntimeStartPromise() {
             }
             reactRuntimeStartPromise = null;
             reactRuntimeCleanup = null;
+            useRuntimeStore.getState().setShellState({
+                backendRuntimeSnapshotHydrated: true,
+                backendRuntimeSessionHydrating: false
+            });
             if (reactRuntimeConsumerCount > 0) {
                 pushRuntimeNotification({
                     level: 'error',
@@ -221,6 +236,7 @@ export function startAuthenticatedRuntimeServices() {
     let favoritesBootstrapStarted = false;
     let moderationRefreshStarted = false;
     let realtimeTransportStarted = false;
+    let realtimeTransportOwner = 'none';
     const bootstrapRetryState: any = {
         friends: { timer: null, attempt: 0 },
         favorites: { timer: null, attempt: 0 }
@@ -250,6 +266,7 @@ export function startAuthenticatedRuntimeServices() {
         friendBootstrapStarted = false;
         favoritesBootstrapStarted = false;
         realtimeTransportStarted = false;
+        realtimeTransportOwner = 'none';
         clearBootstrapRetries();
         stopRealtimeTransport({ updateStatus: false });
     };
@@ -371,6 +388,7 @@ export function startAuthenticatedRuntimeServices() {
 
     const runRealtimeTransport = (context: any, runId: any) => {
         realtimeTransportStarted = true;
+        realtimeTransportOwner = 'frontend';
         startRealtimeTransport({
             userId: context.userId,
             endpoint: context.endpoint,
@@ -434,7 +452,31 @@ export function startAuthenticatedRuntimeServices() {
         if (!sessionState.isFriendsLoaded) {
             if (realtimeTransportStarted) {
                 realtimeTransportStarted = false;
+                if (realtimeTransportOwner === 'frontend') {
+                    stopRealtimeTransport({ updateStatus: false });
+                }
+                realtimeTransportOwner = 'none';
+            }
+            return;
+        }
+
+        const backendOwnsRealtime = isBackendRuntimeOwningRealtime(context);
+        if (!backendOwnsRealtime && realtimeTransportOwner === 'backend') {
+            realtimeTransportStarted = false;
+            realtimeTransportOwner = 'none';
+        }
+
+        if (backendOwnsRealtime) {
+            if (realtimeTransportOwner === 'frontend') {
                 stopRealtimeTransport({ updateStatus: false });
+            }
+            realtimeTransportStarted = true;
+            if (realtimeTransportOwner !== 'backend') {
+                realtimeTransportOwner = 'backend';
+                useSessionStore
+                    .getState()
+                    .setTransportStatus('pipeline-connected');
+                syncStartupServicesTask(['Backend realtime transport is active.']);
             }
             return;
         }

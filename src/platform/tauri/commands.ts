@@ -250,6 +250,7 @@ const commandArgs: Record<string, string[]> = {
     app__start_background_mode: [],
     app__stop_background_mode: ['reason'],
     app__get_backend_runtime_snapshot: [],
+    app__get_backend_runtime_frontend_session_snapshot: [],
     app__ensure_main_window: [],
     app__get_file_base64: ['path'],
     app__sign_file: ['blob'],

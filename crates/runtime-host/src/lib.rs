@@ -20,4 +20,4 @@ pub use log_watcher::{
     GameLogEvent, GameLogEventSink, HostLogLocationSnapshotScanner, LogLocationSnapshot, LogWatcher,
 };
 pub use process_monitor::HostGameProcessMonitorActions;
-pub use state::{RuntimeHostOptions, RuntimeHostState};
+pub use state::{BackendRuntimeFrontendSessionSnapshot, RuntimeHostOptions, RuntimeHostState};

@@ -149,6 +149,14 @@ impl RealtimeCurrentUserRuntime {
         state.snapshot = RealtimeCurrentUserStateSnapshot::default();
     }
 
+    pub fn snapshot_value(&self) -> Option<serde_json::Value> {
+        let state = self.lock_state();
+        if state.current_user_id.is_empty() {
+            return None;
+        }
+        Some(serde_json::Value::Object(state.snapshot.to_map()))
+    }
+
     pub fn apply_ws_message(
         &self,
         generation: u64,

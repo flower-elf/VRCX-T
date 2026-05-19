@@ -7,6 +7,9 @@ use std::sync::{
     Arc, Mutex,
 };
 
+use serde::Serialize;
+use serde_json::{json, Value};
+
 use crate::{
     GameClientHostRuntime, GameLogEventSink, GameLogHostRuntime, HostFileAccess,
     HostLogLocationSnapshotScanner, LogWatcher, Result, RuntimeHostContext, RuntimeHostEventSink,
@@ -48,6 +51,17 @@ pub struct RuntimeHostOptions {
     pub launched_from_autostart: bool,
 }
 
+#[derive(Clone, Debug, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BackendRuntimeFrontendSessionSnapshot {
+    pub authenticated: bool,
+    pub user_id: String,
+    pub display_name: String,
+    pub endpoint: String,
+    pub websocket: String,
+    pub current_user_snapshot: Value,
+}
+
 pub struct RuntimeHostState {
     pub paths: AppPaths,
     pub storage: StorageService,
@@ -72,6 +86,7 @@ pub struct RuntimeHostState {
     pub legacy_vrcx_migration_status: LegacyVrcxMigrationStatus,
     pub launched_from_autostart: bool,
     backend_starting: AtomicBool,
+    backend_frontend_session: Mutex<Option<BackendRuntimeFrontendSessionSnapshot>>,
     _profile_lock: ProfileLock,
 }
 
@@ -163,6 +178,7 @@ impl RuntimeHostState {
             legacy_vrcx_migration_status,
             launched_from_autostart: options.launched_from_autostart,
             backend_starting: AtomicBool::new(false),
+            backend_frontend_session: Mutex::new(None),
             _profile_lock: profile_lock,
         })
     }
@@ -181,6 +197,66 @@ impl RuntimeHostState {
 
     pub fn snapshot_backend_runtime(&self) -> BackendRuntimeSnapshot {
         self.backend_runtime.snapshot()
+    }
+
+    pub fn backend_runtime_frontend_session_snapshot(
+        &self,
+    ) -> Option<BackendRuntimeFrontendSessionSnapshot> {
+        let runtime = self.backend_runtime.snapshot();
+        if runtime.phase != BackendRuntimePhase::Running
+            || runtime.auth_status != "authenticated"
+            || runtime.auth_user_id.is_empty()
+        {
+            return None;
+        }
+
+        let cached = self
+            .backend_frontend_session
+            .lock()
+            .ok()
+            .and_then(|snapshot| snapshot.clone());
+        let auth_scope = self.runtime_context.auth_scope.snapshot();
+        let current_user_snapshot = self
+            .realtime_runtime
+            .current_user_snapshot()
+            .or_else(|| {
+                cached
+                    .as_ref()
+                    .map(|snapshot| snapshot.current_user_snapshot.clone())
+            })
+            .unwrap_or_else(|| {
+                json!({
+                    "id": runtime.auth_user_id,
+                    "displayName": runtime.auth_display_name,
+                })
+            });
+        let friend_snapshot = self.realtime_runtime.friend_snapshot();
+
+        Some(BackendRuntimeFrontendSessionSnapshot {
+            authenticated: true,
+            user_id: runtime.auth_user_id,
+            display_name: runtime.auth_display_name,
+            endpoint: friend_snapshot
+                .as_ref()
+                .map(|snapshot| snapshot.endpoint.clone())
+                .filter(|endpoint| !endpoint.trim().is_empty())
+                .or_else(|| {
+                    if auth_scope.active {
+                        Some(auth_scope.endpoint)
+                    } else {
+                        None
+                    }
+                })
+                .or_else(|| cached.as_ref().map(|snapshot| snapshot.endpoint.clone()))
+                .unwrap_or_default(),
+            websocket: friend_snapshot
+                .as_ref()
+                .map(|snapshot| snapshot.websocket.clone())
+                .filter(|websocket| !websocket.trim().is_empty())
+                .or_else(|| cached.as_ref().map(|snapshot| snapshot.websocket.clone()))
+                .unwrap_or_default(),
+            current_user_snapshot,
+        })
     }
 
     pub fn release_profile_lock(&self) {
@@ -266,6 +342,21 @@ impl RuntimeHostState {
         self.backend_runtime.snapshot()
     }
 
+    pub fn set_gui_backend_runtime_mode(&self, mode: BackendRuntimeMode) -> BackendRuntimeSnapshot {
+        let current = self.backend_runtime.snapshot();
+        if current.mode == BackendRuntimeMode::Headless || mode == BackendRuntimeMode::Headless {
+            return current;
+        }
+        let snapshot = self.backend_runtime.set_mode(mode);
+        let detail = match mode {
+            BackendRuntimeMode::Foreground => "foreground",
+            BackendRuntimeMode::Background => "background",
+            BackendRuntimeMode::Headless => "headless",
+        };
+        self.emit_backend_runtime_telemetry_snapshot("modeChanged", detail, snapshot.clone());
+        snapshot
+    }
+
     pub async fn start_backend_runtime(
         &self,
         mode: BackendRuntimeMode,
@@ -333,6 +424,7 @@ impl RuntimeHostState {
                 HashMap::new()
             }
         };
+        self.set_backend_frontend_session(&session);
         self.realtime_runtime.start(
             session.user_id,
             session.endpoint,
@@ -489,12 +581,26 @@ impl RuntimeHostState {
         let Some(snapshot) = output.snapshot else {
             return Ok(HashMap::new());
         };
+        let snapshot = snapshot.into_value();
         let friends_by_id = snapshot
-            .into_value()
             .get("friendsById")
             .cloned()
             .unwrap_or_else(|| serde_json::json!({}));
         Ok(serde_json::from_value(friends_by_id)?)
+    }
+
+    fn set_backend_frontend_session(&self, session: &AuthenticatedRuntimeSession) {
+        let snapshot = BackendRuntimeFrontendSessionSnapshot {
+            authenticated: true,
+            user_id: session.user_id.clone(),
+            display_name: session.display_name.clone(),
+            endpoint: session.endpoint.clone(),
+            websocket: session.websocket.clone(),
+            current_user_snapshot: session.current_user.clone(),
+        };
+        if let Ok(mut slot) = self.backend_frontend_session.lock() {
+            *slot = Some(snapshot);
+        }
     }
 
     fn start_log_watcher_for_current_platform(

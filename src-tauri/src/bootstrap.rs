@@ -10,7 +10,7 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::Layer;
 
-use crate::state::AppState;
+use crate::state::{AppState, BACKGROUND_MODE_RESUME_ROUTE_STORAGE_KEY};
 use vrcx_0_application::RuntimeEventSink;
 use vrcx_0_application::{BackendRuntimeMode, BackendRuntimePhase};
 use vrcx_0_application::{RuntimeTask, RuntimeTaskExecutor, RuntimeTaskHandle};
@@ -254,6 +254,64 @@ pub fn ensure_main_window(app: &tauri::AppHandle) -> Result<(), Box<dyn std::err
     Ok(())
 }
 
+pub fn destroy_main_window_for_background_mode(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        if let Err(error) = window.destroy() {
+            tracing::warn!(error = %error, "failed to destroy main window for background mode");
+            let _ = window.hide();
+            let _ = window.set_skip_taskbar(true);
+        }
+    }
+}
+
+pub fn capture_background_resume_route(app: &tauri::AppHandle, state: &AppState) {
+    let route = app
+        .get_webview_window("main")
+        .and_then(|window| window.url().ok())
+        .and_then(|url| normalize_background_resume_route(url.fragment().unwrap_or_default()));
+    match route {
+        Some(route) => {
+            state.storage.set(
+                BACKGROUND_MODE_RESUME_ROUTE_STORAGE_KEY.to_string(),
+                route.clone(),
+            );
+            state.set_background_resume_route(Some(route));
+        }
+        None => {
+            let _ = state
+                .storage
+                .remove(BACKGROUND_MODE_RESUME_ROUTE_STORAGE_KEY);
+            state.set_background_resume_route(None);
+        }
+    }
+}
+
+pub fn restore_foreground_window_from_background_mode(
+    app: &tauri::AppHandle,
+    state: &AppState,
+) -> Result<vrcx_0_application::BackendRuntimeSnapshot, Box<dyn std::error::Error>> {
+    ensure_main_window(app)?;
+    let snapshot = state.set_gui_backend_runtime_mode(BackendRuntimeMode::Foreground);
+    let _ = refresh_tray_menu(app, state);
+    Ok(snapshot)
+}
+
+fn normalize_background_resume_route(raw: &str) -> Option<String> {
+    let route = raw.trim().trim_start_matches('#').trim();
+    if route.is_empty()
+        || route == "/"
+        || route.starts_with("/login")
+        || !route.starts_with('/')
+        || route.starts_with("//")
+        || route.len() > 2048
+        || route.chars().any(char::is_control)
+        || route.contains('\\')
+    {
+        return None;
+    }
+    Some(route.to_string())
+}
+
 fn present_main_window(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.set_skip_taskbar(false);
@@ -428,6 +486,9 @@ pub fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>>
     app.manage(app_state);
 
     let state = app.state::<AppState>();
+    let _ = state
+        .storage
+        .remove(BACKGROUND_MODE_RESUME_ROUTE_STORAGE_KEY);
     state.runtime_context.runtime.record_phase(
         "appState",
         "completed",
@@ -485,6 +546,21 @@ fn create_main_window(
         })?;
 
     let mut builder = WebviewWindowBuilder::from_config(app, window_config)?;
+    let state = app.state::<AppState>();
+    if let Some(route) = state.take_background_resume_route() {
+        let route = serde_json::to_string(&route)?;
+        builder = builder.initialization_script(format!(
+            r#"
+(() => {{
+  const route = {route};
+  if (typeof route === 'string' && route.startsWith('/')) {{
+    window.__VRCX_BACKGROUND_ROUTE_RESUME_PENDING__ = true;
+    window.location.hash = `#${{route}}`;
+  }}
+}})();
+"#
+        ));
+    }
     if let Some(proxy_url) = proxy_url {
         let proxy_url = proxy_url
             .parse()
@@ -533,19 +609,19 @@ pub fn refresh_tray_menu(app: &tauri::AppHandle, state: &AppState) -> Result<(),
     if let Some(tray) = app.tray_by_id("main") {
         let labels = tray_labels(state);
         let open_item = MenuItem::with_id(app, "tray-open", labels.open, true, None::<&str>)?;
-        let background_item = MenuItem::with_id(
-            app,
-            "tray-toggle-background-mode",
-            if is_background_mode_hidden(app, state) {
-                labels.stop_background
-            } else {
-                labels.start_background
-            },
-            true,
-            None::<&str>,
-        )?;
         let exit_item = MenuItem::with_id(app, "tray-exit", labels.exit, true, None::<&str>)?;
-        let menu = Menu::with_items(app, &[&open_item, &background_item, &exit_item])?;
+        let menu = if is_background_mode_hidden(app, state) {
+            Menu::with_items(app, &[&open_item, &exit_item])?
+        } else {
+            let background_item = MenuItem::with_id(
+                app,
+                "tray-toggle-background-mode",
+                labels.start_background,
+                true,
+                None::<&str>,
+            )?;
+            Menu::with_items(app, &[&open_item, &background_item, &exit_item])?
+        };
         let _ = tray.set_menu(Some(menu));
         let _ = tray.set_show_menu_on_left_click(false);
     }
@@ -555,7 +631,6 @@ pub fn refresh_tray_menu(app: &tauri::AppHandle, state: &AppState) -> Result<(),
 struct TrayLabels {
     open: &'static str,
     start_background: &'static str,
-    stop_background: &'static str,
     exit: &'static str,
 }
 
@@ -583,7 +658,6 @@ fn tray_labels(state: &AppState) -> TrayLabels {
         return TrayLabels {
             open: "打开 VRCX-0",
             start_background: "开启后台模式",
-            stop_background: "停止后台模式",
             exit: "退出",
         };
     }
@@ -591,14 +665,12 @@ fn tray_labels(state: &AppState) -> TrayLabels {
         return TrayLabels {
             open: "VRCX-0 を開く",
             start_background: "バックグラウンドモードを開始",
-            stop_background: "バックグラウンドモードを停止",
             exit: "終了",
         };
     }
     TrayLabels {
         open: "Open VRCX-0",
         start_background: "Start Background Mode",
-        stop_background: "Stop Background Mode",
         exit: "Exit",
     }
 }

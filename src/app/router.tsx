@@ -3,6 +3,7 @@ import { HashRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
 import { GlobalHosts } from '@/components/hosts/GlobalHosts';
 import { AppTitleBar } from '@/components/layout/AppTitleBar';
+import { useRuntimeStore } from '@/state/runtimeStore';
 import { useSessionStore } from '@/state/sessionStore';
 
 import {
@@ -21,7 +22,15 @@ function RequireAuth() {
     const isSessionReady = useSessionStore(
         (state: any) => state.sessionPhase === 'ready'
     );
+    const backendRuntimeReady = useRuntimeStore(
+        (state: any) =>
+            state.shell.backendRuntimeSnapshotHydrated &&
+            !state.shell.backendRuntimeSessionHydrating
+    );
 
+    if (!backendRuntimeReady) {
+        return <RouteLoadingFallback />;
+    }
     if (!isSessionReady) {
         return <Navigate to="/login" replace />;
     }

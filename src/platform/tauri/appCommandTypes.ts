@@ -501,6 +501,15 @@ export interface SocialFriendRosterBaselineResult {
     snapshot?: Record<string, unknown> | null;
 }
 
+export interface BackendRuntimeFrontendSessionSnapshot {
+    authenticated: boolean;
+    userId: string;
+    displayName: string;
+    endpoint: string;
+    websocket: string;
+    currentUserSnapshot: Record<string, unknown>;
+}
+
 export interface AppTauriCommandNamespace extends TauriCommandNamespace {
     AppendErrorLog(entry: string): Promise<void>;
     ExitApplication(): Promise<void>;
@@ -514,6 +523,7 @@ export interface AppTauriCommandNamespace extends TauriCommandNamespace {
     StartBackgroundMode(): Promise<BackendRuntimeSnapshot>;
     StopBackgroundMode(reason?: string | null): Promise<BackendRuntimeSnapshot>;
     GetBackendRuntimeSnapshot(): Promise<BackendRuntimeSnapshot>;
+    GetBackendRuntimeFrontendSessionSnapshot(): Promise<BackendRuntimeFrontendSessionSnapshot | null>;
     EnsureMainWindow(): Promise<void>;
     VrchatAuthConfigGet(input: {
         endpoint?: string;

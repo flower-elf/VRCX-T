@@ -101,6 +101,7 @@ type RuntimeStore = {
     backendRuntime: Record<string, unknown>;
     shell: Record<string, unknown> & {
         backendRuntimeSnapshotHydrated: boolean;
+        backendRuntimeSessionHydrating: boolean;
     };
     setStartupTask(task: string, status: string, detail?: string): void;
     setAuthBootstrap(payload: Partial<RuntimeStore['auth']>): void;
@@ -328,7 +329,8 @@ const initialState = {
     },
     backendRuntime: {},
     shell: {
-        backendRuntimeSnapshotHydrated: false
+        backendRuntimeSnapshotHydrated: false,
+        backendRuntimeSessionHydrating: false
     },
     runtimeEvents: {
         addGameLogEvent: createRuntimeEventState(),

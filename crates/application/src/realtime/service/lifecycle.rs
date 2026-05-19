@@ -120,6 +120,14 @@ impl RealtimeHostRuntime {
         })
     }
 
+    pub fn friend_snapshot(&self) -> Option<crate::realtime::RealtimeFriendSnapshot> {
+        self.friends.snapshot()
+    }
+
+    pub fn current_user_snapshot(&self) -> Option<serde_json::Value> {
+        self.current_user.snapshot_value()
+    }
+
     pub fn sync_friend_snapshot(
         self: &Arc<Self>,
         user_id: String,
