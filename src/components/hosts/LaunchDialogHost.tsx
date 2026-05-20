@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { InstanceInviteDialog } from '@/components/dialogs/InstanceInviteDialog';
 import { copyTextToClipboard } from '@/services/entityMediaService';
 import { cn } from '@/lib/utils';
-import configRepository from '@/repositories/configRepository';
 import {
     attachRunningVrchat,
     launchVrchat,
@@ -17,6 +16,7 @@ import { checkCanInvite } from '@/shared/utils/invite';
 import { parseLocation } from '@/shared/utils/locationParser';
 import { useLaunchStore } from '@/state/launchStore';
 import { useModalStore } from '@/state/modalStore';
+import { usePreferencesStore } from '@/state/preferencesStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
 import { Button } from '@/ui/shadcn/button';
 import {
@@ -179,6 +179,9 @@ export function LaunchDialogHost() {
     const isGameRunning = useRuntimeStore((state: any) =>
         Boolean(state.gameState.isGameRunning)
     );
+    const defaultLaunchMode = usePreferencesStore(
+        (state: any) => state.defaultLaunchMode
+    );
     const groupInstancesState = useRuntimeStore(
         (state: any) => state.groupInstances
     );
@@ -191,27 +194,11 @@ export function LaunchDialogHost() {
     const [details, setDetails] = useState(emptyDetails);
     const [loading, setLoading] = useState(false);
     const [busy, setBusy] = useState('');
-    const [desktopMode, setDesktopMode] = useState(false);
     const [inviteOpen, setInviteOpen] = useState(false);
     const cachedInstances = useMemo(
         () => buildCachedInstanceMap(groupInstances),
         [groupInstances]
     );
-
-    useEffect(() => {
-        let active = true;
-        configRepository
-            .getBool('launchAsDesktop', false)
-            .then((nextDesktopMode: any) => {
-                if (active) {
-                    setDesktopMode(Boolean(nextDesktopMode));
-                }
-            })
-            .catch(() => {});
-        return () => {
-            active = false;
-        };
-    }, []);
 
     useEffect(() => {
         let active = true;
@@ -325,12 +312,6 @@ export function LaunchDialogHost() {
         return true;
     }
 
-    async function selectLaunchMode(nextDesktopMode: any) {
-        setDesktopMode(nextDesktopMode);
-        await configRepository.setBool('launchAsDesktop', nextDesktopMode);
-        return launchWithMode(nextDesktopMode);
-    }
-
     const actionTag =
         details.tag || normalizeInstanceLocation(launchDialog.createdInstance);
     const actionLaunchToken =
@@ -353,7 +334,17 @@ export function LaunchDialogHost() {
             ));
     const canUseResolvedInstance = Boolean(actionTag);
     const canOpenInstanceInGame = Boolean(isGameRunning);
-    const primaryLabel = desktopMode ? 'Start as Desktop' : 'Launch';
+    const defaultDesktopMode = defaultLaunchMode === 'desktop';
+    const alternateDesktopMode = !defaultDesktopMode;
+    const primaryLabel = defaultDesktopMode
+        ? t('dialog.launch.action.start_as_desktop')
+        : t('dialog.launch.launch');
+    const alternateLaunchKey = alternateDesktopMode
+        ? 'launch-desktop'
+        : 'launch-vr';
+    const alternateLabel = alternateDesktopMode
+        ? t('dialog.launch.action.start_as_desktop')
+        : t('dialog.launch.launch');
 
     return (
         <>
@@ -463,12 +454,12 @@ export function LaunchDialogHost() {
                                 className="rounded-r-none"
                                 onClick={() => {
                                     runAction('launch', () =>
-                                        launchWithMode(desktopMode)
+                                        launchWithMode(defaultDesktopMode)
                                     );
                                 }}
                             >
                                 {busy === 'launch'
-                                    ? 'Launching...'
+                                    ? t('common.loading')
                                     : primaryLabel}
                             </Button>
                             <DropdownMenu>
@@ -493,24 +484,16 @@ export function LaunchDialogHost() {
                                     <DropdownMenuGroup>
                                         <DropdownMenuItem
                                             onSelect={() => {
-                                                runAction('launch-vr', () =>
-                                                    selectLaunchMode(false)
-                                                );
-                                            }}
-                                        >
-                                            {t('dialog.launch.header')}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onSelect={() => {
                                                 runAction(
-                                                    'launch-desktop',
-                                                    () => selectLaunchMode(true)
+                                                    alternateLaunchKey,
+                                                    () =>
+                                                        launchWithMode(
+                                                            alternateDesktopMode
+                                                        )
                                                 );
                                             }}
                                         >
-                                            {t(
-                                                'dialog.launch.action.start_as_desktop'
-                                            )}
+                                            {alternateLabel}
                                         </DropdownMenuItem>
                                     </DropdownMenuGroup>
                                 </DropdownMenuContent>

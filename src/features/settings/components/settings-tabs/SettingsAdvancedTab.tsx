@@ -3,6 +3,14 @@ import { FolderOpenIcon, RefreshCwIcon, RotateCcwIcon } from 'lucide-react';
 
 import { Button } from '@/ui/shadcn/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/shadcn/card';
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/ui/shadcn/select';
 import { Switch } from '@/ui/shadcn/switch';
 
 import { Field } from '../SettingsField';
@@ -39,6 +47,7 @@ export function SettingsAdvancedTab({ advanced }: any) {
         onEnableAppLauncherChange,
         onEnableAppLauncherAutoCloseChange,
         onEnableAppLauncherRunProcessOnceChange,
+        onDefaultLaunchModeChange,
         onShowConfirmationOnSwitchAvatarChange,
         onClearVrcxCache,
         onPromptAutoClearVrcxCacheFrequency,
@@ -315,6 +324,34 @@ export function SettingsAdvancedTab({ advanced }: any) {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col">
+                    <Field
+                        label={t(
+                            'view.settings.advanced.advanced.launch_commands.default_launch_mode'
+                        )}
+                    >
+                        <Select
+                            value={prefs.defaultLaunchMode}
+                            onValueChange={onDefaultLaunchModeChange}
+                        >
+                            <SelectTrigger className="w-44">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectItem value="vr">
+                                        {t(
+                                            'view.settings.advanced.advanced.launch_commands.default_launch_mode_vr'
+                                        )}
+                                    </SelectItem>
+                                    <SelectItem value="desktop">
+                                        {t(
+                                            'view.settings.advanced.advanced.launch_commands.default_launch_mode_desktop'
+                                        )}
+                                    </SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </Field>
                     <Field
                         label={t(
                             'view.settings.advanced.advanced.launch_commands.show_confirmation_on_switch_avatar_enable'

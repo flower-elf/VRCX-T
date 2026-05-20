@@ -94,6 +94,7 @@ export const ConfigKeys = {
     screenshotHelperCopyToClipboard: { type: 'bool', default: false },
     gameLogDisabled: { type: 'bool', default: false },
     avatarAutoCleanup: { type: 'string', default: 'Off' },
+    defaultLaunchMode: { type: 'string', default: 'vr' },
     userGeneratedContentPath: { type: 'string', default: '' },
     logResourceLoad: { type: 'bool', default: false },
     udonExceptionLogging: { type: 'bool', default: false },

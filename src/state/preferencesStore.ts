@@ -27,6 +27,7 @@ const DEFAULT_TRANSLATION_MODEL = 'gpt-4o-mini';
 export type NotificationLayoutPreference = 'notification-center' | 'table';
 export type TableDensityPreference = 'standard' | 'compact';
 export type TranslationApiType = 'google' | 'openai';
+export type DefaultLaunchModePreference = 'vr' | 'desktop';
 export type TrustColorKey = keyof typeof TRUST_COLOR_DEFAULTS;
 export type TrustColorsPreference = Record<TrustColorKey, string>;
 export type DiscordPreferenceKey =
@@ -93,6 +94,12 @@ function normalizeBoundedInt(
         return fallback;
     }
     return Math.min(max, Math.max(min, parsed));
+}
+
+export function normalizeDefaultLaunchMode(
+    value: unknown
+): DefaultLaunchModePreference {
+    return value === 'desktop' ? 'desktop' : 'vr';
 }
 
 export function normalizeTablePageSizes(value: unknown): number[] {
@@ -209,6 +216,7 @@ export const DEFAULT_PREFERENCES: PreferenceInputSnapshot = Object.freeze({
     showConfirmationOnSwitchAvatar: true,
     gameLogDisabled: false,
     avatarAutoCleanup: 'Off',
+    defaultLaunchMode: 'vr',
     enableAppLauncher: true,
     enableAppLauncherAutoClose: true,
     enableAppLauncherRunProcessOnce: true,
@@ -321,6 +329,9 @@ export function normalizePreferenceSnapshot(
         ),
         gameLogDisabled: normalizeBool(next.gameLogDisabled),
         avatarAutoCleanup: next.avatarAutoCleanup || 'Off',
+        defaultLaunchMode: normalizeDefaultLaunchMode(
+            next.defaultLaunchMode
+        ),
         enableAppLauncher: normalizeBool(next.enableAppLauncher),
         enableAppLauncherAutoClose: normalizeBool(
             next.enableAppLauncherAutoClose

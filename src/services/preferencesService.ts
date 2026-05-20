@@ -13,6 +13,7 @@ import configRepository from '@/repositories/configRepository';
 import storageRepository from '@/repositories/storageRepository';
 import {
     DEFAULT_PREFERENCES,
+    normalizeDefaultLaunchMode,
     parseSharedFeedFilters,
     normalizeSharedFeedFilters,
     normalizeTableLimits,
@@ -166,6 +167,7 @@ export async function loadPreferenceSnapshot() {
         showConfirmationOnSwitchAvatar,
         gameLogDisabled,
         avatarAutoCleanup,
+        defaultLaunchMode,
         enableAppLauncher,
         enableAppLauncherAutoClose,
         enableAppLauncherRunProcessOnce,
@@ -246,6 +248,7 @@ export async function loadPreferenceSnapshot() {
         configRepository.getBool('showConfirmationOnSwitchAvatar', true),
         configRepository.getBool('gameLogDisabled', false),
         configRepository.getString('avatarAutoCleanup', 'Off'),
+        configRepository.getString('defaultLaunchMode', 'vr'),
         configRepository.getBool('enableAppLauncher', true),
         configRepository.getBool('enableAppLauncherAutoClose', true),
         configRepository.getBool('enableAppLauncherRunProcessOnce', true),
@@ -388,6 +391,7 @@ export async function loadPreferenceSnapshot() {
         showConfirmationOnSwitchAvatar: Boolean(showConfirmationOnSwitchAvatar),
         gameLogDisabled: Boolean(gameLogDisabled),
         avatarAutoCleanup: avatarAutoCleanup || 'Off',
+        defaultLaunchMode: normalizeDefaultLaunchMode(defaultLaunchMode),
         enableAppLauncher: Boolean(enableAppLauncher),
         enableAppLauncherAutoClose: Boolean(enableAppLauncherAutoClose),
         enableAppLauncherRunProcessOnce: Boolean(

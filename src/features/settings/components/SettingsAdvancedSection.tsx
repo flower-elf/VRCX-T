@@ -89,6 +89,13 @@ export function SettingsAdvancedSection({ advanced }: any) {
         onEnableAppLauncherRunProcessOnceChange: (checked: any) => {
             saveAppLauncherField('enableAppLauncherRunProcessOnce', checked);
         },
+        onDefaultLaunchModeChange: (value: any) => {
+            saveStringPreference(
+                'defaultLaunchMode',
+                'defaultLaunchMode',
+                value
+            );
+        },
         onShowConfirmationOnSwitchAvatarChange: (checked: any) => {
             saveBoolPreference(
                 'showConfirmationOnSwitchAvatar',

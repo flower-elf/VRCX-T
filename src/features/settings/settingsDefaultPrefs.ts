@@ -56,6 +56,7 @@ export function createDefaultSettingsPrefs() {
         showConfirmationOnSwitchAvatar: true,
         gameLogDisabled: false,
         avatarAutoCleanup: 'Off',
+        defaultLaunchMode: 'vr',
         enableAppLauncher: true,
         enableAppLauncherAutoClose: true,
         enableAppLauncherRunProcessOnce: true,
