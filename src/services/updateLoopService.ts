@@ -5,6 +5,7 @@ import {
     resetBackgroundMaintenance,
     runBackgroundMaintenanceTick
 } from './backgroundMaintenanceService';
+import { shouldHandleRuntimeAuthFailure } from './authSessionRecoveryService';
 import {
     isRuntimeGameLogSideEffectsActive,
     syncGameLogTail
@@ -106,6 +107,9 @@ async function tickRuntimeLoop() {
             );
     } catch (error) {
         if (isVrchatMissingCredentialsError(error)) {
+            if (!shouldHandleRuntimeAuthFailure(error)) {
+                return;
+            }
             useRuntimeStore
                 .getState()
                 .setStartupTask(

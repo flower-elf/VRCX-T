@@ -51,6 +51,16 @@ function frontendSessionMatchesUser(
     );
 }
 
+function authScopeMatchesUser(
+    scope: Record<string, any> | null,
+    userId: string
+): boolean {
+    return Boolean(
+        scope?.active === true &&
+            normalizeString(scope.currentUserId) === userId
+    );
+}
+
 function buildMinimalCurrentUserSnapshot(
     snapshot: BackendRuntimeSnapshot,
     previousSnapshot: Record<string, any> | null
@@ -139,6 +149,7 @@ export async function resumeFrontendSessionFromBackendRuntime(
         return false;
     }
     if (
+        !authScopeMatchesUser(scope, userId) ||
         !isCurrentAuthenticatedBackendRuntimeUser(userId) ||
         !frontendSessionMatchesUser(frontendSessionSnapshot, userId)
     ) {

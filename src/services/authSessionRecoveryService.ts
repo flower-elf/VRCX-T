@@ -12,7 +12,7 @@ import { refreshSavedAuthSnapshot } from './authSnapshotService';
 import i18n from './i18nService';
 
 type AuthExecutionServiceModule = {
-    resetCurrentUserRuntimeAuth: () => void;
+    resetCurrentUserRuntimeAuth: () => void | Promise<unknown>;
     setSignedOutSessionState: () => void;
 };
 
@@ -20,8 +20,13 @@ const authExecutionServiceLoaders =
     import.meta.glob<AuthExecutionServiceModule>('./authExecutionService.ts');
 
 let recoveryPromise: Promise<void> | null = null;
+let runtimeAuthFailureRecoverySuppressionCount = 0;
 
-function shouldHandleRuntimeAuthFailure(error: unknown): boolean {
+export function shouldHandleRuntimeAuthFailure(error: unknown): boolean {
+    if (isRuntimeAuthFailureRecoverySuppressed()) {
+        return false;
+    }
+
     if (!isVrchatMissingCredentialsError(error)) {
         return false;
     }
@@ -67,8 +72,8 @@ async function runRuntimeAuthRecovery(error: unknown): Promise<void> {
     }
     const { resetCurrentUserRuntimeAuth, setSignedOutSessionState } =
         await loadAuthExecutionService();
+    await resetCurrentUserRuntimeAuth();
     setSignedOutSessionState();
-    resetCurrentUserRuntimeAuth();
 
     try {
         await refreshSavedAuthSnapshot();
@@ -94,6 +99,24 @@ export function handleRuntimeAuthFailure(
     }
 
     return recoveryPromise;
+}
+
+function isRuntimeAuthFailureRecoverySuppressed(): boolean {
+    return runtimeAuthFailureRecoverySuppressionCount > 0;
+}
+
+export async function runWithRuntimeAuthFailureRecoverySuppressed<T>(
+    task: () => Promise<T>
+): Promise<T> {
+    runtimeAuthFailureRecoverySuppressionCount += 1;
+    try {
+        return await task();
+    } finally {
+        runtimeAuthFailureRecoverySuppressionCount = Math.max(
+            0,
+            runtimeAuthFailureRecoverySuppressionCount - 1
+        );
+    }
 }
 
 export function startRuntimeAuthFailureRecovery(): () => void {

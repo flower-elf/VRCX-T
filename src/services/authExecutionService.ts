@@ -21,6 +21,7 @@ import { useVrcNotificationStore } from '@/state/vrcNotificationStore';
 
 import { resetActivityCacheState } from './activityCacheService';
 import { resetReactAutoLoginThrottle } from './authAutoLoginState';
+import { runWithRuntimeAuthFailureRecoverySuppressed } from './authSessionRecoveryService';
 import {
     applySavedAuthSnapshot,
     refreshSavedAuthSnapshot
@@ -117,13 +118,14 @@ function getCurrentUserDisplayName(user: Record<string, any> | null) {
 }
 
 function setRuntimeAuthScope(userId: any = '', endpoint: any = '') {
-    tauriClient.app
+    return tauriClient.app
         .RuntimeAuthScopeSet({
             userId,
             endpoint
         })
         .catch((error: any) => {
             console.warn('Failed to sync runtime auth scope:', error);
+            return null;
         });
 }
 
@@ -162,7 +164,7 @@ export function resetCurrentUserRuntimeAuth() {
         currentUserWebsocket: '',
         currentUserSnapshot: null
     });
-    setRuntimeAuthScope();
+    return setRuntimeAuthScope();
 }
 
 function setCurrentUserRuntimeAuth(
@@ -191,7 +193,7 @@ function setCurrentUserRuntimeAuth(
         currentUserWebsocket: websocket,
         currentUserSnapshot: nextSnapshot ?? null
     });
-    setRuntimeAuthScope(nextSnapshot?.id ?? '', endpoint);
+    void setRuntimeAuthScope(nextSnapshot?.id ?? '', endpoint);
     recordCurrentUserSnapshot(nextSnapshot ?? null, { endpoint });
 }
 
@@ -387,8 +389,8 @@ async function restoreAuthSnapshotOnFailure(error: AuthExecutionError) {
         // ignore cleanup failure and still surface the original auth error
     }
 
+    await resetCurrentUserRuntimeAuth();
     setSignedOutSessionState();
-    resetCurrentUserRuntimeAuth();
 
     try {
         error.authSnapshot = await refreshSavedAuthSnapshot();
@@ -427,13 +429,13 @@ export async function logoutFromReactShell() {
     useVrcNotificationStore.getState().resetVrcNotificationState();
 
     if (!currentUserId) {
+        await resetCurrentUserRuntimeAuth();
         useSessionStore.getState().setSessionState({
             isLoggedIn: false,
             isFriendsLoaded: false,
             isFavoritesLoaded: false,
             sessionPhase: 'signed_out'
         });
-        resetCurrentUserRuntimeAuth();
         runtimeStore.setStartupTask(
             'auth',
             'completed',
@@ -442,21 +444,28 @@ export async function logoutFromReactShell() {
         return true;
     }
 
-    const snapshot = await authRepository.recordLogout(currentUserId, {
-        clearLastUserLoggedIn: true
-    });
-    await webRepository.clearCookies();
-    resetReactAutoLoginThrottle();
+    await runWithRuntimeAuthFailureRecoverySuppressed(async () => {
+        const snapshot = await authRepository.recordLogout(currentUserId, {
+            clearLastUserLoggedIn: true
+        });
+        await webRepository.clearCookies();
+        resetReactAutoLoginThrottle();
 
-    useSessionStore.getState().setSessionState({
-        isLoggedIn: false,
-        isFriendsLoaded: false,
-        isFavoritesLoaded: false,
-        sessionPhase: 'signed_out'
+        await resetCurrentUserRuntimeAuth();
+
+        useSessionStore.getState().setSessionState({
+            isLoggedIn: false,
+            isFriendsLoaded: false,
+            isFavoritesLoaded: false,
+            sessionPhase: 'signed_out'
+        });
+        applySavedAuthSnapshot(snapshot);
+        runtimeStore.setStartupTask(
+            'auth',
+            'completed',
+            'Signed out from VRCX-0.'
+        );
     });
-    resetCurrentUserRuntimeAuth();
-    applySavedAuthSnapshot(snapshot);
-    runtimeStore.setStartupTask('auth', 'completed', 'Signed out from VRCX-0.');
 
     if (currentUserDisplayName) {
         toast.success(
@@ -657,8 +666,8 @@ export async function executeSavedCredentialLogin(
             )
         ) {
             await webRepository.clearCookies();
+            await resetCurrentUserRuntimeAuth();
             setSignedOutSessionState();
-            resetCurrentUserRuntimeAuth();
             const snapshot = await authRepository.deleteSavedCredential(userId);
             applySavedAuthSnapshot(snapshot);
             const invalidSavedCredentialsError = createAuthExecutionError(
