@@ -203,7 +203,6 @@ impl WebClient {
         let mut builder = Client::builder()
             .cookie_provider(jar.clone())
             .user_agent("VRCX-0")
-            .no_proxy()
             .gzip(true)
             .brotli(true)
             .deflate(true)
@@ -212,6 +211,7 @@ impl WebClient {
 
         if let Some(ref url) = proxy_url {
             builder = builder
+                .no_proxy()
                 .proxy(Proxy::all(url).map_err(|e| Error::Custom(format!("bad proxy: {e}")))?);
         }
 

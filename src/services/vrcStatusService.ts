@@ -2,7 +2,7 @@ import externalApiRepository from '@/repositories/externalApiRepository';
 import { tauriClient } from '@/platform/tauri/client';
 import { useRuntimeStore } from '@/state/runtimeStore';
 
-const OK_POLL_MS = 15 * 60 * 1000;
+const OK_POLL_MS = 5 * 60 * 1000;
 const ISSUE_POLL_MS = 2 * 60 * 1000;
 const FOCUS_REFRESH_MS = 60 * 1000;
 const POLL_EXECUTOR_TICK_MS = FOCUS_REFRESH_MS;
