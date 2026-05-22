@@ -27,8 +27,9 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { cn } from '@/lib/utils';
 import { getNavIconComponent } from '@/components/layout/navIconRegistry';
+import { PageScaffold } from '@/components/layout/PageScaffold';
+import { cn } from '@/lib/utils';
 import { Button } from '@/ui/shadcn/button';
 import {
     DropdownMenu,
@@ -411,9 +412,10 @@ export function ToolsPageContent({
     }
 
     return (
-        <div
+        <PageScaffold
             id="chart"
-            className="x-container flex h-full min-h-0 flex-1 flex-col overflow-y-auto p-4"
+            className="flex-1"
+            style={{ overflowY: 'auto' }}
         >
             <div className="options-container">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -537,6 +539,6 @@ export function ToolsPageContent({
                     </ToolCatalogDropZone>
                 </DndContext>
             </div>
-        </div>
+        </PageScaffold>
     );
 }

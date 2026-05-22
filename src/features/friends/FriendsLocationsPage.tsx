@@ -1,3 +1,5 @@
+import { PageScaffold } from '@/components/layout/PageScaffold';
+
 import { FriendsLocationsToolbar } from './components/FriendsLocationsToolbar';
 import { FriendsLocationsVirtualList } from './components/FriendsLocationsVirtualList';
 import { useFriendsLocationsPageController } from './useFriendsLocationsPageController';
@@ -18,12 +20,10 @@ export function FriendsLocationsPage({
     } = useFriendsLocationsPageController();
 
     return (
-        <div
-            className={
-                embedded
-                    ? 'friend-view flex h-full min-h-0 flex-col p-3'
-                    : 'friend-view x-container flex h-full min-h-0 flex-1 flex-col overflow-hidden p-4 pb-0'
-            }
+        <PageScaffold
+            embedded={embedded}
+            flushBottom={!embedded}
+            className="friend-view flex-1"
         >
             <FriendsLocationsToolbar
                 activeSegment={filters.activeSegment}
@@ -48,6 +48,6 @@ export function FriendsLocationsPage({
                     scroll={scroll}
                 />
             ) : null}
-        </div>
+        </PageScaffold>
     );
 }

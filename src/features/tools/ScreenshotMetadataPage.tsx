@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { PageScaffold } from '@/components/layout/PageScaffold';
 import { convertFileSrc } from '@/platform/tauri/assets';
 import configRepository from '@/repositories/configRepository';
 import mediaRepository from '@/repositories/mediaRepository';
@@ -969,7 +970,7 @@ export function ScreenshotMetadataPage() {
 
     if (!screenshotCacheStatus?.available) {
         return (
-            <div className="screenshot-metadata-page x-container flex min-h-0 flex-1 flex-col overflow-hidden p-6">
+            <PageScaffold className="screenshot-metadata-page flex-1">
                 <ScreenshotMetadataHeader
                     backLabel={t('nav_tooltip.tools')}
                     title={t('dialog.screenshot_metadata.header')}
@@ -985,12 +986,12 @@ export function ScreenshotMetadataPage() {
                     {screenshotCacheStatus?.reason ||
                         'Screenshot cache is unavailable on this platform.'}
                 </div>
-            </div>
+            </PageScaffold>
         );
     }
 
     return (
-        <div className="screenshot-metadata-page x-container flex min-h-0 flex-1 flex-col overflow-hidden p-6">
+        <PageScaffold className="screenshot-metadata-page flex-1">
             <ScreenshotMetadataHeader
                 backLabel={t('nav_tooltip.tools')}
                 title={t('dialog.screenshot_metadata.header')}
@@ -1119,6 +1120,6 @@ export function ScreenshotMetadataPage() {
                     )}
                 </>
             )}
-        </div>
+        </PageScaffold>
     );
 }

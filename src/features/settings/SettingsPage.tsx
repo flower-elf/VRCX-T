@@ -1,6 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
-import { PageHeader, PageTitle } from '@/components/layout/PageScaffold';
+import {
+    PageHeader,
+    PageScaffold,
+    PageTitle
+} from '@/components/layout/PageScaffold';
 import { Spinner } from '@/ui/shadcn/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/ui/shadcn/tabs';
 
@@ -30,7 +34,7 @@ export function SettingsPage() {
     } = pageState;
 
     return (
-        <div className="x-container flex flex-1 flex-col overflow-hidden p-4">
+        <PageScaffold className="flex-1">
             <PageHeader>
                 <PageTitle>{t('view.settings.header')}</PageTitle>
             </PageHeader>
@@ -63,6 +67,6 @@ export function SettingsPage() {
                 <SettingsAdvancedSection advanced={advanced} />
             </Tabs>
             <SettingsDialogsSection dialogs={dialogs} />
-        </div>
+        </PageScaffold>
     );
 }

@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 
-import { cn } from '@/lib/utils';
+import { PageScaffold } from '@/components/layout/PageScaffold';
 import {
     ResizableHandle,
     ResizablePanel,
@@ -56,11 +56,11 @@ function FavoritesPage({
     const handleSplitterLayout = useStableEvent(layout.persistSplitterLayout);
 
     return (
-        <div
-            className={cn(
-                'flex h-full min-h-0 flex-1 flex-col',
-                embedded ? 'p-4 pb-0' : 'x-container pb-0'
-            )}
+        <PageScaffold
+            embedded={embedded}
+            flushBottom
+            embeddedClassName="p-4"
+            className="flex-1"
         >
             <FavoritesToolbar
                 kind={kind}
@@ -141,7 +141,7 @@ function FavoritesPage({
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </div>
-        </div>
+        </PageScaffold>
     );
 }
 

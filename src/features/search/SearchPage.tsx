@@ -1,4 +1,5 @@
 import { AvatarProviderSettingsDialog } from '@/components/search/AvatarProviderSettingsDialog';
+import { PageScaffold } from '@/components/layout/PageScaffold';
 import { Tabs } from '@/ui/shadcn/tabs';
 
 import {
@@ -16,7 +17,7 @@ export function SearchPage() {
     const { config, filters, results } = useSearchPageController();
 
     return (
-        <div className="x-container flex min-h-0 flex-1 flex-col overflow-hidden p-4">
+        <PageScaffold className="flex-1">
             <Tabs
                 value={filters.activeTab}
                 onValueChange={filters.setActiveTab}
@@ -78,6 +79,6 @@ export function SearchPage() {
                 providerList={config.avatarProviderList}
                 onConfigSaved={config.applyAvatarProviderConfig}
             />
-        </div>
+        </PageScaffold>
     );
 }

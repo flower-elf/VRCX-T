@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-import { LoadingState } from '@/components/layout/PageScaffold';
+import { LoadingState, PageScaffold } from '@/components/layout/PageScaffold';
 import { userFacingErrorMessage } from '@/lib/errorDisplay';
-import { cn } from '@/lib/utils';
 import { IMAGE_UPLOAD_ACCEPT } from '@/shared/utils/imageUpload';
 import { Input } from '@/ui/shadcn/input';
 
@@ -34,12 +33,7 @@ export function MyAvatarsPage({
     const hasRows = viewData.filteredAvatars.length > 0;
 
     return (
-        <div
-            className={cn(
-                'flex h-full min-h-0 flex-col p-3',
-                !embedded && 'x-container overflow-hidden'
-            )}
-        >
+        <PageScaffold embedded={embedded}>
             <Input
                 ref={dialogs.imageUploadInputRef}
                 type="file"
@@ -186,6 +180,6 @@ export function MyAvatarsPage({
                     );
                 }}
             />
-        </div>
+        </PageScaffold>
     );
 }

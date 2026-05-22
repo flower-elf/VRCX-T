@@ -1,5 +1,5 @@
 import { InviteMessageDialog } from '@/components/dialogs/InviteMessageDialog';
-import { cn } from '@/lib/utils';
+import { PageScaffold } from '@/components/layout/PageScaffold';
 
 import { NotificationPageTable } from './components/NotificationPageTable';
 import { NotificationPageToolbar } from './components/NotificationPageToolbar';
@@ -20,13 +20,10 @@ export function VrcNotificationPage({ embedded = false }: any = {}) {
 
     return (
         <>
-            <div
-                className={cn(
-                    'flex h-full min-h-0 flex-col gap-3',
-                    embedded
-                        ? 'p-3'
-                        : 'x-container x-container--auto-height p-4 pb-0'
-                )}
+            <PageScaffold
+                embedded={embedded}
+                flushBottom={!embedded}
+                className="gap-3"
             >
                 <NotificationPageToolbar
                     activeTypes={filters.activeTypes}
@@ -48,7 +45,7 @@ export function VrcNotificationPage({ embedded = false }: any = {}) {
                     pageSizes={tableState.pageSizes}
                     onPageSizeChange={tableState.handlePageSizeChange}
                 />
-            </div>
+            </PageScaffold>
             <InviteMessageDialog
                 open={Boolean(dialogs.inviteResponseRequest)}
                 onOpenChange={(open: any) => {

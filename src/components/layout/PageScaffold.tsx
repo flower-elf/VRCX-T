@@ -15,17 +15,21 @@ import { Spinner } from '@/ui/shadcn/spinner';
 
 export function PageScaffold({
     embedded = false,
+    flushBottom = false,
     className = '',
     embeddedClassName = '',
-    children
+    children,
+    ...divProps
 }: any) {
     return (
         <div
+            {...divProps}
             className={cn(
                 'flex h-full min-h-0 min-w-0 flex-col overflow-hidden',
                 embedded ? 'p-3' : 'x-container x-container--auto-height p-4',
                 embedded ? embeddedClassName : '',
-                className
+                className,
+                flushBottom && 'pb-0'
             )}
         >
             {children}

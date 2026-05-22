@@ -8,6 +8,7 @@ import {
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { PageScaffold } from '@/components/layout/PageScaffold';
 import { userFacingErrorMessage } from '@/lib/errorDisplay';
 import { Button } from '@/ui/shadcn/button';
 import {
@@ -48,7 +49,7 @@ export function DashboardPage() {
 
     if (!loaded && loadStatus !== 'error') {
         return (
-            <div className="flex flex-col gap-6 p-4 md:p-6">
+            <PageScaffold className="gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -62,13 +63,13 @@ export function DashboardPage() {
                         </CardDescription>
                     </CardHeader>
                 </Card>
-            </div>
+            </PageScaffold>
         );
     }
 
     if (!dashboard) {
         return (
-            <div className="flex flex-col gap-6 p-4 md:p-6">
+            <PageScaffold className="gap-6">
                 <Card>
                     <CardHeader className="gap-4">
                         <div className="flex flex-col gap-2">
@@ -126,14 +127,14 @@ export function DashboardPage() {
                         )}
                     </CardContent>
                 </Card>
-            </div>
+            </PageScaffold>
         );
     }
 
     const rowCount = dashboard.rows?.length || 0;
 
     return (
-        <div className="x-container flex h-full min-h-0 flex-col gap-3 py-3">
+        <PageScaffold className="gap-3">
             {editor.isEditing ? (
                 <div className="bg-card flex items-center gap-2 rounded-md border px-3 py-2">
                     <Input
@@ -277,6 +278,6 @@ export function DashboardPage() {
                     </div>
                 )}
             </div>
-        </div>
+        </PageScaffold>
     );
 }

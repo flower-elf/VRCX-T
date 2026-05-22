@@ -2,6 +2,7 @@ import { RefreshCcwIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { PreviousInstancesTableDialog } from '@/components/dialogs/PreviousInstancesTableDialog';
+import { PageScaffold } from '@/components/layout/PageScaffold';
 import { timeToText } from '@/lib/dateTime';
 import { Button } from '@/ui/shadcn/button';
 import { Separator } from '@/ui/shadcn/separator';
@@ -31,10 +32,7 @@ export function InstanceActivityPage() {
     } = useInstanceActivityPageController();
 
     return (
-        <div
-            id="chart"
-            className="x-container flex h-full min-h-0 flex-col overflow-y-auto p-6"
-        >
+        <PageScaffold id="chart" style={{ overflowY: 'auto' }}>
             <div className="pt-12">
                 <div className="options-container mt-0 flex items-center justify-between gap-3">
                     <div className="flex items-center justify-between gap-2">
@@ -205,6 +203,6 @@ export function InstanceActivityPage() {
                 instances={previousInstances.previousInstanceRows}
                 detailsOnly
             />
-        </div>
+        </PageScaffold>
     );
 }

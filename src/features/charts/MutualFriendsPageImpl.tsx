@@ -1,3 +1,5 @@
+import { PageScaffold } from '@/components/layout/PageScaffold';
+
 import {
     MutualFriendsGraphStage,
     MutualFriendsToolbar
@@ -9,10 +11,7 @@ export function MutualFriendsPage() {
         useMutualFriendsPageController();
 
     return (
-        <div
-            id="chart"
-            className="x-container flex h-full min-h-0 flex-col overflow-y-auto p-6"
-        >
+        <PageScaffold id="chart" style={{ overflowY: 'auto' }}>
             <div className="mt-0 flex min-h-0 flex-1 flex-col items-center pt-12">
                 <MutualFriendsToolbar
                     exclusions={exclusions}
@@ -33,6 +32,6 @@ export function MutualFriendsPage() {
                     />
                 </div>
             </div>
-        </div>
+        </PageScaffold>
     );
 }
