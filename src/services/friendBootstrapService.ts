@@ -38,6 +38,33 @@ function normalizeStateBucket(value: unknown) {
     return '';
 }
 
+function normalizeLocationTag(value: unknown): string {
+    if (typeof value === 'string') {
+        return value.trim().toLowerCase();
+    }
+    if (!value || typeof value !== 'object') {
+        return String(value ?? '')
+            .trim()
+            .toLowerCase();
+    }
+    const record = value as Record<string, any>;
+    return normalizeLocationTag(
+        record.tag || record.location || record.$location?.tag
+    );
+}
+
+function isOfflineLocationTag(value: unknown): boolean {
+    const location = normalizeLocationTag(value);
+    return location === 'offline' || location === 'offline:offline';
+}
+
+function hasOfflineLocation(user: Record<string, any> | null | undefined) {
+    const source = user?.ref && typeof user.ref === 'object' ? user.ref : user;
+    return [source?.location, source?.$location, source?.$locationTag].some(
+        isOfflineLocationTag
+    );
+}
+
 function getDisplayName(user: Record<string, any> | null | undefined) {
     return user?.displayName || user?.username || user?.id || '';
 }
@@ -349,27 +376,35 @@ export function syncFriendRosterStateFromCurrentUserSnapshot(
     if (!stateById.size) {
         return false;
     }
-
-    useFriendRosterStore.getState().applyFriendPatches(
-        Array.from(stateById.entries()).map(([userId, stateBucket]: any) => ({
-            userId,
-            stateBucket,
-            patch: {
-                id: userId,
-                state: stateBucket
-            }
-        })),
-        detail
+    const friendsById = useFriendRosterStore.getState().friendsById || {};
+    const patchEntries = Array.from(stateById.entries()).map(
+        ([userId, stateBucket]: any) => {
+            const existingFriend = friendsById[normalizeUserId(userId)];
+            const nextStateBucket =
+                stateBucket === 'online' && hasOfflineLocation(existingFriend)
+                    ? 'offline'
+                    : stateBucket;
+            return {
+                userId,
+                stateBucket: nextStateBucket,
+                patch: {
+                    id: userId,
+                    state: nextStateBucket
+                }
+            };
+        }
     );
-    for (const [userId, stateBucket] of stateById.entries()) {
+    if (!patchEntries.length) {
+        return false;
+    }
+
+    useFriendRosterStore.getState().applyFriendPatches(patchEntries, detail);
+    for (const { userId, stateBucket, patch } of patchEntries as any[]) {
         recordFriendPatch({
             endpoint: useRuntimeStore.getState().auth.currentUserEndpoint,
             userId,
             stateBucket,
-            patch: {
-                id: userId,
-                state: stateBucket
-            }
+            patch
         });
     }
     return true;

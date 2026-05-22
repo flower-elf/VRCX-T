@@ -15,6 +15,7 @@ type FriendRecord = Record<string, unknown> & {
     developerType?: unknown;
     platform?: unknown;
     last_platform?: unknown;
+    location?: unknown;
     state?: unknown;
     stateBucket?: unknown;
     trustLevel?: unknown;
@@ -32,6 +33,9 @@ type FriendRosterSnapshot = FriendRosterOrdering & {
     currentUserId: string | null;
     friendsById: Record<string, FriendRecord>;
     detail?: string;
+};
+type NormalizeFriendEntryOptions = {
+    offlineLocationTrusted?: boolean;
 };
 type FriendPatchEntry = {
     userId?: unknown;
@@ -67,6 +71,61 @@ function normalizeStateBucket(value: unknown): FriendRosterBucket | '' {
         return normalized;
     }
     return '';
+}
+
+function normalizeLocationTag(value: unknown): string {
+    if (typeof value === 'string') {
+        return value.trim().toLowerCase();
+    }
+    if (!value || typeof value !== 'object') {
+        return String(value ?? '')
+            .trim()
+            .toLowerCase();
+    }
+    const record = value as Record<string, unknown>;
+    return normalizeLocationTag(
+        record.tag || record.location || (record.$location as any)?.tag
+    );
+}
+
+function isOfflineLocationTag(value: unknown): boolean {
+    const location = normalizeLocationTag(value);
+    return location === 'offline' || location === 'offline:offline';
+}
+
+function hasOfflineLocation(friend: FriendRecord | null | undefined): boolean {
+    return [friend?.location, friend?.$location, friend?.$locationTag].some(
+        isOfflineLocationTag
+    );
+}
+
+function hasOwnPresenceLocationValue(
+    friend: FriendRecord | null | undefined
+): boolean {
+    return Boolean(
+        friend &&
+        ((Object.prototype.hasOwnProperty.call(friend, 'location') &&
+            normalizeLocationTag(friend.location)) ||
+            (Object.prototype.hasOwnProperty.call(friend, '$location') &&
+                normalizeLocationTag(friend.$location)) ||
+            (Object.prototype.hasOwnProperty.call(friend, '$locationTag') &&
+                normalizeLocationTag(friend.$locationTag)))
+    );
+}
+
+function resolveEffectiveStateBucket(
+    friend: FriendRecord | null | undefined,
+    stateBucket: FriendRosterBucket,
+    options: NormalizeFriendEntryOptions = {}
+): FriendRosterBucket {
+    if (
+        stateBucket === 'online' &&
+        options.offlineLocationTrusted &&
+        hasOfflineLocation(friend)
+    ) {
+        return 'offline';
+    }
+    return stateBucket;
 }
 
 function resolveFriendStateBucket({
@@ -115,7 +174,8 @@ function createFallbackFriendUser(
 function normalizeFriendEntry(
     friend: FriendRecord | null | undefined,
     stateBucket: FriendRosterBucket,
-    existingRow?: FriendRecord | null
+    existingRow?: FriendRecord | null,
+    options: NormalizeFriendEntryOptions = {}
 ): FriendRecord {
     const fallbackUserId = normalizeUserId(
         existingRow?.id || existingRow?.userId
@@ -136,7 +196,9 @@ function normalizeFriendEntry(
         explicitTrustLevel ||
         (hasTrustMetadata
             ? trust.trustLevel
-            : String(existingRow?.trustLevel || existingRow?.$trustLevel || '')) ||
+            : String(
+                  existingRow?.trustLevel || existingRow?.$trustLevel || ''
+              )) ||
         trust.trustLevel;
     const friendNumber =
         Number.parseInt(
@@ -149,13 +211,18 @@ function normalizeFriendEntry(
         ) || 0;
     const displayName =
         getDisplayName(source) || existingRow?.displayName || source.id;
+    const effectiveStateBucket = resolveEffectiveStateBucket(
+        source,
+        stateBucket,
+        options
+    );
 
     return {
         ...source,
         id: normalizeUserId(source.id),
         displayName,
-        state: stateBucket,
-        stateBucket,
+        state: effectiveStateBucket,
+        stateBucket: effectiveStateBucket,
         friendNumber,
         trustLevel,
         $friendNumber: friendNumber,
@@ -180,14 +247,12 @@ function compareFriendEntries(
         Number.parseInt(
             (left?.friendNumber ?? left?.$friendNumber ?? 0) as string,
             10
-        ) ||
-        0;
+        ) || 0;
     const rightNumber =
         Number.parseInt(
             (right?.friendNumber ?? right?.$friendNumber ?? 0) as string,
             10
-        ) ||
-        0;
+        ) || 0;
     const leftHasNumber = leftNumber > 0;
     const rightHasNumber = rightNumber > 0;
 
@@ -218,7 +283,8 @@ function buildBucketIds(
 ): string[] {
     return friendIds
         .filter(
-            (friendId: any) => friendsById[friendId]?.stateBucket === stateBucket
+            (friendId: any) =>
+                friendsById[friendId]?.stateBucket === stateBucket
         )
         .sort((leftId: any, rightId: any) =>
             compareFriendEntries(friendsById[leftId], friendsById[rightId])
@@ -262,7 +328,8 @@ function normalizeRosterSnapshotFriends(
                 id: normalizedUserId
             },
             stateBucket,
-            friend
+            friend,
+            { offlineLocationTrusted: hasOwnPresenceLocationValue(friend) }
         );
     }
     return normalizedFriendsById;
@@ -349,12 +416,9 @@ export const useFriendRosterStore = create<FriendRosterStore>((set: any) => ({
             };
         });
     },
-    setRosterSnapshot({
-        currentUserId,
-        friendsById,
-        detail = ''
-    }: any) {
-        const normalizedFriendsById = normalizeRosterSnapshotFriends(friendsById);
+    setRosterSnapshot({ currentUserId, friendsById, detail = '' }: any) {
+        const normalizedFriendsById =
+            normalizeRosterSnapshotFriends(friendsById);
         const ordering = buildRosterOrdering(normalizedFriendsById);
         set({
             currentUserId,
@@ -403,7 +467,8 @@ export const useFriendRosterStore = create<FriendRosterStore>((set: any) => ({
                     userId: normalizedUserId,
                     displayName: normalizedUserId,
                     friendNumber: 0
-                }
+                },
+                { offlineLocationTrusted: hasOwnPresenceLocationValue(patch) }
             );
             const friendsById: any = {
                 ...state.friendsById,
@@ -469,6 +534,10 @@ export const useFriendRosterStore = create<FriendRosterStore>((set: any) => ({
                         userId: normalizedUserId,
                         displayName: normalizedUserId,
                         friendNumber: 0
+                    },
+                    {
+                        offlineLocationTrusted:
+                            hasOwnPresenceLocationValue(patch)
                     }
                 );
                 if (
