@@ -50,11 +50,7 @@ async function runRuntimeAuthRecovery(error: unknown): Promise<void> {
     }
 
     const runtimeStore = useRuntimeStore.getState();
-    const failedStatus =
-        error && typeof error === 'object'
-            ? (error as { status?: unknown }).status
-            : undefined;
-    const shouldClearAutoLoginTarget = failedStatus === 403;
+    const shouldClearAutoLoginTarget = isVrchatSessionRecoveryError(error);
     const failedUserId = String(
         runtimeStore.auth.currentUserId ||
             runtimeStore.auth.lastUserLoggedIn ||
