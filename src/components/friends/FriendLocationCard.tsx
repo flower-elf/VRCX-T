@@ -398,6 +398,7 @@ export function FriendLocationCard({
             link={canOpenWorld}
             stopPropagation
             asButton={false}
+            className="text-xs leading-4"
         />
     ) : (
         locationLabel
@@ -473,7 +474,7 @@ export function FriendLocationCard({
                             <CardContent className="flex min-h-0 flex-1 flex-col gap-[var(--friend-card-inner-gap)] overflow-hidden px-[var(--friend-card-padding)]">
                                 {showLocationInfo ? (
                                     <div
-                                        className="text-muted-foreground w-full min-w-0 text-left"
+                                        className="text-muted-foreground w-full min-w-0 text-left text-xs leading-4"
                                         onClick={(event: any) =>
                                             event.stopPropagation()
                                         }

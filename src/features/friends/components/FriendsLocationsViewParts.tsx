@@ -46,6 +46,7 @@ export function FriendsLocationsSectionHeader({
                                 link
                                 asButton={false}
                                 disableTooltip
+                                className="text-sm"
                             />
                         ) : (
                             section.title

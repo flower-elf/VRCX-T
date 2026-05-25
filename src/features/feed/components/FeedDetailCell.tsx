@@ -8,6 +8,7 @@ import { FeedStatusBadge } from './FeedStatusBadge';
 
 type FeedDetailCellProps = {
     loadingHistoryKey: string;
+    locationClassName?: string;
     onNewInstance(payload?: FeedLocationActionPayload): void;
     onOpenPreviousInstances(payload?: FeedLocationActionPayload): void;
     row: FeedRow;
@@ -15,6 +16,7 @@ type FeedDetailCellProps = {
 
 function FeedDetailCell({
     loadingHistoryKey,
+    locationClassName = '',
     onNewInstance,
     onOpenPreviousInstances,
     row
@@ -25,6 +27,7 @@ function FeedDetailCell({
         const location = resolveFeedLocationForDisplay(row);
         return (
             <FeedLocationLink
+                className={locationClassName}
                 disableTooltip
                 groupName={row?.groupName}
                 loadingHistoryKey={loadingHistoryKey}

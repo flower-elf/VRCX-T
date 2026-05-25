@@ -151,6 +151,7 @@ export function FeedColumnItem(props: FeedColumnItemProps) {
                                 loadingHistoryKey={
                                     props.loadingPreviousInstancesKey
                                 }
+                                locationClassName="text-xs"
                                 onNewInstance={props.actions.openFeedNewInstance}
                                 onOpenPreviousInstances={
                                     props.onOpenPreviousInstances
