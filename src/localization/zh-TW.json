@@ -5380,7 +5380,7 @@
         "clocks_label": "時鐘",
         "clocks_none": "無",
         "timezone": "時區",
-        "now_playing": "正在游玩",
+        "now_playing": "正在播放",
         "instance_queue": "排隊",
         "instance_queue_waiting": "等待中",
         "instance_queue_position": "第 {position} 位",
