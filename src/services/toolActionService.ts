@@ -35,8 +35,7 @@ const toolRouteMap = {
     gallery: '/tools/gallery',
     inventory: '/tools/inventory',
     'screenshot-metadata': '/tools/screenshot-metadata',
-    'vrchat-log': '/tools/vrchat-log',
-    'community-themes': '/community-themes'
+    'vrchat-log': '/tools/vrchat-log'
 } satisfies Record<string, string>;
 
 const toolDialogHostMap = {

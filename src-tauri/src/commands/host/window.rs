@@ -89,6 +89,28 @@ pub fn app__refresh_tray_menu(app_handle: AppHandle) -> Result<(), AppError> {
 }
 
 #[tauri::command]
+pub fn app__open_devtools(app_handle: AppHandle) -> Result<(), AppError> {
+    #[cfg(feature = "devtools")]
+    {
+        use tauri::Manager;
+
+        let Some(window) = app_handle.get_webview_window("main") else {
+            return Err(AppError::Custom("main window is not available".into()));
+        };
+        window.open_devtools();
+        Ok(())
+    }
+
+    #[cfg(not(feature = "devtools"))]
+    {
+        let _ = app_handle;
+        Err(AppError::Custom(
+            "DevTools are unavailable in this build.".into(),
+        ))
+    }
+}
+
+#[tauri::command]
 pub fn app__restart_application(app_handle: AppHandle) -> Result<(), AppError> {
     #[cfg(debug_assertions)]
     {

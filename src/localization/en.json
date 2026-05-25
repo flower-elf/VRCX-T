@@ -247,6 +247,8 @@
         "tools": "Tools",
         "help": "Help",
         "test_build_badge": "Test Build",
+        "preview_build_badge": "Preview Build",
+        "theme_devkit_build_badge": "Theme Dev Kit",
         "settings": "Settings...",
         "check_updates": "Check for Updates",
         "restart": "Restart VRCX-0",
@@ -263,6 +265,7 @@
         "zoom_out": "Zoom Out",
         "reset_zoom": "Reset Zoom",
         "all_tools": "All Tools...",
+        "open_devtools": "Open DevTools",
         "github": "GitHub",
         "report_issue": "Report Issue",
         "open_source_licenses": "Third-Party Notices",
@@ -273,7 +276,8 @@
         "messages": {
             "zoom_failed": "Failed to apply zoom",
             "logout_failed": "Failed to sign out of VRCX-0",
-            "restart_failed": "Failed to restart VRCX-0"
+            "restart_failed": "Failed to restart VRCX-0",
+            "open_devtools_failed": "Failed to open DevTools"
         },
         "label": {
             "started_at": "Started at",
@@ -2505,7 +2509,8 @@
             "tabs": {
                 "browse": "Browse",
                 "installed": "Installed",
-                "override": "Override"
+                "override": "Override",
+                "developer": "Developer"
             },
             "status": {
                 "active": "Active",
@@ -2545,6 +2550,20 @@
             "override": {
                 "header": "User override CSS",
                 "placeholder": ":root {\n  --vrcx-0-main-content-surface: transparent;\n}"
+            },
+            "developer": {
+                "header": "Local theme preview",
+                "description": "Load a local theme folder while developing themes. The folder should contain theme.css and may include theme.json.",
+                "no_folder": "No folder selected",
+                "select_folder": "Select folder",
+                "reload": "Reload",
+                "start_watch": "Start watch",
+                "stop_watch": "Stop watch",
+                "stop_preview": "Stop preview",
+                "loaded": "Local theme preview loaded.",
+                "stopped": "Local theme preview stopped.",
+                "load_failed": "Failed to load local theme preview.",
+                "css_size": "CSS bytes"
             },
             "settings": {
                 "header": "Community Themes",

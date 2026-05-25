@@ -261,6 +261,8 @@ const commandArgs: Record<string, string[]> = {
     app__get_backend_runtime_snapshot: [],
     app__get_backend_runtime_frontend_session_snapshot: [],
     app__ensure_main_window: [],
+    app__open_devtools: [],
+    app__community_theme_debug_load_local_theme: ['folderPath'],
     app__registry_backup_list: [],
     app__registry_backup_create: ['name'],
     app__registry_backup_restore: ['key'],

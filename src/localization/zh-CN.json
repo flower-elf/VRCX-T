@@ -247,6 +247,8 @@
         "tools": "工具",
         "help": "帮助",
         "test_build_badge": "测试版",
+        "preview_build_badge": "Preview Build",
+        "theme_devkit_build_badge": "Theme Dev Kit",
         "settings": "设置...",
         "check_updates": "检查更新",
         "restart": "重启 VRCX-0",
@@ -263,6 +265,7 @@
         "zoom_out": "缩小",
         "reset_zoom": "重置缩放",
         "all_tools": "所有工具...",
+        "open_devtools": "打开 DevTools",
         "github": "在 GitHub 上查看",
         "report_issue": "反馈问题",
         "open_source_licenses": "第三方声明",
@@ -273,7 +276,8 @@
         "messages": {
             "zoom_failed": "应用缩放失败",
             "logout_failed": "退出 VRCX-0 登录失败",
-            "restart_failed": "重启 VRCX-0 失败"
+            "restart_failed": "重启 VRCX-0 失败",
+            "open_devtools_failed": "打开 DevTools 失败"
         },
         "label": {
             "started_at": "开始时间",
@@ -2505,7 +2509,8 @@
             "tabs": {
                 "browse": "浏览",
                 "installed": "已安装",
-                "override": "Override"
+                "override": "Override",
+                "developer": "开发"
             },
             "status": {
                 "active": "已启用",
@@ -2545,6 +2550,20 @@
             "override": {
                 "header": "用户 override CSS",
                 "placeholder": ":root {\n  --vrcx-0-main-content-surface: transparent;\n}"
+            },
+            "developer": {
+                "header": "本地主题预览",
+                "description": "制作主题时加载本地主题文件夹。文件夹需要包含 theme.css，也可以包含 theme.json。",
+                "no_folder": "未选择文件夹",
+                "select_folder": "选择文件夹",
+                "reload": "重新加载",
+                "start_watch": "开始 watch",
+                "stop_watch": "停止 watch",
+                "stop_preview": "停止预览",
+                "loaded": "本地主题预览已加载。",
+                "stopped": "本地主题预览已停止。",
+                "load_failed": "加载本地主题预览失败。",
+                "css_size": "CSS 字节数"
             },
             "settings": {
                 "header": "社区主题",

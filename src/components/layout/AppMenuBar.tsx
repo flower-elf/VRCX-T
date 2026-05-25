@@ -5,11 +5,13 @@ import { toast } from 'sonner';
 
 import { KeyboardShortcut } from '@/components/keyboard/KeyboardShortcut';
 import { OpenSourceNoticeDialog } from '@/features/settings/components/OpenSourceNoticeDialog';
-import { openExternalLink } from '@/services/entityMediaService';
 import { cn } from '@/lib/utils';
+import { tauriClient } from '@/platform/tauri/client';
 import configRepository from '@/repositories/configRepository';
 import { logoutFromReactShell } from '@/services/authExecutionService';
 import { startBackgroundModeForCurrentSession } from '@/services/backgroundModeService';
+import { enableInstalledCommunityTheme } from '@/services/communityThemeService';
+import { openExternalLink } from '@/services/entityMediaService';
 import {
     setSidebarCollapsedPreference,
     setTableDensityPreference,
@@ -40,6 +42,10 @@ import {
 } from '@/shared/constants/tools';
 import { publishNavCustomizeRequested } from '@/shared/events/navLayoutEvents';
 import { formatReleaseDisplayVersion } from '@/shared/utils/releaseVersion';
+import {
+    getBuildBadgeI18nKey,
+    isThemeDeveloperBuild
+} from '@/shared/buildLabel';
 import {
     communityThemeControlsAccent,
     useCommunityThemeStore
@@ -177,6 +183,9 @@ export function AppMenuBar({
     const installedCommunityTheme = useCommunityThemeStore(
         (state: any) => state.installedTheme
     );
+    const localCommunityThemePreview = useCommunityThemeStore(
+        (state: any) => state.localPreview
+    );
     const notificationLayout = usePreferencesStore(
         (state: any) => state.notificationLayout
     );
@@ -196,11 +205,8 @@ export function AppMenuBar({
         hostPlatform === 'macos' ? ['Meta', 'D'] : ['Ctrl', 'D'];
     // oxlint-disable-next-line no-undef
     const appVersion = formatReleaseDisplayVersion(VERSION || '') || '-';
-    // oxlint-disable-next-line no-undef
-    const rawBuildLabel =
-        typeof VRCX_0_BUILD_LABEL === 'string' ? VRCX_0_BUILD_LABEL : '';
-    const buildLabel = rawBuildLabel.trim().toLowerCase();
-    const isTestBuild = buildLabel === 'test';
+    const buildBadgeKey = getBuildBadgeI18nKey();
+    const developerToolsAvailable = isThemeDeveloperBuild();
     const availableToolCategories = useMemo(
         () =>
             toolCategories
@@ -231,7 +237,8 @@ export function AppMenuBar({
     );
     const communityThemeAccentControlled = communityThemeControlsAccent(
         communityThemeEnabled,
-        installedCommunityTheme
+        installedCommunityTheme,
+        localCommunityThemePreview
     );
 
     useEffect(() => {
@@ -307,6 +314,35 @@ export function AppMenuBar({
         } catch {
             toast.error(
                 t('component.app_status_bar.toast.failed_to_start_background_mode')
+            );
+        }
+    }
+
+    async function runOpenDevtools() {
+        try {
+            await tauriClient.app.OpenDevtools();
+        } catch (error) {
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : t('app_menu.messages.open_devtools_failed')
+            );
+        }
+    }
+
+    async function runEnableInstalledCommunityTheme() {
+        if (!installedCommunityTheme || communityThemeEnabled) {
+            return;
+        }
+
+        try {
+            await enableInstalledCommunityTheme();
+            toast.success(t('view.community_themes.toast.theme_enabled'));
+        } catch (error) {
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : t('view.community_themes.toast.theme_failed')
             );
         }
     }
@@ -459,16 +495,6 @@ export function AppMenuBar({
                                         ))}
                                     </MenubarRadioGroup>
                                     <MenubarSeparator />
-                                    <MenuItem
-                                        onSelect={() =>
-                                            navigate('/community-themes')
-                                        }
-                                    >
-                                        {t(
-                                            'view.community_themes.action.open_marketplace'
-                                        )}
-                                    </MenuItem>
-                                    <MenubarSeparator />
                                     {communityThemeAccentControlled ? (
                                         <MenubarLabel className="text-muted-foreground px-2 py-1.5 text-[11px] leading-snug whitespace-normal">
                                             {t(
@@ -497,6 +523,47 @@ export function AppMenuBar({
                                             />
                                         ))}
                                     </MenubarRadioGroup>
+                                </MenubarSubContent>
+                            </MenubarSub>
+                            <MenubarSub>
+                                <MenubarSubTrigger className="min-h-7 min-w-48 text-xs">
+                                    {t('view.community_themes.header')}
+                                </MenubarSubTrigger>
+                                <MenubarSubContent className="w-60">
+                                    {installedCommunityTheme ? (
+                                        <MenuItem
+                                            onSelect={() => {
+                                                runEnableInstalledCommunityTheme();
+                                            }}
+                                        >
+                                            <span className="min-w-0 truncate">
+                                                {
+                                                    installedCommunityTheme.themeName
+                                                }
+                                            </span>
+                                            <MenubarShortcut className="tracking-normal">
+                                                {t(
+                                                    communityThemeEnabled
+                                                        ? 'view.community_themes.status.active'
+                                                        : 'view.community_themes.status.installed'
+                                                )}
+                                            </MenubarShortcut>
+                                        </MenuItem>
+                                    ) : (
+                                        <MenubarLabel className="text-muted-foreground px-2 py-1.5 text-xs font-normal">
+                                            {t(
+                                                'view.community_themes.installed.empty'
+                                            )}
+                                        </MenubarLabel>
+                                    )}
+                                    <MenubarSeparator />
+                                    <MenuItem
+                                        onSelect={() =>
+                                            navigate('/community-themes')
+                                        }
+                                    >
+                                        {t('view.community_themes.header')}
+                                    </MenuItem>
                                 </MenubarSubContent>
                             </MenubarSub>
                             <MenubarSub>
@@ -617,12 +684,12 @@ export function AppMenuBar({
                     <MenubarTrigger className="h-full rounded-none px-2 !py-0 text-xs">
                         <span className="flex min-w-0 items-center gap-1.5">
                             <span>{t('app_menu.help')}</span>
-                            {isTestBuild ? (
+                            {buildBadgeKey ? (
                                 <Badge
                                     variant="secondary"
                                     className="h-4 rounded-md px-1 text-[10px] leading-none shadow-none"
                                 >
-                                    {t('app_menu.test_build_badge')}
+                                    {t(buildBadgeKey)}
                                 </Badge>
                             ) : null}
                         </span>
@@ -646,6 +713,16 @@ export function AppMenuBar({
                             </MenuItem>
                         </MenubarGroup>
                         <MenubarSeparator />
+                        {developerToolsAvailable ? (
+                            <>
+                                <MenubarGroup>
+                                    <MenuItem onSelect={() => runOpenDevtools()}>
+                                        {t('app_menu.open_devtools')}
+                                    </MenuItem>
+                                </MenubarGroup>
+                                <MenubarSeparator />
+                            </>
+                        ) : null}
                         <MenubarGroup>
                             <MenuItem
                                 onSelect={() => setOpenSourceNoticeOpen(true)}

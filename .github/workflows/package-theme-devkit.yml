@@ -1,0 +1,243 @@
+name: Package Theme Dev Kit
+
+on:
+    release:
+        types:
+            - published
+    workflow_dispatch:
+        inputs:
+            version:
+                description: Release version or tag to package, for example 2.2.1 or v2.2.1
+                required: true
+                type: string
+
+concurrency:
+    group: ${{ github.ref }}-package-theme-devkit
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    package:
+        name: Theme Dev Kit ${{ matrix.platform }}
+        runs-on: ${{ matrix.os }}
+        defaults:
+            run:
+                shell: bash
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - platform: windows_x86_64
+                      os: windows-latest
+                      rust_target: ''
+                      output: VRCX-0_${version}_theme-devkit_windows_x86_64.exe
+                    - platform: linux_x86_64
+                      os: ubuntu-24.04
+                      rust_target: ''
+                      output: VRCX-0_${version}_theme-devkit_linux_x86_64.AppImage
+                    - platform: macos_aarch64
+                      os: macos-latest
+                      rust_target: aarch64-apple-darwin
+                      output: VRCX-0_${version}_theme-devkit_macos_aarch64.dmg
+                    - platform: macos_x86_64
+                      os: macos-latest
+                      rust_target: x86_64-apple-darwin
+                      output: VRCX-0_${version}_theme-devkit_macos_x86_64.dmg
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+
+            - id: release
+              name: Checkout release tag
+              env:
+                  RELEASE_TAG: ${{ github.event.release.tag_name || '' }}
+                  INPUT_VERSION: ${{ inputs.version || '' }}
+              run: |
+                  raw="${RELEASE_TAG:-$INPUT_VERSION}"
+                  raw="${raw#refs/tags/}"
+                  version="${raw#v}"
+
+                  if [[ -z "$version" ]]; then
+                      echo "Missing release version." >&2
+                      exit 1
+                  fi
+
+                  tag="v$version"
+                  git fetch --force --tags origin "refs/tags/$tag:refs/tags/$tag"
+                  git checkout --force "$tag"
+
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+            - uses: dtolnay/rust-toolchain@stable
+
+            - name: Install Rust target
+              if: matrix.rust_target != ''
+              run: rustup target add "${{ matrix.rust_target }}"
+
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24.x
+                  cache: npm
+
+            - name: Install Linux dependencies
+              if: runner.os == 'Linux'
+              run: |
+                  webkitgtk_version="2.44.0-2"
+
+                  sudo apt-get update
+                  sudo apt-get install -y --no-install-recommends \
+                      build-essential \
+                      curl \
+                      file \
+                      libayatana-appindicator3-dev \
+                      libssl-dev \
+                      libxdo-dev \
+                      librsvg2-dev \
+                      patchelf \
+                      rpm \
+                      wget
+                  sudo apt-get install -y --no-install-recommends \
+                      libgtk-3-dev \
+                      libwebkit2gtk-4.1-0="$webkitgtk_version" \
+                      libwebkit2gtk-4.1-dev="$webkitgtk_version" \
+                      libjavascriptcoregtk-4.1-0="$webkitgtk_version" \
+                      libjavascriptcoregtk-4.1-dev="$webkitgtk_version" \
+                      gir1.2-javascriptcoregtk-4.1="$webkitgtk_version" \
+                      gir1.2-webkit2-4.1="$webkitgtk_version"
+
+            - run: npm ci
+
+            - name: Validate requested version
+              run: |
+                  node build-scripts/prepare-release-version.ts \
+                      --version "${{ steps.release.outputs.version }}" \
+                      --dry-run
+
+            - id: config
+              name: Prepare Theme Dev Kit config
+              run: |
+                  node <<'NODE'
+                  const fs = require('node:fs');
+
+                  const platform = process.env.MATRIX_PLATFORM;
+                  const runnerOs = process.env.RUNNER_OS;
+                  const tauriConfigPath = 'src-tauri/tauri.conf.json';
+                  const linuxConfigPath = 'src-tauri/tauri.linux.conf.json';
+                  const outputConfigPath = `src-tauri/tauri.theme-devkit.${platform}.conf.json`;
+
+                  const tauriConfig = JSON.parse(fs.readFileSync(tauriConfigPath, 'utf8'));
+                  let config = structuredClone(tauriConfig);
+
+                  if (runnerOs === 'Linux') {
+                      const linuxConfig = JSON.parse(fs.readFileSync(linuxConfigPath, 'utf8'));
+                      config = {
+                          bundle: {
+                              ...(linuxConfig.bundle ?? {}),
+                              targets: ['appimage'],
+                              createUpdaterArtifacts: false
+                          }
+                      };
+                  } else {
+                      config.bundle ??= {};
+                      config.bundle.createUpdaterArtifacts = false;
+                      if (runnerOs === 'Windows') {
+                          config.bundle.windows ??= {};
+                          delete config.bundle.windows.certificateThumbprint;
+                          delete config.bundle.windows.signCommand;
+                      }
+                      if (runnerOs === 'macOS') {
+                          config.bundle.targets = ['dmg'];
+                      }
+                  }
+
+                  fs.writeFileSync(outputConfigPath, `${JSON.stringify(config, null, 4)}\n`);
+                  fs.appendFileSync(process.env.GITHUB_OUTPUT, `config=${outputConfigPath}\n`);
+                  NODE
+              env:
+                  MATRIX_PLATFORM: ${{ matrix.platform }}
+
+            - name: Build Windows Theme Dev Kit exe
+              if: runner.os == 'Windows'
+              env:
+                  VRCX-0_BUILD_LABEL: theme-devkit
+              run: |
+                  npm run tauri:build:devtools -- \
+                      --config "${{ steps.config.outputs.config }}" \
+                      --no-sign \
+                      --no-bundle
+
+            - name: Build Linux Theme Dev Kit AppImage
+              if: runner.os == 'Linux'
+              env:
+                  VRCX-0_BUILD_LABEL: theme-devkit
+              run: |
+                  npm run tauri:build:devtools -- \
+                      --config "${{ steps.config.outputs.config }}" \
+                      --bundles appimage
+
+            - name: Build macOS Theme Dev Kit DMG
+              if: runner.os == 'macOS'
+              env:
+                  VRCX-0_BUILD_LABEL: theme-devkit
+              run: |
+                  npm run tauri:build:devtools -- \
+                      --target "${{ matrix.rust_target }}" \
+                      --config "${{ steps.config.outputs.config }}" \
+                      --bundles dmg
+
+            - name: Collect Theme Dev Kit artifact
+              run: |
+                  mkdir -p theme-devkit-assets
+                  version="${{ steps.release.outputs.version }}"
+                  output="${{ matrix.output }}"
+                  output="${output//\$\{version\}/$version}"
+
+                  case "${{ matrix.platform }}" in
+                      windows_x86_64)
+                          cp target/release/vrcx-0.exe "theme-devkit-assets/$output"
+                          ;;
+                      linux_x86_64)
+                          cp target/release/bundle/appimage/*.AppImage "theme-devkit-assets/$output"
+                          ;;
+                      macos_aarch64|macos_x86_64)
+                          cp "target/${{ matrix.rust_target }}/release/bundle/dmg/"*.dmg "theme-devkit-assets/$output"
+                          ;;
+                      *)
+                          echo "Unknown platform: ${{ matrix.platform }}" >&2
+                          exit 1
+                          ;;
+                  esac
+
+                  ls -la theme-devkit-assets
+
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: theme-devkit-${{ matrix.platform }}-${{ steps.release.outputs.version }}
+                  path: theme-devkit-assets/*
+                  if-no-files-found: error
+
+    publish-release-assets:
+        name: Upload Theme Dev Kit release assets
+        if: github.event_name == 'release'
+        needs: package
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/download-artifact@v7
+              with:
+                  pattern: theme-devkit-*
+                  path: theme-devkit-release-assets
+                  merge-multiple: true
+
+            - name: Upload assets to GitHub Release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  RELEASE_TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  find theme-devkit-release-assets -maxdepth 1 -type f | sort
+                  gh release upload "$RELEASE_TAG" theme-devkit-release-assets/* --clobber

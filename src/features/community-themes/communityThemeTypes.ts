@@ -38,3 +38,14 @@ export interface CommunityThemeInstallMetadata {
     updatedAt: string;
     accentMode: CommunityThemeAccentMode;
 }
+
+export interface CommunityThemeLocalPreview {
+    folderPath: string;
+    cssPath: string;
+    manifestPath?: string | null;
+    themeName: string;
+    version: string;
+    accentMode: CommunityThemeAccentMode;
+    cssLength: number;
+    loadedAt: string;
+}

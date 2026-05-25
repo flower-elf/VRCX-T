@@ -699,6 +699,16 @@ export interface RegistryBackupMaintenanceResult {
     detail: string;
 }
 
+export interface CommunityThemeDebugLocalThemeOutput {
+    folderPath: string;
+    cssPath: string;
+    manifestPath?: string | null;
+    themeName: string;
+    version: string;
+    accentMode: 'theme' | 'app';
+    css: string;
+}
+
 export interface AppTauriCommandNamespace extends TauriCommandNamespace {
     AppendErrorLog(entry: string): Promise<void>;
     ExitApplication(): Promise<void>;
@@ -726,6 +736,10 @@ export interface AppTauriCommandNamespace extends TauriCommandNamespace {
     GetBackendRuntimeFrontendSessionSnapshot(): Promise<BackendRuntimeFrontendSessionSnapshot | null>;
     EnsureMainWindow(): Promise<void>;
     RefreshTrayMenu(): Promise<void>;
+    OpenDevtools(): Promise<void>;
+    CommunityThemeDebugLoadLocalTheme(
+        folderPath: string
+    ): Promise<CommunityThemeDebugLocalThemeOutput>;
     RegistryBackupList(): Promise<RegistryBackupSnapshot[]>;
     RegistryBackupCreate(name: string): Promise<RegistryBackupSnapshot[]>;
     RegistryBackupRestore(key: string): Promise<RegistryBackupSnapshot>;
@@ -750,6 +764,7 @@ export interface AppTauriCommandNamespace extends TauriCommandNamespace {
         defaultExt?: string | null,
         defaultFilter?: string | null
     ): Promise<string>;
+    OpenFolderSelectorDialog(defaultPath?: string | null): Promise<string>;
     ReadVrcRegJsonFile(filepath: string): Promise<string>;
     SaveVrcRegJsonFile(
         defaultPath: string | null,

@@ -1,15 +1,16 @@
 import type {
     CommunityThemeCatalog,
     CommunityThemeInstallMetadata,
+    CommunityThemeLocalPreview,
     CommunityThemeManifest
 } from '@/features/community-themes/communityThemeTypes';
+import { convertFileSrc } from '@/platform/tauri/assets';
 import { tauriClient } from '@/platform/tauri/client';
 import {
     COMMUNITY_THEME_CATALOG_URL,
     COMMUNITY_THEME_CSS_FILE_NAME,
     loadCommunityThemeCatalog,
     loadCommunityThemeCss,
-    normalizeCommunityThemeCatalogUrl,
     resolveCommunityThemeAssetUrl
 } from '@/repositories/communityThemeRepository';
 import configRepository from '@/repositories/configRepository';
@@ -17,6 +18,7 @@ import {
     communityThemeControlsAccent,
     useCommunityThemeStore
 } from '@/state/communityThemeStore';
+import { isThemeDeveloperBuild } from '@/shared/buildLabel';
 
 import {
     applyThemeColor,
@@ -25,12 +27,13 @@ import {
 } from './themeService';
 
 const INSTALLED_THEME_LAYER = 'installed-theme';
+const LOCAL_PREVIEW_LAYER = 'local-theme-preview';
 const USER_OVERRIDE_LAYER = 'user-override';
 const COMMUNITY_THEME_STYLE_ATTR = 'data-vrcx-0-css-layer';
 const COMMUNITY_THEME_ACCENT_ATTR = 'data-vrcx-0-community-theme-accent';
+const CSS_URL_PATTERN = /url\(\s*(['"]?)([^'")]+)\1\s*\)/gi;
 
 const CONFIG_KEYS = {
-    catalogUrl: 'VRCX_themeMarketplaceCatalogUrl',
     enabled: 'VRCX_communityThemeEnabled',
     id: 'VRCX_communityThemeId',
     version: 'VRCX_communityThemeVersion',
@@ -40,6 +43,7 @@ const CONFIG_KEYS = {
 };
 
 let installedThemeCssSnapshot = '';
+let localPreviewCssSnapshot = '';
 let overrideCssSnapshot = '';
 
 async function refreshCommunityThemeTrayMenu(): Promise<void> {
@@ -76,6 +80,9 @@ function syncCommunityStyleLayers(): void {
             installedThemeCssSnapshot
         );
     }
+    if (localPreviewCssSnapshot.trim()) {
+        ensureCommunityStyleLayer(LOCAL_PREVIEW_LAYER, localPreviewCssSnapshot);
+    }
     if (overrideCssSnapshot.trim()) {
         ensureCommunityStyleLayer(USER_OVERRIDE_LAYER, overrideCssSnapshot);
     }
@@ -94,8 +101,13 @@ async function syncCommunityThemeAccentControl(): Promise<void> {
         return;
     }
 
-    const { enabled, installedTheme } = useCommunityThemeStore.getState();
-    const controlsAccent = communityThemeControlsAccent(enabled, installedTheme);
+    const { enabled, installedTheme, localPreview } =
+        useCommunityThemeStore.getState();
+    const controlsAccent = communityThemeControlsAccent(
+        enabled,
+        installedTheme,
+        localPreview
+    );
     const root = document.documentElement;
     if (controlsAccent) {
         root.setAttribute(COMMUNITY_THEME_ACCENT_ATTR, 'theme');
@@ -105,6 +117,44 @@ async function syncCommunityThemeAccentControl(): Promise<void> {
 
     root.removeAttribute(COMMUNITY_THEME_ACCENT_ATTR);
     await applySavedThemeColor();
+}
+
+function shouldRewriteCssUrl(url: string): boolean {
+    if (!url || url.startsWith('#')) {
+        return false;
+    }
+    return !/^(?:[a-z][a-z0-9+.-]*:|\/|\\\\)/i.test(url);
+}
+
+function rewriteLocalThemeAssetUrls(
+    cssText: string,
+    cssPath: string,
+    cacheKey?: string
+): string {
+    const baseCssUrl = convertFileSrc(cssPath);
+    return cssText.replace(
+        CSS_URL_PATTERN,
+        (match: string, quote: string, rawUrl: string) => {
+            const url = String(rawUrl || '').trim();
+            if (!shouldRewriteCssUrl(url)) {
+                return match;
+            }
+
+            try {
+                const resolvedUrl = new URL(url, baseCssUrl);
+                if (cacheKey) {
+                    resolvedUrl.searchParams.set(
+                        'vrcx0ThemePreview',
+                        cacheKey
+                    );
+                }
+                const nextQuote = quote || '"';
+                return `url(${nextQuote}${resolvedUrl.toString()}${nextQuote})`;
+            } catch {
+                return match;
+            }
+        }
+    );
 }
 
 async function sha256Hex(value: string): Promise<string> {
@@ -145,18 +195,40 @@ function normalizeInstallMetadata(
     };
 }
 
+function resolveCurrentCatalogThemeCssUrl(themeId: string): string {
+    return resolveCommunityThemeAssetUrl(
+        COMMUNITY_THEME_CATALOG_URL,
+        themeId,
+        COMMUNITY_THEME_CSS_FILE_NAME
+    );
+}
+
+function isInstallFromCurrentCatalog(
+    metadata: CommunityThemeInstallMetadata
+): boolean {
+    return (
+        metadata.sourceUrl === resolveCurrentCatalogThemeCssUrl(metadata.themeId)
+    );
+}
+
+async function clearStoredCommunityThemeInstall(): Promise<void> {
+    await Promise.all([
+        configRepository.setBool(CONFIG_KEYS.enabled, false),
+        configRepository.remove(CONFIG_KEYS.id),
+        configRepository.remove(CONFIG_KEYS.version),
+        configRepository.remove(CONFIG_KEYS.cssSnapshot),
+        configRepository.remove(CONFIG_KEYS.installMetadata)
+    ]);
+}
+
 export async function loadCatalog(): Promise<CommunityThemeCatalog> {
     const store = useCommunityThemeStore.getState();
     store.setLoading(true);
     store.setError(null);
     try {
-        const catalogUrl = await configRepository.getString(
-            CONFIG_KEYS.catalogUrl,
+        const catalog = await loadCommunityThemeCatalog(
             COMMUNITY_THEME_CATALOG_URL
         );
-        const normalizedCatalogUrl =
-            normalizeCommunityThemeCatalogUrl(catalogUrl);
-        const catalog = await loadCommunityThemeCatalog(normalizedCatalogUrl);
         store.setCatalog(catalog.sourceUrl, catalog.themes);
         return catalog;
     } catch (error) {
@@ -172,29 +244,33 @@ export async function loadCatalog(): Promise<CommunityThemeCatalog> {
 }
 
 export async function initializeCommunityThemes(): Promise<void> {
-    const [catalogUrl, enabled, metadata, cssSnapshot, overrideCss] =
-        await Promise.all([
-            configRepository.getString(
-                CONFIG_KEYS.catalogUrl,
-                COMMUNITY_THEME_CATALOG_URL
-            ),
-            configRepository.getBool(CONFIG_KEYS.enabled, false),
-            configRepository.getObject(CONFIG_KEYS.installMetadata, null),
-            configRepository.getString(CONFIG_KEYS.cssSnapshot, ''),
-            configRepository.getString(CONFIG_KEYS.overrideCss, '')
-        ]);
+    const [enabled, metadata, cssSnapshot, overrideCss] = await Promise.all([
+        configRepository.getBool(CONFIG_KEYS.enabled, false),
+        configRepository.getObject(CONFIG_KEYS.installMetadata, null),
+        configRepository.getString(CONFIG_KEYS.cssSnapshot, ''),
+        configRepository.getString(CONFIG_KEYS.overrideCss, ''),
+        configRepository.remove('VRCX_themeMarketplaceCatalogUrl')
+    ]);
 
-    const installedTheme = normalizeInstallMetadata(metadata);
-    const normalizedCatalogUrl = normalizeCommunityThemeCatalogUrl(catalogUrl);
+    const normalizedInstalledTheme = normalizeInstallMetadata(metadata);
+    const installedTheme =
+        normalizedInstalledTheme &&
+        isInstallFromCurrentCatalog(normalizedInstalledTheme)
+            ? normalizedInstalledTheme
+            : null;
+    if (normalizedInstalledTheme && !installedTheme) {
+        await clearStoredCommunityThemeInstall();
+    }
     installedThemeCssSnapshot =
         enabled && installedTheme ? String(cssSnapshot || '') : '';
     overrideCssSnapshot = String(overrideCss || '');
 
     useCommunityThemeStore.getState().hydrate({
-        catalogUrl: normalizedCatalogUrl,
+        catalogUrl: COMMUNITY_THEME_CATALOG_URL,
         enabled: Boolean(enabled && installedTheme),
         installedTheme,
-        overrideCssLength: overrideCssSnapshot.length
+        overrideCssLength: overrideCssSnapshot.length,
+        localPreview: null
     });
     syncCommunityStyleLayers();
     await syncCommunityThemeAccentControl();
@@ -208,9 +284,7 @@ export async function installCommunityTheme(
     store.setLoading(true);
     store.setError(null);
     try {
-        const catalogUrl = normalizeCommunityThemeCatalogUrl(
-            store.catalogUrl || COMMUNITY_THEME_CATALOG_URL
-        );
+        const catalogUrl = COMMUNITY_THEME_CATALOG_URL;
         const cssText = await loadCommunityThemeCss(catalogUrl, theme);
         const now = currentTimestamp();
         const previous = store.installedTheme;
@@ -234,7 +308,6 @@ export async function installCommunityTheme(
 
         installedThemeCssSnapshot = cssText;
         await configRepository.setMany([
-            [CONFIG_KEYS.catalogUrl, catalogUrl],
             [CONFIG_KEYS.enabled, 'true'],
             [CONFIG_KEYS.id, metadata.themeId],
             [CONFIG_KEYS.version, metadata.version],
@@ -297,13 +370,7 @@ export async function disableInstalledCommunityTheme(): Promise<void> {
 export async function deleteInstalledCommunityTheme(): Promise<void> {
     const store = useCommunityThemeStore.getState();
     installedThemeCssSnapshot = '';
-    await configRepository.setBool(CONFIG_KEYS.enabled, false);
-    await Promise.all([
-        configRepository.remove(CONFIG_KEYS.id),
-        configRepository.remove(CONFIG_KEYS.version),
-        configRepository.remove(CONFIG_KEYS.cssSnapshot),
-        configRepository.remove(CONFIG_KEYS.installMetadata)
-    ]);
+    await clearStoredCommunityThemeInstall();
     store.setInstalledState({
         enabled: false,
         installedTheme: null
@@ -332,7 +399,53 @@ export function getCommunityThemeOverrideCssSnapshot(): string {
     return overrideCssSnapshot;
 }
 
+export async function loadLocalCommunityThemePreview(
+    folderPath: string
+): Promise<CommunityThemeLocalPreview> {
+    if (!isThemeDeveloperBuild()) {
+        throw new Error(
+            'Local theme preview is only available in dev, Preview, or Theme Dev Kit builds.'
+        );
+    }
+
+    const output =
+        await tauriClient.app.CommunityThemeDebugLoadLocalTheme(folderPath);
+    const loadedAt = currentTimestamp();
+    const cssText = rewriteLocalThemeAssetUrls(
+        output.css,
+        output.cssPath,
+        loadedAt
+    );
+    localPreviewCssSnapshot = cssText;
+
+    const preview: CommunityThemeLocalPreview = {
+        folderPath: output.folderPath,
+        cssPath: output.cssPath,
+        manifestPath: output.manifestPath,
+        themeName: output.themeName,
+        version: output.version,
+        accentMode: output.accentMode === 'app' ? 'app' : 'theme',
+        cssLength: cssText.length,
+        loadedAt
+    };
+    useCommunityThemeStore.getState().setLocalPreview(preview);
+    syncCommunityStyleLayers();
+    await syncCommunityThemeAccentControl();
+    return preview;
+}
+
+export async function stopLocalCommunityThemePreview(): Promise<void> {
+    localPreviewCssSnapshot = '';
+    useCommunityThemeStore.getState().setLocalPreview(null);
+    syncCommunityStyleLayers();
+    await syncCommunityThemeAccentControl();
+}
+
 export function isCommunityThemeAccentControlled(): boolean {
     const state = useCommunityThemeStore.getState();
-    return communityThemeControlsAccent(state.enabled, state.installedTheme);
+    return communityThemeControlsAccent(
+        state.enabled,
+        state.installedTheme,
+        state.localPreview
+    );
 }

@@ -14,8 +14,7 @@ type ToolAction =
               | 'screenshot-metadata'
               | 'gallery'
               | 'inventory'
-              | 'vrchat-log'
-              | 'community-themes';
+              | 'vrchat-log';
       }
     | {
           type: 'app-api';
@@ -360,16 +359,6 @@ const toolDefinitions: ToolDefinition[] = [
         descriptionKey: 'view.tools.other.edit_invite_message_description',
         navEligible: true,
         action: { type: 'dialog', dialogKey: 'edit-invite-messages' }
-    },
-    {
-        key: 'community-themes',
-        category: 'other',
-        iconKey: 'palette',
-        navIcon: 'lucide:Palette',
-        titleKey: 'view.community_themes.header',
-        descriptionKey: 'view.community_themes.tool_description',
-        navEligible: true,
-        action: { type: 'route', routeName: 'community-themes' }
     }
 ];
 

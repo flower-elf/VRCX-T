@@ -247,6 +247,8 @@
         "tools": "ツール",
         "help": "ヘルプ",
         "test_build_badge": "テストビルド",
+        "preview_build_badge": "Preview Build",
+        "theme_devkit_build_badge": "Theme Dev Kit",
         "settings": "設定...",
         "check_updates": "アップデートを確認",
         "restart": "VRCX-0 を再起動",
@@ -263,6 +265,7 @@
         "zoom_out": "縮小",
         "reset_zoom": "ズームをリセット",
         "all_tools": "すべてのツール...",
+        "open_devtools": "DevTools を開く",
         "github": "GitHub",
         "report_issue": "問題を報告",
         "open_source_licenses": "サードパーティー通知",
@@ -273,7 +276,8 @@
         "messages": {
             "zoom_failed": "ズームの適用に失敗しました",
             "logout_failed": "VRCX-0 からのログアウトに失敗しました",
-            "restart_failed": "VRCX-0 の再起動に失敗しました"
+            "restart_failed": "VRCX-0 の再起動に失敗しました",
+            "open_devtools_failed": "DevTools を開けませんでした"
         },
         "label": {
             "started_at": "開始時刻",
@@ -2505,7 +2509,8 @@
             "tabs": {
                 "browse": "参照",
                 "installed": "インストール済み",
-                "override": "Override"
+                "override": "Override",
+                "developer": "開発"
             },
             "status": {
                 "active": "有効",
@@ -2545,6 +2550,20 @@
             "override": {
                 "header": "ユーザー override CSS",
                 "placeholder": ":root {\n  --vrcx-0-main-content-surface: transparent;\n}"
+            },
+            "developer": {
+                "header": "ローカルテーマプレビュー",
+                "description": "テーマ制作中にローカルテーマフォルダーを読み込みます。フォルダーには theme.css が必要で、theme.json も含められます。",
+                "no_folder": "フォルダー未選択",
+                "select_folder": "フォルダーを選択",
+                "reload": "再読み込み",
+                "start_watch": "watch を開始",
+                "stop_watch": "watch を停止",
+                "stop_preview": "プレビューを停止",
+                "loaded": "ローカルテーマプレビューを読み込みました。",
+                "stopped": "ローカルテーマプレビューを停止しました。",
+                "load_failed": "ローカルテーマプレビューの読み込みに失敗しました。",
+                "css_size": "CSS バイト数"
             },
             "settings": {
                 "header": "コミュニティテーマ",
