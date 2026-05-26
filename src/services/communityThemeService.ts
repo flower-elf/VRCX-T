@@ -28,6 +28,7 @@ import {
     setCommunityThemeAppearanceControl
 } from './themeService';
 import {
+    isDynamicCommunityThemeCssSnapshotAllowed,
     refreshDynamicCommunityThemeCssSnapshot,
     resolveCommunityThemeCssSnapshot
 } from './communityThemeProviderService';
@@ -361,6 +362,15 @@ async function refreshDynamicInstallRecord(
     };
 }
 
+function isInstallRecordCssSnapshotAllowed(
+    record: CommunityThemeInstalledSnapshot
+): boolean {
+    return isDynamicCommunityThemeCssSnapshotAllowed(
+        record.themeId,
+        record.cssSnapshot
+    );
+}
+
 export async function loadCatalog(): Promise<CommunityThemeCatalog> {
     const store = useCommunityThemeStore.getState();
     store.setLoading(true);
@@ -412,7 +422,9 @@ export async function initializeCommunityThemes(): Promise<void> {
     let records = mergeInstallRecords([
         ...normalizeInstallRecords(installedThemeRecords),
         ...(legacyInstallRecord ? [legacyInstallRecord] : [])
-    ]).filter(isInstallRecordFromCurrentCatalog);
+    ])
+        .filter(isInstallRecordFromCurrentCatalog)
+        .filter(isInstallRecordCssSnapshotAllowed);
     let activeRecord =
         records.find((record) => record.themeId === activeThemeId) ??
         records.find((record) => record.themeId === legacyInstallMetadata?.themeId) ??
@@ -426,7 +438,9 @@ export async function initializeCommunityThemes(): Promise<void> {
                     (record) => record.themeId !== activeRecord?.themeId
                 ),
                 activeRecord
-            ]).filter(isInstallRecordFromCurrentCatalog);
+            ])
+                .filter(isInstallRecordFromCurrentCatalog)
+                .filter(isInstallRecordCssSnapshotAllowed);
         } catch (error) {
             console.warn(
                 'Unable to refresh dynamic community theme snapshot:',
@@ -518,7 +532,9 @@ export async function installCommunityTheme(
                 await configRepository.getObject(CONFIG_KEYS.installedThemes, null)
             ),
             record
-        ]).filter(isInstallRecordFromCurrentCatalog);
+        ])
+            .filter(isInstallRecordFromCurrentCatalog)
+            .filter(isInstallRecordCssSnapshotAllowed);
 
         installedThemeCssSnapshot = cssText;
         await persistCommunityThemeInstallState({
@@ -552,7 +568,9 @@ export async function enableInstalledCommunityTheme(themeId?: string): Promise<v
     const store = useCommunityThemeStore.getState();
     const records = normalizeInstallRecords(
         await configRepository.getObject(CONFIG_KEYS.installedThemes, null)
-    ).filter(isInstallRecordFromCurrentCatalog);
+    )
+        .filter(isInstallRecordFromCurrentCatalog)
+        .filter(isInstallRecordCssSnapshotAllowed);
     const targetThemeId =
         themeId || store.installedTheme?.themeId || records[0]?.themeId || '';
     let activeRecord =
@@ -564,7 +582,9 @@ export async function enableInstalledCommunityTheme(themeId?: string): Promise<v
     const nextRecords = mergeInstallRecords([
         ...records.filter((record) => record.themeId !== activeRecord.themeId),
         activeRecord
-    ]).filter(isInstallRecordFromCurrentCatalog);
+    ])
+        .filter(isInstallRecordFromCurrentCatalog)
+        .filter(isInstallRecordCssSnapshotAllowed);
     installedThemeCssSnapshot = activeRecord.cssSnapshot;
     await persistCommunityThemeInstallState({
         records: nextRecords,
@@ -586,7 +606,9 @@ export async function disableInstalledCommunityTheme(): Promise<void> {
     const store = useCommunityThemeStore.getState();
     const records = normalizeInstallRecords(
         await configRepository.getObject(CONFIG_KEYS.installedThemes, null)
-    ).filter(isInstallRecordFromCurrentCatalog);
+    )
+        .filter(isInstallRecordFromCurrentCatalog)
+        .filter(isInstallRecordCssSnapshotAllowed);
     installedThemeCssSnapshot = '';
     await persistCommunityThemeInstallState({
         records,
@@ -614,6 +636,7 @@ export async function deleteInstalledCommunityTheme(themeId?: string): Promise<v
         await configRepository.getObject(CONFIG_KEYS.installedThemes, null)
     )
         .filter(isInstallRecordFromCurrentCatalog)
+        .filter(isInstallRecordCssSnapshotAllowed)
         .filter((record) => record.themeId !== targetThemeId);
     const activeRecord =
         store.enabled && store.installedTheme?.themeId !== targetThemeId

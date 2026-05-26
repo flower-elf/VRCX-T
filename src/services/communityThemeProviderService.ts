@@ -8,12 +8,23 @@ import {
 } from '@/repositories/communityThemeRepository';
 
 import {
+    isNasaApodWallpaperCssSnapshotAllowed,
     isNasaApodWallpaperThemeId,
     resolveNasaApodWallpaperCss
 } from './community-theme-providers/nasaApodWallpaperProvider';
 
 export function hasDynamicCommunityThemeProvider(themeId: string): boolean {
     return isNasaApodWallpaperThemeId(themeId);
+}
+
+export function isDynamicCommunityThemeCssSnapshotAllowed(
+    themeId: string,
+    cssText: string
+): boolean {
+    if (isNasaApodWallpaperThemeId(themeId)) {
+        return isNasaApodWallpaperCssSnapshotAllowed(cssText);
+    }
+    return true;
 }
 
 async function resolveDynamicCommunityThemeCss(
