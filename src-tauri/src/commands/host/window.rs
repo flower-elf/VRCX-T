@@ -167,6 +167,7 @@ pub fn app__desktop_notification(
     bold_text: String,
     text: Option<String>,
     image: Option<String>,
+    play_sound: Option<bool>,
 ) -> Result<(), AppError> {
     use tauri_plugin_notification::NotificationExt;
     let mut notification = app_handle.notification().builder();
@@ -177,8 +178,30 @@ pub fn app__desktop_notification(
     if let Some(icon) = image.as_deref().filter(|s| !s.trim().is_empty()) {
         notification = notification.icon(icon);
     }
+    if play_sound.unwrap_or(false) {
+        notification = notification.sound(default_desktop_notification_sound());
+    }
     notification
         .show()
         .map_err(|e| AppError::Custom(format!("notification: {e}")))?;
     Ok(())
+}
+
+fn default_desktop_notification_sound() -> &'static str {
+    #[cfg(target_os = "windows")]
+    {
+        return "Default";
+    }
+    #[cfg(target_os = "macos")]
+    {
+        return "NSUserNotificationDefaultSoundName";
+    }
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        return "message-new-instant";
+    }
+    #[cfg(not(any(target_os = "windows", target_os = "macos", unix)))]
+    {
+        "Default"
+    }
 }

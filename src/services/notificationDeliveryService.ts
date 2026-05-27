@@ -10,6 +10,7 @@ import { useRuntimeStore } from '@/state/runtimeStore';
 const DEFAULT_NOTIFICATION_PREFERENCES = Object.freeze({
     desktopToast: 'Never',
     afkDesktopToast: false,
+    desktopNotificationSound: false,
     notificationTTS: 'Never',
     notificationTTSVoice: '0',
     notificationTTSNickName: false
@@ -58,6 +59,7 @@ function normalizeInteger(
 function normalizeNotificationPreference(key: NotificationPreferenceKey, value: unknown) {
     switch (key) {
         case 'afkDesktopToast':
+        case 'desktopNotificationSound':
         case 'notificationTTSNickName':
             return Boolean(value);
         default:
@@ -126,6 +128,10 @@ async function loadNotificationPreferences() {
                 'afkDesktopToast',
                 DEFAULT_NOTIFICATION_PREFERENCES.afkDesktopToast
             ),
+            configRepository.getBool(
+                'desktopNotificationSound',
+                DEFAULT_NOTIFICATION_PREFERENCES.desktopNotificationSound
+            ),
             configRepository.getString(
                 'notificationTTS',
                 DEFAULT_NOTIFICATION_PREFERENCES.notificationTTS
@@ -143,6 +149,7 @@ async function loadNotificationPreferences() {
                 ([
                     desktopToast,
                     afkDesktopToast,
+                    desktopNotificationSound,
                     notificationTTS,
                     notificationTTSVoice,
                     notificationTTSNickName
@@ -157,6 +164,11 @@ async function loadNotificationPreferences() {
                                 'afkDesktopToast',
                                 afkDesktopToast
                             ),
+                            desktopNotificationSound:
+                                normalizeNotificationPreference(
+                                    'desktopNotificationSound',
+                                    desktopNotificationSound
+                                ),
                             notificationTTS: normalizeNotificationPreference(
                                 'notificationTTS',
                                 notificationTTS
@@ -717,7 +729,12 @@ export async function deliverRuntimeNotification(notification: any) {
 
     const deliveries = [];
     deliveries.push(
-        tauriClient.app.DesktopNotification(message.title, message.body, image)
+        tauriClient.app.DesktopNotification(
+            message.title,
+            message.body,
+            image,
+            Boolean(preferences.desktopNotificationSound)
+        )
     );
 
     const results = await Promise.allSettled(deliveries);

@@ -48,9 +48,15 @@ export async function setTrayIconNotification(
 export async function showDesktopNotification(
     boldText: string,
     text: string,
-    image: string = ''
+    image: string = '',
+    playSound: boolean = false
 ): Promise<void> {
-    await tauriClient.app.DesktopNotification(boldText, text, image);
+    await tauriClient.app.DesktopNotification(
+        boldText,
+        text,
+        image,
+        playSound
+    );
 }
 
 export async function openUGCPhotosFolder(ugcPath: string): Promise<void> {

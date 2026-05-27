@@ -28,6 +28,7 @@ export function SettingsNotificationsTab({
     onTestDesktopNotification,
     onDesktopToastChange,
     onAfkDesktopToastChange,
+    onDesktopNotificationSoundChange,
     onNotificationTtsModeChange,
     onNotificationTtsVoiceChange,
     onNotificationTtsNicknameChange,
@@ -172,6 +173,17 @@ export function SettingsNotificationsTab({
                         <Switch
                             checked={prefs.afkDesktopToast}
                             onCheckedChange={onAfkDesktopToastChange}
+                        />
+                    </Field>
+
+                    <Field
+                        label={t(
+                            'view.settings.notifications.notifications.desktop_notifications.notification_sound'
+                        )}
+                    >
+                        <Switch
+                            checked={prefs.desktopNotificationSound}
+                            onCheckedChange={onDesktopNotificationSoundChange}
                         />
                     </Field>
                 </CardContent>

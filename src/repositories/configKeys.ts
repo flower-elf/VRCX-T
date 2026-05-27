@@ -117,6 +117,7 @@ export const ConfigKeys = {
     // ── Settings - Notifications ─────────────────────
     desktopToast: { type: 'string', default: 'Never' },
     afkDesktopToast: { type: 'bool', default: false },
+    desktopNotificationSound: { type: 'bool', default: false },
     notificationLayout: { type: 'string', default: null },
     notificationTTS: { type: 'string', default: 'Never' },
     notificationTTSVoice: { type: 'string', default: '0' },

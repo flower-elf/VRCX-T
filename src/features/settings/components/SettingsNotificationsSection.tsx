@@ -71,7 +71,9 @@ export function SettingsNotificationsSection({ notifications }: any) {
             onTestDesktopNotification={() => {
                 showDesktopNotification(
                     'VRCX-0',
-                    t('view.settings.notifications.notifications.test_message')
+                    t('view.settings.notifications.notifications.test_message'),
+                    '',
+                    prefs.desktopNotificationSound
                 );
             }}
             onDesktopToastChange={(value: any) => {
@@ -81,6 +83,13 @@ export function SettingsNotificationsSection({ notifications }: any) {
                 saveBoolPreference(
                     'afkDesktopToast',
                     'afkDesktopToast',
+                    checked
+                );
+            }}
+            onDesktopNotificationSoundChange={(checked: any) => {
+                saveBoolPreference(
+                    'desktopNotificationSound',
+                    'desktopNotificationSound',
                     checked
                 );
             }}

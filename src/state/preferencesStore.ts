@@ -214,6 +214,7 @@ export const DEFAULT_PREFERENCES: PreferenceInputSnapshot = Object.freeze({
     notificationIconDot: true,
     desktopToast: 'Never',
     afkDesktopToast: false,
+    desktopNotificationSound: false,
     notificationTTS: 'Never',
     notificationTTSNickName: false,
     notificationTTSVoice: '0',
@@ -323,6 +324,9 @@ export function normalizePreferenceSnapshot(
         notificationIconDot: normalizeBool(next.notificationIconDot),
         desktopToast: next.desktopToast || 'Never',
         afkDesktopToast: normalizeBool(next.afkDesktopToast),
+        desktopNotificationSound: normalizeBool(
+            next.desktopNotificationSound
+        ),
         notificationTTS: next.notificationTTS || 'Never',
         notificationTTSNickName: normalizeBool(next.notificationTTSNickName),
         notificationTTSVoice: String(next.notificationTTSVoice ?? '0'),

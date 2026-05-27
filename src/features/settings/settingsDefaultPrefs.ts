@@ -47,6 +47,7 @@ export function createDefaultSettingsPrefs() {
         notificationIconDot: true,
         desktopToast: 'Never',
         afkDesktopToast: false,
+        desktopNotificationSound: false,
         notificationTTS: 'Never',
         notificationTTSNickName: false,
         notificationTTSVoice: '0',

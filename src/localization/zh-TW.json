@@ -1915,7 +1915,8 @@
                         "header": "桌面通知",
                         "when_to_display": "顯示時機",
                         "when_to_display_vr": "顯示 VR 通知",
-                        "desktop_notification_while_afk": "在 AFK 時顯示桌面通知"
+                        "desktop_notification_while_afk": "在 AFK 時顯示桌面通知",
+                        "notification_sound": "通知音"
                     },
                     "text_to_speech": {
                         "header": "文字轉語音",
