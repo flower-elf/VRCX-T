@@ -2522,6 +2522,7 @@
                 "author": "作者",
                 "version": "バージョン",
                 "tested_with": "テスト済みバージョン",
+                "downloads": "ダウンロード数",
                 "remote_assets": "リモートアセット",
                 "accent_mode": "アクセントカラーをカスタマイズ可能"
             },

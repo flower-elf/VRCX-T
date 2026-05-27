@@ -44,6 +44,13 @@ import {
 import { openExternalLink } from '@/services/entityMediaService';
 import { tauriClient } from '@/platform/tauri/client';
 import {
+    loadCommunityThemeStats,
+    reportCommunityThemeInstall
+} from '@/repositories/communityThemeRepository';
+import type {
+    CommunityThemeStatsById
+} from '@/repositories/communityThemeRepository';
+import {
     setThemeColorPreference,
     setThemeModePreference
 } from '@/services/preferencesService';
@@ -168,6 +175,7 @@ function ThemeCatalogCard({
     active,
     installed,
     updateAvailable,
+    downloads,
     loading,
     onInstall,
     t
@@ -176,6 +184,7 @@ function ThemeCatalogCard({
     active: boolean;
     installed: boolean;
     updateAvailable: boolean;
+    downloads: number;
     loading: boolean;
     onInstall: () => void;
     t: (key: string, options?: any) => string;
@@ -251,6 +260,10 @@ function ThemeCatalogCard({
                         {t('view.community_themes.field.tested_with')}:{' '}
                         {theme.testedWith}
                     </div>
+                    <div className="text-muted-foreground">
+                        {t('view.community_themes.field.downloads')}:{' '}
+                        {downloads.toLocaleString()}
+                    </div>
                 </div>
                 <Button
                     type="button"
@@ -318,6 +331,8 @@ export function ThemesPage() {
     const [devSectionOpen, setDevSectionOpen] = useState(false);
     const [devWatchEnabled, setDevWatchEnabled] = useState(false);
     const [devError, setDevError] = useState<string | null>(null);
+    const [themeStatsById, setThemeStatsById] =
+        useState<CommunityThemeStatsById>({});
     const devWatchReloadingRef = useRef(false);
     const developerToolsAvailable = isThemeDeveloperBuild();
     const activeSource = resolveActiveThemeSource(
@@ -340,6 +355,25 @@ export function ThemesPage() {
         });
         setOverrideDraft(getCommunityThemeOverrideCssSnapshot());
     }, [t]);
+
+    useEffect(() => {
+        let disposed = false;
+        loadCommunityThemeStats()
+            .then((stats) => {
+                if (!disposed) {
+                    setThemeStatsById(stats);
+                }
+            })
+            .catch(() => {
+                if (!disposed) {
+                    setThemeStatsById({});
+                }
+            });
+
+        return () => {
+            disposed = true;
+        };
+    }, []);
 
     useEffect(() => {
         if (activeSource !== 'built-in') {
@@ -407,6 +441,18 @@ export function ThemesPage() {
     async function installTheme(theme: CommunityThemeManifest) {
         try {
             await installCommunityTheme(theme);
+            void reportCommunityThemeInstall(theme.id).then((reported) => {
+                if (!reported) {
+                    return;
+                }
+                setThemeStatsById((currentStats) => ({
+                    ...currentStats,
+                    [theme.id]: {
+                        downloads:
+                            (currentStats[theme.id]?.downloads ?? 0) + 1
+                    }
+                }));
+            });
             toast.success(t('view.community_themes.toast.theme_enabled'));
         } catch (installError) {
             toast.error(
@@ -819,6 +865,11 @@ export function ThemesPage() {
                                                         )}
                                                         updateAvailable={
                                                             updateAvailable
+                                                        }
+                                                        downloads={
+                                                            themeStatsById[
+                                                                theme.id
+                                                            ]?.downloads ?? 0
                                                         }
                                                         loading={loading}
                                                         t={t}

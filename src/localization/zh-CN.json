@@ -2522,6 +2522,7 @@
                 "author": "作者",
                 "version": "版本",
                 "tested_with": "测试版本",
+                "downloads": "下载量",
                 "remote_assets": "远程资源",
                 "accent_mode": "是否可自定义强调色"
             },

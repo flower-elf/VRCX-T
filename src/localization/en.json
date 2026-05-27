@@ -2522,6 +2522,7 @@
                 "author": "Author",
                 "version": "Version",
                 "tested_with": "Tested with",
+                "downloads": "Downloads",
                 "remote_assets": "Remote assets",
                 "accent_mode": "Accent color customizable"
             },

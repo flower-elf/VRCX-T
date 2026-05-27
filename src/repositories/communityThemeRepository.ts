@@ -7,6 +7,8 @@ import type {
 
 export const COMMUNITY_THEME_CATALOG_URL =
     'https://raw.githubusercontent.com/Map1en/VRCX-0-Community-Themes/master/themes/index.json';
+export const COMMUNITY_THEME_STATS_API_URL =
+    'https://vrcx0-theme-stats-api.maplenagisa.workers.dev';
 
 export const COMMUNITY_THEME_CSS_FILE_NAME = 'theme.css';
 export const COMMUNITY_THEME_MANIFEST_FILE_NAME = 'theme.json';
@@ -14,8 +16,19 @@ export const COMMUNITY_THEME_PREVIEW_FILE_NAME = 'preview.webp';
 export const COMMUNITY_THEME_README_FILE_NAME = 'README.md';
 
 type RawCommunityThemeEntry = Record<string, unknown>;
+type RawCommunityThemeStatsEntry = Record<string, unknown>;
 
 const THEME_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export interface CommunityThemeStatsEntry {
+    downloads: number;
+}
+
+export type CommunityThemeStatsById = Record<string, CommunityThemeStatsEntry>;
+
+export function isCommunityThemeId(value: string): boolean {
+    return THEME_ID_PATTERN.test(value);
+}
 
 function requireString(
     entry: RawCommunityThemeEntry,
@@ -86,6 +99,38 @@ function normalizeThemeIds(value: unknown): string[] {
         }
         return normalizedThemeId;
     });
+}
+
+function normalizeDownloadCount(value: unknown): number {
+    const count = Number(value);
+    if (!Number.isFinite(count) || count < 0) {
+        return 0;
+    }
+    return Math.floor(count);
+}
+
+function normalizeCommunityThemeStats(value: unknown): CommunityThemeStatsById {
+    if (!value || typeof value !== 'object') {
+        return {};
+    }
+
+    const stats: CommunityThemeStatsById = {};
+    for (const [themeId, rawEntry] of Object.entries(
+        value as Record<string, unknown>
+    )) {
+        if (!isCommunityThemeId(themeId)) {
+            continue;
+        }
+        if (!rawEntry || typeof rawEntry !== 'object') {
+            continue;
+        }
+
+        const entry = rawEntry as RawCommunityThemeStatsEntry;
+        stats[themeId] = {
+            downloads: normalizeDownloadCount(entry.downloads)
+        };
+    }
+    return stats;
 }
 
 export function normalizeCommunityThemeCatalogUrl(value?: string | null): string {
@@ -214,6 +259,45 @@ export async function loadCommunityThemeCatalog(
             )
         )
     };
+}
+
+export async function loadCommunityThemeStats(): Promise<CommunityThemeStatsById> {
+    const response = await fetch(
+        `${COMMUNITY_THEME_STATS_API_URL}/v1/themes/stats`,
+        {
+            cache: 'no-cache'
+        }
+    );
+    if (!response.ok) {
+        throw new Error(
+            `Failed to load community theme stats: ${response.status} ${response.statusText}`
+        );
+    }
+
+    return normalizeCommunityThemeStats(await response.json());
+}
+
+export async function reportCommunityThemeInstall(
+    themeId: string
+): Promise<boolean> {
+    const normalizedThemeId = String(themeId || '').trim();
+    if (!isCommunityThemeId(normalizedThemeId)) {
+        return false;
+    }
+
+    try {
+        const response = await fetch(
+            `${COMMUNITY_THEME_STATS_API_URL}/v1/themes/${encodeURIComponent(
+                normalizedThemeId
+            )}/install`,
+            {
+                method: 'POST'
+            }
+        );
+        return response.ok;
+    } catch {
+        return false;
+    }
 }
 
 export async function loadCommunityThemeCss(
