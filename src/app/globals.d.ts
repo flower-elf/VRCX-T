@@ -2,6 +2,7 @@ declare global {
     const VERSION: string;
     const VRCX_0_BUILD_LABEL: string;
     const VRCX_0_BUILD_BADGE: string;
+    const VRCX_0_TELEMETRY_ENDPOINT: string;
 
     interface Window {
         $debug?: AppDebug;

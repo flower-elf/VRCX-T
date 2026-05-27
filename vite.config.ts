@@ -137,6 +137,9 @@ export default defineConfig(() => {
             ),
             VRCX_0_BUILD_BADGE: JSON.stringify(
                 process.env['VRCX-0_BUILD_BADGE'] || ''
+            ),
+            VRCX_0_TELEMETRY_ENDPOINT: JSON.stringify(
+                process.env.VRCX_0_TELEMETRY_ENDPOINT || ''
             )
         },
         server: {

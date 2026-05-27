@@ -25,6 +25,7 @@ export const ConfigKeys = {
     autoUpdateVRCX: { type: 'string', default: 'Auto Download' },
     id: { type: 'string', default: '' },
     branch: { type: 'string', default: '' },
+    telemetryInstallId: { type: 'string', default: null },
     lastUserLoggedIn: { type: 'string', default: null },
     savedCredentials: { type: 'string', default: '{}' },
 
