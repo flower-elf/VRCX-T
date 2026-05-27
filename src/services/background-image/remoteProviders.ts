@@ -121,16 +121,17 @@ function buildSnapshot({
 
 function normalizeHttpsUrl(rawUrl: string, allowedHosts?: Set<string>): string {
     const parsedUrl = new URL(rawUrl);
-    if (
-        parsedUrl.protocol === 'http:' &&
-        parsedUrl.hostname.endsWith('nasa.gov')
-    ) {
+    const normalizedHostname = parsedUrl.hostname.toLowerCase();
+    const hostAllowed =
+        !allowedHosts || allowedHosts.has(normalizedHostname);
+
+    if (parsedUrl.protocol === 'http:' && hostAllowed && allowedHosts) {
         parsedUrl.protocol = 'https:';
     }
     if (parsedUrl.protocol !== 'https:') {
         throw new Error('Background Image must use HTTPS.');
     }
-    if (allowedHosts && !allowedHosts.has(parsedUrl.hostname)) {
+    if (!hostAllowed) {
         throw new Error('Background Image host is not allowed.');
     }
     return parsedUrl.toString();
