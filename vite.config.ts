@@ -48,6 +48,8 @@ const webkitBuildTarget = {
     vite: 'safari17',
     browserslist: 'Safari 17.0'
 };
+const productionTelemetryEndpoint =
+    'https://vrcx0-telemetry.maplenagisa.workers.dev';
 
 function getPlatformBuildTarget() {
     switch (process.platform) {
@@ -79,7 +81,7 @@ function getAssetFilename({ name }) {
     return 'assets/i18n/[name][extname]';
 }
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
     const tauriConf = JSON.parse(
         fs.readFileSync(
             new URL('./src-tauri/tauri.conf.json', import.meta.url),
@@ -88,6 +90,9 @@ export default defineConfig(() => {
     );
     const version = tauriConf.version;
     const buildTarget = getPlatformBuildTarget();
+    const telemetryEndpoint =
+        process.env.VRCX_0_TELEMETRY_ENDPOINT ||
+        (mode === 'production' ? productionTelemetryEndpoint : '');
 
     return {
         base: '',
@@ -138,9 +143,7 @@ export default defineConfig(() => {
             VRCX_0_BUILD_BADGE: JSON.stringify(
                 process.env['VRCX-0_BUILD_BADGE'] || ''
             ),
-            VRCX_0_TELEMETRY_ENDPOINT: JSON.stringify(
-                process.env.VRCX_0_TELEMETRY_ENDPOINT || ''
-            )
+            VRCX_0_TELEMETRY_ENDPOINT: JSON.stringify(telemetryEndpoint)
         },
         server: {
             port: 9000,
