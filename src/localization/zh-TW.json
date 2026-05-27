@@ -2600,20 +2600,19 @@
             },
             "summary": {
                 "header": "目前主題",
-                "override_on": "自訂 CSS 已啟用（{count} bytes）",
-                "override_off": "自訂 CSS 未啟用"
+                "custom_css_on": "自訂 CSS 開啟"
             },
             "source": {
                 "header": "主題來源",
-                "built_in": "內建主題",
-                "built_in_description": "使用 VRCX-0 標準亮色/暗色主題。",
+                "built_in": "預設主題",
+                "built_in_description": "使用 VRCX-0 預設亮色/暗色主題。",
                 "background": "背景圖案",
                 "background_description": "使用每日圖片或本機圖片，並套用固定 surface 預設。",
                 "community": "社群主題",
                 "community_description": "安裝並啟用社群 CSS 快照。"
             },
             "built_in": {
-                "header": "內建主題"
+                "header": "預設主題"
             },
             "accent": {
                 "header": "強調色"
@@ -2633,14 +2632,14 @@
             },
             "action": {
                 "open_themes": "開啟主題",
-                "use_built_in": "使用內建主題"
+                "use_built_in": "使用預設主題"
             },
             "menu": {
                 "header": "主題",
                 "current_source": "目前：{source}"
             },
             "toast": {
-                "built_in_enabled": "已啟用內建主題。",
+                "built_in_enabled": "已啟用預設主題。",
                 "source_failed": "更新主題來源失敗。"
             }
         },
@@ -2648,7 +2647,7 @@
             "settings": {
                 "header": "背景圖案",
                 "mode": "模式",
-                "description": "使用每日圖片來源，或選擇你自己的本機圖片來源。啟用後會關閉社群主題。",
+                "description": "使用每日圖片來源，或選擇你自己的本機圖片來源。",
                 "provider": "來源",
                 "apod_note": "NASA APOD 只使用沒有 copyright 欄位的圖片。",
                 "custom_source": "自訂圖片來源",

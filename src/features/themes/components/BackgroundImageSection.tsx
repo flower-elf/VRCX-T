@@ -395,7 +395,7 @@ export function BackgroundImageSection() {
                     </div>
                 </div>
                 {providerId === 'nasa-apod-safe' && mode === 'daily' ? (
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-muted-foreground text-xs italic">
                         {t('view.background_image.settings.apod_note')}
                     </p>
                 ) : null}

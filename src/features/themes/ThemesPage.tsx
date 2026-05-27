@@ -291,9 +291,6 @@ export function ThemesPage() {
     const backgroundImageCustomSource = useBackgroundImageStore(
         (state: any) => state.customSource
     );
-    const backgroundImageSnapshot = useBackgroundImageStore(
-        (state: any) => state.snapshot
-    );
     const catalog = useCommunityThemeStore((state: any) => state.catalog);
     const enabled = useCommunityThemeStore((state: any) => state.enabled);
     const installedTheme = useCommunityThemeStore(
@@ -626,25 +623,9 @@ export function ThemesPage() {
         ])
     );
     const appearanceControlled = activeSource !== 'built-in';
-    const activeSourceLabel = t(
-        activeSource === 'built-in'
-            ? 'view.themes.source.built_in'
-            : activeSource === 'background'
-              ? 'view.themes.source.background'
-              : 'view.themes.source.community'
-    );
-    const activeSourceDetail =
-        activeSource === 'background'
-            ? backgroundImageSnapshot?.title ||
-              t('view.background_image.settings.no_image')
-            : activeSource === 'community'
-              ? localPreview?.themeName ||
-                installedTheme?.themeName ||
-                t('view.community_themes.installed.empty')
-              : themeModeLabel(themeMode, t);
-    const overrideSummary = overrideCssLength
-        ? t('view.themes.summary.override_on', { count: overrideCssLength })
-        : t('view.themes.summary.override_off');
+    const customCssBadge = overrideCssLength
+        ? t('view.themes.summary.custom_css_on')
+        : '';
 
     async function updateThemeMode(nextThemeMode: string) {
         if (appearanceControlled) {
@@ -690,18 +671,16 @@ export function ThemesPage() {
                                     <div className="text-sm font-medium">
                                         {t('view.themes.summary.header')}
                                     </div>
-                                    <div className="text-muted-foreground flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-xs">
-                                        <span>
-                                            {t(
-                                                'view.themes.settings.current_source'
-                                            )}
-                                            : {activeSourceLabel}
-                                        </span>
-                                        <span className="max-w-96 truncate">
-                                            {activeSourceDetail}
-                                        </span>
-                                        <span>{overrideSummary}</span>
-                                    </div>
+                                    {customCssBadge ? (
+                                        <div>
+                                            <Badge
+                                                variant="secondary"
+                                                className="h-5 rounded-md px-1.5 text-xs font-normal"
+                                            >
+                                                {customCssBadge}
+                                            </Badge>
+                                        </div>
+                                    ) : null}
                                 </div>
                                 <div className="flex min-w-0 flex-wrap gap-1 rounded-lg bg-muted/30 p-1">
                                     <ThemeSourceButton

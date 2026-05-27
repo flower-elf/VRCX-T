@@ -10,13 +10,7 @@ import { tauriClient } from '@/platform/tauri/client';
 import configRepository from '@/repositories/configRepository';
 import { logoutFromReactShell } from '@/services/authExecutionService';
 import { startBackgroundModeForCurrentSession } from '@/services/backgroundModeService';
-import {
-    disableCommunityThemeOverrideCss,
-    disableInstalledCommunityTheme,
-    stopLocalCommunityThemePreview
-} from '@/services/communityThemeService';
 import { openExternalLink } from '@/services/entityMediaService';
-import { disableBackgroundImage } from '@/services/background-image/backgroundImageService';
 import {
     setSidebarCollapsedPreference,
     setTableDensityPreference,
@@ -48,11 +42,6 @@ import {
     getBuildBadgeLabel,
     isDeveloperToolsBuild
 } from '@/shared/buildLabel';
-import {
-    communityThemeControlsAppearance,
-    useCommunityThemeStore
-} from '@/state/communityThemeStore';
-import { useBackgroundImageStore } from '@/state/backgroundImageStore';
 import { usePreferencesStore } from '@/state/preferencesStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
 import { useShellStore } from '@/state/shellStore';
@@ -150,21 +139,6 @@ export function AppMenuBar({
     const zoomLevel = useShellStore((state: any) => state.zoomLevel);
     const sidebarOpen = useShellStore((state: any) => state.sidebarOpen);
     const tableDensity = useShellStore((state: any) => state.tableDensity);
-    const communityThemeEnabled = useCommunityThemeStore(
-        (state: any) => state.enabled
-    );
-    const installedCommunityTheme = useCommunityThemeStore(
-        (state: any) => state.installedTheme
-    );
-    const localCommunityThemePreview = useCommunityThemeStore(
-        (state: any) => state.localPreview
-    );
-    const communityThemeOverrideCssLength = useCommunityThemeStore(
-        (state: any) => state.overrideCssLength
-    );
-    const backgroundImageEnabled = useBackgroundImageStore(
-        (state: any) => state.enabled
-    );
     const notificationLayout = usePreferencesStore(
         (state: any) => state.notificationLayout
     );
@@ -214,22 +188,6 @@ export function AppMenuBar({
                 .filter(Boolean),
         [availableToolMap, quickAccessKeys]
     );
-    const communityThemeAppearanceControlled = communityThemeControlsAppearance(
-        communityThemeEnabled,
-        installedCommunityTheme,
-        localCommunityThemePreview
-    );
-    const customThemeAppearanceActive =
-        communityThemeAppearanceControlled || backgroundImageEnabled;
-    const currentThemeSourceLabel = localCommunityThemePreview
-        ? localCommunityThemePreview.themeName
-        : communityThemeEnabled
-          ? installedCommunityTheme?.themeName ||
-            t('view.themes.source.community')
-          : backgroundImageEnabled
-            ? t('view.themes.source.background')
-            : t('view.themes.source.built_in');
-
     useEffect(() => {
         let active = true;
         const loadQuickAccessTools = () => {
@@ -315,48 +273,6 @@ export function AppMenuBar({
                 error instanceof Error
                     ? error.message
                     : t('app_menu.messages.open_devtools_failed')
-            );
-        }
-    }
-
-    async function runUseBuiltInTheme() {
-        if (!customThemeAppearanceActive) {
-            return;
-        }
-
-        try {
-            if (backgroundImageEnabled) {
-                await disableBackgroundImage();
-            }
-            if (communityThemeEnabled) {
-                await disableInstalledCommunityTheme();
-            }
-            if (localCommunityThemePreview) {
-                await stopLocalCommunityThemePreview();
-            }
-            toast.success(t('view.themes.toast.built_in_enabled'));
-        } catch (error) {
-            toast.error(
-                error instanceof Error
-                    ? error.message
-                    : t('view.themes.toast.source_failed')
-            );
-        }
-    }
-
-    async function runDisableCustomCss() {
-        if (!communityThemeOverrideCssLength) {
-            return;
-        }
-
-        try {
-            await disableCommunityThemeOverrideCss();
-            toast.success(t('view.community_themes.toast.override_disabled'));
-        } catch (error) {
-            toast.error(
-                error instanceof Error
-                    ? error.message
-                    : t('view.community_themes.toast.disable_failed')
             );
         }
     }
@@ -486,44 +402,13 @@ export function AppMenuBar({
                         </MenubarGroup>
                         <MenubarSeparator />
                         <MenubarGroup>
-                            <MenubarSub>
-                                <MenubarSubTrigger className="min-h-7 min-w-48 text-xs">
-                                    {t('view.themes.menu.header')}
-                                </MenubarSubTrigger>
-                                <MenubarSubContent className="w-60">
-                                    <MenuItem
-                                        onSelect={() => {
-                                            navigate('/themes');
-                                        }}
-                                    >
-                                        {t('view.themes.action.open_themes')}
-                                    </MenuItem>
-                                    <MenuItem
-                                        disabled={!customThemeAppearanceActive}
-                                        onSelect={() => {
-                                            runUseBuiltInTheme();
-                                        }}
-                                    >
-                                        {t('view.themes.action.use_built_in')}
-                                    </MenuItem>
-                                    <MenuItem
-                                        disabled={!communityThemeOverrideCssLength}
-                                        onSelect={() => {
-                                            runDisableCustomCss();
-                                        }}
-                                    >
-                                        {t(
-                                            'view.community_themes.action.disable_override'
-                                        )}
-                                    </MenuItem>
-                                    <MenubarSeparator />
-                                    <MenubarLabel className="text-muted-foreground px-2 py-1.5 text-[11px] leading-snug whitespace-normal">
-                                        {t('view.themes.menu.current_source', {
-                                            source: currentThemeSourceLabel
-                                        })}
-                                    </MenubarLabel>
-                                </MenubarSubContent>
-                            </MenubarSub>
+                            <MenuItem
+                                onSelect={() => {
+                                    navigate('/themes');
+                                }}
+                            >
+                                {t('view.themes.menu.header')}
+                            </MenuItem>
                             <MenubarSub>
                                 <MenubarSubTrigger className="min-h-7 min-w-48 text-xs">
                                     {t(

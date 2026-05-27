@@ -2600,20 +2600,19 @@
             },
             "summary": {
                 "header": "当前主题",
-                "override_on": "自定义 CSS 已启用（{count} bytes）",
-                "override_off": "自定义 CSS 未启用"
+                "custom_css_on": "自定义 CSS 开启"
             },
             "source": {
                 "header": "主题来源",
-                "built_in": "内置主题",
-                "built_in_description": "使用 VRCX-0 标准亮色/暗色主题。",
+                "built_in": "默认主题",
+                "built_in_description": "使用 VRCX-0 默认亮色/暗色主题。",
                 "background": "背景图案",
                 "background_description": "使用每日图片或本地图片，并套用固定 surface 预设。",
                 "community": "社区主题",
                 "community_description": "安装并启用社区 CSS 快照。"
             },
             "built_in": {
-                "header": "内置主题"
+                "header": "默认主题"
             },
             "accent": {
                 "header": "强调色"
@@ -2633,14 +2632,14 @@
             },
             "action": {
                 "open_themes": "打开主题",
-                "use_built_in": "使用内置主题"
+                "use_built_in": "使用默认主题"
             },
             "menu": {
                 "header": "主题",
                 "current_source": "当前：{source}"
             },
             "toast": {
-                "built_in_enabled": "已启用内置主题。",
+                "built_in_enabled": "已启用默认主题。",
                 "source_failed": "更新主题来源失败。"
             }
         },
@@ -2648,7 +2647,7 @@
             "settings": {
                 "header": "背景图案",
                 "mode": "模式",
-                "description": "使用每日图片来源，或选择你自己的本地图片来源。启用后会关闭社区主题。",
+                "description": "使用每日图片来源，或选择你自己的本地图片来源。",
                 "provider": "来源",
                 "apod_note": "NASA APOD 只使用没有 copyright 字段的图片。",
                 "custom_source": "自定义图片来源",

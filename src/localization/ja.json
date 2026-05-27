@@ -2600,20 +2600,19 @@
             },
             "summary": {
                 "header": "現在のテーマ",
-                "override_on": "カスタム CSS は有効です（{count} bytes）",
-                "override_off": "カスタム CSS は無効です"
+                "custom_css_on": "カスタム CSS オン"
             },
             "source": {
                 "header": "テーマソース",
-                "built_in": "内蔵テーマ",
-                "built_in_description": "VRCX-0 標準のライト/ダークテーマを使用します。",
+                "built_in": "既定テーマ",
+                "built_in_description": "VRCX-0 既定のライト/ダークテーマを使用します。",
                 "background": "背景画像",
                 "background_description": "デイリー画像またはローカル画像を固定 surface プリセットで使用します。",
                 "community": "コミュニティテーマ",
                 "community_description": "コミュニティ CSS スナップショットをインストールして有効化します。"
             },
             "built_in": {
-                "header": "内蔵テーマ"
+                "header": "既定テーマ"
             },
             "accent": {
                 "header": "アクセントカラー"
@@ -2633,14 +2632,14 @@
             },
             "action": {
                 "open_themes": "テーマを開く",
-                "use_built_in": "内蔵テーマを使用"
+                "use_built_in": "既定テーマを使用"
             },
             "menu": {
                 "header": "テーマ",
                 "current_source": "現在: {source}"
             },
             "toast": {
-                "built_in_enabled": "内蔵テーマを有効化しました。",
+                "built_in_enabled": "既定テーマを有効化しました。",
                 "source_failed": "テーマソースの更新に失敗しました。"
             }
         },
@@ -2648,7 +2647,7 @@
             "settings": {
                 "header": "背景画像",
                 "mode": "モード",
-                "description": "デイリー画像ソース、またはローカル画像ソースを背景に使用します。有効にするとコミュニティテーマはオフになります。",
+                "description": "デイリー画像ソース、またはローカル画像ソースを背景に使用します。",
                 "provider": "ソース",
                 "apod_note": "NASA APOD は copyright フィールドがない画像だけを使用します。",
                 "custom_source": "カスタム画像ソース",

@@ -2600,20 +2600,19 @@
             },
             "summary": {
                 "header": "Current theme",
-                "override_on": "Custom CSS on ({count} bytes)",
-                "override_off": "Custom CSS off"
+                "custom_css_on": "Custom CSS on"
             },
             "source": {
                 "header": "Theme source",
-                "built_in": "Built-in",
-                "built_in_description": "Use VRCX-0's standard light and dark themes.",
+                "built_in": "Default",
+                "built_in_description": "Use VRCX-0's default light and dark themes.",
                 "background": "Background image",
                 "background_description": "Use a daily or local image with the fixed surface preset.",
                 "community": "Community theme",
                 "community_description": "Install and enable a community CSS snapshot."
             },
             "built_in": {
-                "header": "Built-in theme"
+                "header": "Default theme"
             },
             "accent": {
                 "header": "Accent color"
@@ -2633,14 +2632,14 @@
             },
             "action": {
                 "open_themes": "Open Themes",
-                "use_built_in": "Use Built-in Theme"
+                "use_built_in": "Use Default Theme"
             },
             "menu": {
                 "header": "Theme",
                 "current_source": "Current: {source}"
             },
             "toast": {
-                "built_in_enabled": "Built-in theme enabled.",
+                "built_in_enabled": "Default theme enabled.",
                 "source_failed": "Failed to update theme source."
             }
         },
@@ -2648,7 +2647,7 @@
             "settings": {
                 "header": "Background Image",
                 "mode": "Mode",
-                "description": "Use a daily image source or your own local image source. Enabling it turns off community themes.",
+                "description": "Use a daily image source or your own local image source.",
                 "provider": "Source",
                 "apod_note": "NASA APOD only uses images without a copyright field.",
                 "custom_source": "Custom image source",
