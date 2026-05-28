@@ -1492,7 +1492,7 @@
                 "all_favorite_friends": "すべてのお気に入りフレンド",
                 "selected_favorite_groups": "選択したお気に入りグループ",
                 "selected_favorite_groups_label": "選択したお気に入りグループ",
-                "automatic_replies_note": "自動返信は VRChat 起動中、かつ Public または Group Public ルームにいるときだけ実行されます。クールダウンは送信者ごとに適用され、通知は招待 API が成功した後にだけ非表示になります。",
+                "automatic_replies_note": "自動返信は VRChat 起動中、かつ現在の場所から招待を送信できるときだけ実行されます。クールダウンは送信者ごとに適用され、通知は招待 API が成功した後にだけ非表示になります。",
                 "failed_to_load_schedule_rules": "スケジュールルールの読み込みに失敗しました。",
                 "failed_to_save_schedule_rules": "スケジュールルールの保存に失敗しました。",
                 "failed_to_load_room_rules": "ルームルールの読み込みに失敗しました。",

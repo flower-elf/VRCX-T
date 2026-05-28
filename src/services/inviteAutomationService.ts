@@ -148,19 +148,6 @@ function buildSenderScopeKey({ endpoint, currentUserId, senderUserId }: any) {
     return [endpoint || '', currentUserId || '', senderUserId || ''].join(':');
 }
 
-function isAutoInviteSafeLocation(parsedLocation: any) {
-    if (!parsedLocation?.isRealInstance) {
-        return false;
-    }
-    if (parsedLocation.accessType === 'public') {
-        return true;
-    }
-    return (
-        parsedLocation.accessType === 'group' &&
-        parsedLocation.groupAccessType === 'public'
-    );
-}
-
 function isSenderCoolingDown(senderScopeKey: any, nowMs: any) {
     const lastSentAt = senderCooldowns.get(senderScopeKey) || 0;
     return nowMs - lastSentAt < DEFAULT_AUTO_INVITE_SENDER_COOLDOWN_MS;
@@ -211,12 +198,6 @@ function validateCurrentInviteLocation({
     const parsedLocation = parseLocation(currentInviteLocation);
     if (!parsedLocation.worldId || !parsedLocation.instanceId) {
         return { valid: false, reason: 'current-location-not-concrete' };
-    }
-    if (!isAutoInviteSafeLocation(parsedLocation)) {
-        return {
-            valid: false,
-            reason: 'current-location-not-auto-invite-safe'
-        };
     }
 
     return {

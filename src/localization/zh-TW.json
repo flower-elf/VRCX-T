@@ -1492,7 +1492,7 @@
                 "all_favorite_friends": "所有收藏好友",
                 "selected_favorite_groups": "指定收藏分組",
                 "selected_favorite_groups_label": "指定收藏分組",
-                "automatic_replies_note": "自動回應只會在 VRChat 執行中且位於公開或群組公開房間時執行。冷卻按傳送者單獨計算，並且只有邀請 API 成功後才會隱藏通知。",
+                "automatic_replies_note": "自動回應只會在 VRChat 執行中且目前位置可傳送邀請時執行。冷卻按傳送者單獨計算，並且只有邀請 API 成功後才會隱藏通知。",
                 "failed_to_load_schedule_rules": "載入時間規則失敗。",
                 "failed_to_save_schedule_rules": "儲存時間規則失敗。",
                 "failed_to_load_room_rules": "載入房間規則失敗。",

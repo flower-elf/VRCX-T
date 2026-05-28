@@ -257,6 +257,28 @@ function getSortedLocalGroupNames(source: FavoriteGroupMap | null | undefined): 
     return Object.keys(source || {}).sort();
 }
 
+function normalizeStringArray(source: unknown): string[] {
+    return Array.isArray(source)
+        ? source.map((value: any) => normalizeUserId(value)).filter(Boolean)
+        : [];
+}
+
+function normalizeFavoriteGroupMap(source: unknown): FavoriteGroupMap {
+    if (!source || typeof source !== 'object') {
+        return {};
+    }
+
+    const next: FavoriteGroupMap = {};
+    for (const [key, values] of Object.entries(source)) {
+        const groupKey = normalizeUserId(key);
+        if (!groupKey) {
+            continue;
+        }
+        next[groupKey] = normalizeStringArray(values);
+    }
+    return next;
+}
+
 function recomputeGroupCounts(
     groups: unknown,
     remoteFavoritesById: Record<string, FavoriteRecord>
@@ -276,6 +298,21 @@ function recomputeGroupCounts(
         return {
             ...groupRecord,
             count: counts[normalizeUserId(groupRecord.key)] || 0
+        };
+    });
+}
+
+function recomputeGroupCountsFromMap(
+    groups: unknown,
+    groupedIdsByGroupKey: FavoriteGroupMap
+): FavoriteGroup[] {
+    return (Array.isArray(groups) ? groups : []).map((group: any) => {
+        const groupRecord = group as FavoriteGroup;
+        return {
+            ...groupRecord,
+            count:
+                groupedIdsByGroupKey[normalizeUserId(groupRecord.key)]
+                    ?.length || 0
         };
     });
 }
@@ -401,6 +438,24 @@ export const useFavoriteStore = create<FavoriteStore>((set: any, get: any) => ({
             remoteFavoritesById,
             snapshot.favoritesSortOrder
         );
+        const hasSnapshotFavoriteFriendIds = Array.isArray(
+            snapshot.favoriteFriendIds
+        );
+        const hasSnapshotGroupedFavoriteFriendIds = Boolean(
+            snapshot.groupedFavoriteFriendIdsByGroupKey &&
+                typeof snapshot.groupedFavoriteFriendIdsByGroupKey ===
+                    'object' &&
+                !Array.isArray(snapshot.groupedFavoriteFriendIdsByGroupKey)
+        );
+        const favoriteFriendIds = hasSnapshotFavoriteFriendIds
+            ? normalizeStringArray(snapshot.favoriteFriendIds)
+            : remoteCollections.favoriteFriendIds;
+        const groupedFavoriteFriendIdsByGroupKey =
+            hasSnapshotGroupedFavoriteFriendIds
+                ? normalizeFavoriteGroupMap(
+                      snapshot.groupedFavoriteFriendIdsByGroupKey
+                  )
+                : remoteCollections.groupedFavoriteFriendIdsByGroupKey;
         const favoriteFriendGroups = Array.isArray(
             snapshot.favoriteFriendGroups
         )
@@ -423,15 +478,22 @@ export const useFavoriteStore = create<FavoriteStore>((set: any, get: any) => ({
             favoriteLimits: cloneFavoriteLimits(snapshot.favoriteLimits),
             remoteFavoritesById,
             ...remoteCollections,
+            favoriteFriendIds,
+            groupedFavoriteFriendIdsByGroupKey,
             cachedFavoriteGroupsById:
                 snapshot.cachedFavoriteGroupsById &&
                 typeof snapshot.cachedFavoriteGroupsById === 'object'
                     ? snapshot.cachedFavoriteGroupsById
                     : {},
-            favoriteFriendGroups: recomputeGroupCounts(
-                favoriteFriendGroups,
-                remoteFavoritesById
-            ),
+            favoriteFriendGroups: hasSnapshotGroupedFavoriteFriendIds
+                ? recomputeGroupCountsFromMap(
+                      favoriteFriendGroups,
+                      groupedFavoriteFriendIdsByGroupKey
+                  )
+                : recomputeGroupCounts(
+                      favoriteFriendGroups,
+                      remoteFavoritesById
+                  ),
             favoriteWorldGroups: recomputeGroupCounts(
                 favoriteWorldGroups,
                 remoteFavoritesById

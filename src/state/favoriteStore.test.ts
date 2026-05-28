@@ -180,4 +180,43 @@ describe('favoriteStore', () => {
             ]
         });
     });
+
+    it('prefers backend-normalized friend ids and groups from favorite snapshots', () => {
+        const store = useFavoriteStore.getState();
+
+        store.setFavoritesSnapshot({
+            remoteFavoritesById: {
+                fvrt_record_1: {
+                    id: 'fvrt_record_1',
+                    type: 'friend',
+                    favoriteId: 'fvrt_shadow_id',
+                    tags: ['group_0'],
+                    $groupKey: 'friend:group_0'
+                }
+            },
+            favoriteFriendIds: ['usr_sender'],
+            groupedFavoriteFriendIdsByGroupKey: {
+                'friend:group_0': ['usr_sender']
+            },
+            favoriteFriendGroups: [
+                {
+                    key: 'friend:group_0',
+                    count: 0
+                }
+            ]
+        });
+
+        expect(useFavoriteStore.getState()).toMatchObject({
+            favoriteFriendIds: ['usr_sender'],
+            groupedFavoriteFriendIdsByGroupKey: {
+                'friend:group_0': ['usr_sender']
+            },
+            favoriteFriendGroups: [
+                {
+                    key: 'friend:group_0',
+                    count: 1
+                }
+            ]
+        });
+    });
 });

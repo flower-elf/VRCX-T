@@ -1492,7 +1492,7 @@
                 "all_favorite_friends": "All favorite friends",
                 "selected_favorite_groups": "Selected favorite groups",
                 "selected_favorite_groups_label": "Selected favorite groups",
-                "automatic_replies_note": "Automatic replies only run while VRChat is running and from public or group-public rooms. Cooldown is enforced per sender, and notifications are hidden only after the invite API succeeds.",
+                "automatic_replies_note": "Automatic replies only run while VRChat is running and your current location can send invites. Cooldown is enforced per sender, and notifications are hidden only after the invite API succeeds.",
                 "failed_to_load_schedule_rules": "Failed to load schedule rules.",
                 "failed_to_save_schedule_rules": "Failed to save schedule rules.",
                 "failed_to_load_room_rules": "Failed to load room rules.",
