@@ -1,4 +1,4 @@
-import { PersonStandingIcon, UserIcon } from 'lucide-react';
+import { LockIcon, PersonStandingIcon, UserIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { UserStatusAvatar } from '@/components/UserStatusAvatar';
@@ -85,6 +85,8 @@ export function EntityList({ rows, kind = '', loading = false, error = '' }: any
                               { hideNonFriend: false }
                           )
                         : '';
+                const isPrivateWorld =
+                    kind === 'world' && row?.releaseStatus === 'private';
                 const rowClassName =
                     'h-auto min-w-0 justify-start gap-2 px-1.5 py-1.5 text-left font-normal active:not-aria-[haspopup]:translate-y-0';
                 const content = (
@@ -118,15 +120,23 @@ export function EntityList({ rows, kind = '', loading = false, error = '' }: any
                             </span>
                         )}
                         <span className="min-w-0 flex-1 overflow-hidden">
-                            <span
-                                className="block truncate leading-snug font-medium"
-                                style={
-                                    kind === 'user' && row?.$userColour
-                                        ? { color: row.$userColour }
-                                        : undefined
-                                }
-                            >
-                                {label || '\u2014'}
+                            <span className="flex min-w-0 items-center gap-1">
+                                <span
+                                    className="block truncate leading-snug font-medium"
+                                    style={
+                                        kind === 'user' && row?.$userColour
+                                            ? { color: row.$userColour }
+                                            : undefined
+                                    }
+                                >
+                                    {label || '\u2014'}
+                                </span>
+                                {isPrivateWorld ? (
+                                    <LockIcon
+                                        className="text-muted-foreground size-3.5 shrink-0"
+                                        aria-label={t('dialog.world.tags.private')}
+                                    />
+                                ) : null}
                             </span>
                             {travelingTimestamp ? (
                                 <span className="text-muted-foreground block truncate text-xs">
