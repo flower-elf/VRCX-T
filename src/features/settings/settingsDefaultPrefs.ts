@@ -46,6 +46,7 @@ export function createDefaultSettingsPrefs() {
         hideUnfriends: false,
         randomUserColours: false,
         notificationIconDot: true,
+        showPostUpdateChangelogToast: true,
         desktopToast: 'Never',
         afkDesktopToast: false,
         desktopNotificationSound: false,

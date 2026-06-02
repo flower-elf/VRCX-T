@@ -50,6 +50,7 @@ import {
     resolveThemeMode
 } from './themeService';
 import { applyTrustColorClasses } from './trustColorService';
+import { POST_UPDATE_CHANGELOG_TOAST_CONFIG_KEY } from './changelogService';
 
 const DEFAULT_NOTIFICATION_LAYOUT = 'notification-center';
 const DEFAULT_TRANSLATION_ENDPOINT =
@@ -185,6 +186,7 @@ export async function loadPreferenceSnapshot() {
         hideUnfriends,
         randomUserColours,
         notificationIconDot,
+        showPostUpdateChangelogToast,
         desktopToast,
         afkDesktopToast,
         desktopNotificationSound,
@@ -276,6 +278,10 @@ export async function loadPreferenceSnapshot() {
         configRepository.getBool('hideUnfriends', false),
         configRepository.getBool('randomUserColours', false),
         configRepository.getBool('notificationIconDot', true),
+        configRepository.getBool(
+            POST_UPDATE_CHANGELOG_TOAST_CONFIG_KEY,
+            true
+        ),
         configRepository.getString('desktopToast', 'Never'),
         configRepository.getBool('afkDesktopToast', false),
         configRepository.getBool('desktopNotificationSound', false),
@@ -429,6 +435,7 @@ export async function loadPreferenceSnapshot() {
         hideUnfriends: Boolean(hideUnfriends),
         randomUserColours: Boolean(randomUserColours),
         notificationIconDot: Boolean(notificationIconDot),
+        showPostUpdateChangelogToast: Boolean(showPostUpdateChangelogToast),
         desktopToast: desktopToast || 'Never',
         afkDesktopToast: Boolean(afkDesktopToast),
         desktopNotificationSound: Boolean(desktopNotificationSound),

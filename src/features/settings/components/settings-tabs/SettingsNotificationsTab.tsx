@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/ui/shadcn/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/shadcn/card';
 import { Input } from '@/ui/shadcn/input';
@@ -24,6 +26,7 @@ export function SettingsNotificationsTab({
     notificationTtsTest,
     onNotificationLayoutChange,
     onNotificationIconDotChange,
+    onPostUpdateChangelogToastChange,
     onOpenFeedFilterDialog,
     onTestDesktopNotification,
     onDesktopToastChange,
@@ -87,6 +90,22 @@ export function SettingsNotificationsTab({
                         <Switch
                             checked={prefs.notificationIconDot}
                             onCheckedChange={onNotificationIconDotChange}
+                        />
+                    </Field>
+
+                    <Field
+                        label={t(
+                            'view.settings.notifications.notifications.post_update_changelog_prompt'
+                        )}
+                        description={t(
+                            'view.settings.notifications.notifications.post_update_changelog_prompt_description'
+                        )}
+                    >
+                        <Switch
+                            checked={prefs.showPostUpdateChangelogToast}
+                            onCheckedChange={
+                                onPostUpdateChangelogToastChange
+                            }
                         />
                     </Field>
 
@@ -331,4 +350,3 @@ export function SettingsNotificationsTab({
         </SettingsTabContent>
     );
 }
-import { useTranslation } from 'react-i18next';

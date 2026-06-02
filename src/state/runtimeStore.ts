@@ -360,6 +360,7 @@ const initialState = {
     systemHosts: {
         databaseUpgradeOpen: false,
         updaterOpen: false,
+        changelogOpen: false,
         registryBackupOpen: false,
         appLauncherOpen: false,
         launchOptionsOpen: false,

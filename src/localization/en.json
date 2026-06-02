@@ -1906,6 +1906,8 @@
                     "layout_notification_center": "Notification Center",
                     "layout_table": "Notifications Page",
                     "notification_filter": "Notification Filters",
+                    "post_update_changelog_prompt": "Show update notes after updating",
+                    "post_update_changelog_prompt_description": "Shows a persistent prompt after the app starts on a newly installed version.",
                     "wrist_overlay": "Wrist Feed Overlay",
                     "wrist_overlay_description": "Starts the SteamVR wrist feed only while VRChat is in VR and SteamVR is running.",
                     "wrist_feed_notifications": "Wrist Feed Notifications",
@@ -4685,7 +4687,14 @@
             "description": "Consider donating to support future development of VRCX-0",
             "close": "Close",
             "donate": "Donate",
-            "github": "GitHub"
+            "github": "GitHub",
+            "loading": "Loading changelog...",
+            "failed_to_load": "Failed to load changelog.",
+            "latest_release": "Latest release",
+            "empty": "No changelog is available for this release.",
+            "toast_title": "Updated to {value}",
+            "toast_description": "Review what changed in this version.",
+            "view_changes": "View changes"
         },
         "open_source": {
             "header": "Third-Party Notices",

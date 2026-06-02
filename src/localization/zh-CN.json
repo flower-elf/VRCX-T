@@ -1906,6 +1906,8 @@
                     "layout_notification_center": "通知中心",
                     "layout_table": "通知标签页",
                     "notification_filter": "通知筛选器",
+                    "post_update_changelog_prompt": "显示更新后的更新内容提示",
+                    "post_update_changelog_prompt_description": "升级后首次启动新版本时，在右下角提示查看更新内容。",
                     "wrist_overlay": "手腕动态叠加界面",
                     "wrist_overlay_description": "仅在 VRChat 处于 VR 模式且 SteamVR 正在运行时启动手腕动态。",
                     "wrist_feed_notifications": "手腕动态通知",
@@ -4685,7 +4687,14 @@
             "description": "考虑捐赠一下，以支持 VRCX-0 的未来发展",
             "close": "关闭",
             "donate": "捐赠支持",
-            "github": "在 GitHub 上查看"
+            "github": "在 GitHub 上查看",
+            "loading": "正在加载更新日志...",
+            "failed_to_load": "更新日志加载失败。",
+            "latest_release": "最新版本",
+            "empty": "这个版本没有可用的更新日志。",
+            "toast_title": "已更新到 {value}",
+            "toast_description": "查看这个版本的更新内容。",
+            "view_changes": "查看更新内容"
         },
         "open_source": {
             "header": "第三方声明",

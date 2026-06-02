@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { POST_UPDATE_CHANGELOG_TOAST_CONFIG_KEY } from '@/services/changelogService';
 import { showDesktopNotification } from '@/services/shellIntegrationService';
 
 import { SettingsNotificationsTab } from './settings-tabs/SettingsNotificationsTab';
@@ -64,6 +65,13 @@ export function SettingsNotificationsSection({ notifications }: any) {
                 saveBoolPreference(
                     'notificationIconDot',
                     'notificationIconDot',
+                    checked
+                );
+            }}
+            onPostUpdateChangelogToastChange={(checked: any) => {
+                saveBoolPreference(
+                    'showPostUpdateChangelogToast',
+                    POST_UPDATE_CHANGELOG_TOAST_CONFIG_KEY,
                     checked
                 );
             }}

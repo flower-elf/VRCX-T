@@ -267,6 +267,7 @@ export const DEFAULT_PREFERENCES: PreferenceInputSnapshot = Object.freeze({
     hideUnfriends: false,
     randomUserColours: false,
     notificationIconDot: true,
+    showPostUpdateChangelogToast: true,
     desktopToast: 'Never',
     afkDesktopToast: false,
     desktopNotificationSound: false,
@@ -390,6 +391,9 @@ export function normalizePreferenceSnapshot(
         hideUnfriends: normalizeBool(next.hideUnfriends),
         randomUserColours: normalizeBool(next.randomUserColours),
         notificationIconDot: normalizeBool(next.notificationIconDot),
+        showPostUpdateChangelogToast: normalizeBool(
+            next.showPostUpdateChangelogToast
+        ),
         desktopToast: next.desktopToast || 'Never',
         afkDesktopToast: normalizeBool(next.afkDesktopToast),
         desktopNotificationSound: normalizeBool(next.desktopNotificationSound),

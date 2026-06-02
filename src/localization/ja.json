@@ -1906,6 +1906,8 @@
                     "layout_notification_center": "通知センター",
                     "layout_table": "通知タブ",
                     "notification_filter": "通知フィルター",
+                    "post_update_changelog_prompt": "更新後に更新内容の通知を表示",
+                    "post_update_changelog_prompt_description": "新しいバージョンで初回起動したとき、右下に更新内容の通知を表示します。",
                     "wrist_overlay": "手首フィードオーバーレイ",
                     "wrist_overlay_description": "VRChat が VR モードで SteamVR が実行中のときだけ手首フィードを開始します。",
                     "wrist_feed_notifications": "手首フィード通知",
@@ -4685,7 +4687,14 @@
             "description": "将来の VRCX-0 の開発を支援するために寄付をご検討ください。",
             "close": "閉じる",
             "donate": "寄付",
-            "github": "GitHub"
+            "github": "GitHub",
+            "loading": "更新履歴を読み込んでいます...",
+            "failed_to_load": "更新履歴の読み込みに失敗しました。",
+            "latest_release": "最新リリース",
+            "empty": "このリリースには利用可能な更新履歴がありません。",
+            "toast_title": "{value} に更新しました",
+            "toast_description": "このバージョンの更新内容を確認できます。",
+            "view_changes": "更新内容を見る"
         },
         "open_source": {
             "header": "サードパーティー通知",
