@@ -1,5 +1,8 @@
 import configRepository from '@/repositories/configRepository';
-import { fetchLatestBranchRelease } from '@/services/updateService';
+import {
+    fetchBranchReleases,
+    fetchLatestBranchRelease
+} from '@/services/updateService';
 
 const STABLE_BRANCH = 'Stable';
 const DEFAULT_CHANGELOG_LANG = 'en';
@@ -46,6 +49,10 @@ type PostUpdateChangelogToastInput = {
 
 function normalizeVersion(value: unknown) {
     return String(value || '').trim();
+}
+
+function normalizeReleaseLookupVersion(value: unknown) {
+    return normalizeVersion(value).replace(/^v/i, '');
 }
 
 function sanitizeChangelogMarkdown(markdown: unknown) {
@@ -177,6 +184,31 @@ export async function fetchLatestChangelogRelease() {
     return fetchLatestBranchRelease(STABLE_BRANCH, {
         requireInstallerAsset: false
     });
+}
+
+export async function fetchChangelogRelease(version?: unknown) {
+    const targetVersion = normalizeReleaseLookupVersion(version);
+    if (!targetVersion) {
+        return fetchLatestChangelogRelease();
+    }
+
+    const releases = await fetchBranchReleases(STABLE_BRANCH, {
+        requireInstallerAsset: false
+    });
+    return (
+        releases.find((release: any) => {
+            const canonicalVersion = normalizeReleaseLookupVersion(
+                release?.canonicalVersion
+            );
+            const tagVersion = normalizeReleaseLookupVersion(release?.tagName);
+            return (
+                canonicalVersion === targetVersion ||
+                tagVersion === targetVersion
+            );
+        }) ||
+        releases[0] ||
+        null
+    );
 }
 
 export async function markPostUpdateChangelogVersionSeen(
