@@ -44,25 +44,25 @@ fn wrist_builder_keeps_renderer_model_free_of_application_entry_shape() {
         }],
         footer: WristRuntimeFooter {
             player_count: 8,
-            instance_duration: "Instance 12m".to_string(),
+            instance_duration: "12m".to_string(),
             local_time: *b"12:34",
         },
         options: WristOverlayRenderOptions::default(),
-        locale: "en".to_string(),
+        locale: "zh-CN".to_string(),
         captured_at_ms: 42,
     });
 
     assert_eq!(model.size, OverlaySize::new(512, 512));
     assert!(!model.show_battery_percent);
     assert_eq!(model.devices[0].status, DeviceStatus::LowBattery);
-    assert_eq!(model.devices[0].text, "18 low");
+    assert_eq!(model.devices[0].battery_percent, Some(18));
     assert_eq!(model.feed_rows.len(), 3);
     assert_eq!(model.feed_rows[0].kind, FeedKind::System);
     assert_eq!(model.feed_rows[0].severity, FeedSeverity::Warning);
     assert_eq!(model.feed_rows[1].kind, FeedKind::Invite);
     assert_eq!(model.feed_rows[1].severity, FeedSeverity::Important);
-    assert_eq!(model.footer.left, "8 players");
-    assert_eq!(model.footer.center, "Instance 12m");
+    assert_eq!(model.footer.left, "8 名玩家");
+    assert_eq!(model.footer.center, "房间 12m");
     assert_eq!(model.footer.right, "12:34");
 }
 

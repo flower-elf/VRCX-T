@@ -116,13 +116,29 @@ pub fn build_wrist_surface_model(input: WristOverlayFrameInput) -> WristSurfaceM
         },
         feed_rows,
         footer: OverlayFooter {
-            left: format!("{} players", input.footer.player_count),
-            center: input.footer.instance_duration,
+            left: localizer.text(&OverlayActivityText {
+                key: "overlay.footer.players".to_string(),
+                fallback: format!("{} players", input.footer.player_count),
+                params: serde_json::json!({ "count": input.footer.player_count }),
+            }),
+            center: localized_instance_duration(&localizer, &input.footer.instance_duration),
             right: String::from_utf8_lossy(&input.footer.local_time).to_string(),
         },
         accent: Color::rgba(94, 234, 212, 255),
         captured_at_ms: input.captured_at_ms,
     }
+}
+
+fn localized_instance_duration(localizer: &OverlayLocalizer, duration: &str) -> String {
+    let duration = duration.trim();
+    if duration.is_empty() {
+        return String::new();
+    }
+    localizer.text(&OverlayActivityText {
+        key: "overlay.footer.instance_duration".to_string(),
+        fallback: format!("Instance {duration}"),
+        params: serde_json::json!({ "duration": duration }),
+    })
 }
 
 fn device_chip_from_snapshot(snapshot: VrDeviceSnapshot) -> DeviceChip {
@@ -495,7 +511,10 @@ mod tests {
             params: json!({ "location": "wrld_1" }),
         };
 
-        assert_eq!(feed_line(&entry, "zh-CN").detail, "Ada 在 Test World 上线了");
+        assert_eq!(
+            feed_line(&entry, "zh-CN").detail,
+            "Ada 在 Test World 上线了"
+        );
     }
 
     #[test]

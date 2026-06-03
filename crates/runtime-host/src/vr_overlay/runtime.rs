@@ -623,7 +623,7 @@ fn instance_duration_text(location: &str, started_at: &str, now_ms: i64) -> Stri
     if now_ms < started_at_ms {
         return String::new();
     }
-    format!("Instance {}", compact_duration(now_ms - started_at_ms))
+    compact_duration(now_ms - started_at_ms)
 }
 
 fn compact_duration(duration_ms: i64) -> String {

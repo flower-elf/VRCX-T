@@ -22,7 +22,9 @@ fn activity_type_definitions_are_exported_from_backend() {
         .expect("avatar definition");
 
     assert_eq!(invite.category, OverlayActivityCategory::ActionRequired);
-    assert!(invite.allowed_scopes.contains(&OverlayActivityScope::Friends));
+    assert!(invite
+        .allowed_scopes
+        .contains(&OverlayActivityScope::Friends));
     assert_eq!(
         queue_ready.allowed_scopes,
         [OverlayActivityScope::Off, OverlayActivityScope::On]
@@ -324,7 +326,14 @@ fn notification_content_uses_invite_details() {
     assert_eq!(entry.content.icon, "invite");
     assert_eq!(entry.content.title.fallback, "Sender");
     assert_eq!(entry.content.body.key, "notifications.invite");
-    assert_eq!(entry.content.body.fallback, "invite Invite World come over");
+    assert_eq!(
+        entry.content.body.params,
+        json!({ "location": "Invite World", "message": "come over" })
+    );
+    assert_eq!(
+        entry.content.body.fallback,
+        "has invited you to Invite World come over"
+    );
     assert_eq!(entry.content.detail, "come over");
     assert_eq!(entry.content.world_name, "Invite World");
 }

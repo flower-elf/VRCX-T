@@ -166,15 +166,7 @@ pub(super) fn build_activity_content(
         }
         "invite" => {
             let message = detail_message(payload);
-            let fallback = [
-                "invite".to_string(),
-                display_location.clone(),
-                message.clone(),
-            ]
-            .into_iter()
-            .filter(|value| !value.trim().is_empty())
-            .collect::<Vec<_>>()
-            .join(" ");
+            let fallback = join_non_empty(["has invited you to", &display_location, &message]);
             titled_body(
                 "invite",
                 &title_name,
