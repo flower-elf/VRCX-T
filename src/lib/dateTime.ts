@@ -57,7 +57,10 @@ export function formatClock(
 
 export function formatRelativeTime(
     value: unknown,
-    preferences: DateTimeFormatPreferences & { nowMs?: number } = {}
+    preferences: DateTimeFormatPreferences & {
+        nowMs?: number;
+        style?: Intl.RelativeTimeFormatStyle;
+    } = {}
 ) {
     return formatRelativeTimeWithPreferences(
         value,

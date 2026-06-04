@@ -11,31 +11,34 @@ const LOCAL_DATE = '2026-06-04T09:20:02';
 
 describe('dateTime utils', () => {
     it('formats visible dates with the app locale before date culture', () => {
-        const date = new Date(LOCAL_DATE);
-        const expected = date.toLocaleDateString('zh-CN', {
-            month: '2-digit',
-            day: '2-digit',
-            year: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-            second: 'numeric',
-            hourCycle: 'h23'
-        });
-
         expect(
             formatDateFilterWithPreferences(LOCAL_DATE, 'long', {
                 appLocale: 'zh-CN',
                 dateCulture: 'en-gb',
                 dateHour12: false
             })
-        ).toBe(expected);
+        ).toBe('2026年6月4日 9:20:02');
+    });
+
+    it('formats Chinese short dates as month and day text', () => {
+        expect(
+            formatDateFilterWithPreferences(LOCAL_DATE, 'short', {
+                appLocale: 'zh-CN',
+                dateHour12: false
+            })
+        ).toBe('6月4日 9:20');
+        expect(
+            formatDateFilterWithPreferences(LOCAL_DATE, 'date', {
+                appLocale: 'zh-TW'
+            })
+        ).toBe('2026年6月4日');
     });
 
     it('formats Japanese date labels with Japanese locale ordering', () => {
         const date = new Date(LOCAL_DATE);
         const expected = date.toLocaleDateString('ja', {
-            month: '2-digit',
-            day: '2-digit',
+            month: 'long',
+            day: 'numeric',
             year: 'numeric'
         });
 
@@ -50,10 +53,10 @@ describe('dateTime utils', () => {
         const date = new Date(LOCAL_DATE);
         const expected = date
             .toLocaleDateString('en', {
-                month: '2-digit',
-                day: '2-digit',
+                month: 'short',
+                day: 'numeric',
                 hour: 'numeric',
-                minute: 'numeric',
+                minute: '2-digit',
                 hourCycle: 'h23'
             })
             .replace(' AM', 'am')

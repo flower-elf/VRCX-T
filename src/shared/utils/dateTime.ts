@@ -47,13 +47,27 @@ export function normalizeDateLocale(locale: unknown, fallback = 'en-gb') {
     return dateLocale || fallback;
 }
 
+function toLocalClock(
+    date: Date,
+    dateFormat: string,
+    hour12: boolean,
+    includeSeconds = false
+) {
+    return date.toLocaleTimeString(dateFormat, {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: includeSeconds ? '2-digit' : undefined,
+        hourCycle: hour12 ? 'h12' : 'h23'
+    });
+}
+
 function toLocalShort(date: Date, dateFormat: string, hour12: boolean) {
     return date
         .toLocaleDateString(dateFormat, {
-            month: '2-digit',
-            day: '2-digit',
+            month: 'short',
+            day: 'numeric',
             hour: 'numeric',
-            minute: 'numeric',
+            minute: '2-digit',
             hourCycle: hour12 ? 'h12' : 'h23'
         })
         .replace(' AM', 'am')
@@ -63,28 +77,24 @@ function toLocalShort(date: Date, dateFormat: string, hour12: boolean) {
 
 function toLocalLong(date: Date, dateFormat: string, hour12: boolean) {
     return date.toLocaleDateString(dateFormat, {
-        month: '2-digit',
-        day: '2-digit',
+        month: 'long',
+        day: 'numeric',
         year: 'numeric',
         hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
         hourCycle: hour12 ? 'h12' : 'h23'
     });
 }
 
 function toLocalTime(date: Date, dateFormat: string, hour12: boolean) {
-    return date.toLocaleTimeString(dateFormat, {
-        hour: 'numeric',
-        minute: 'numeric',
-        hourCycle: hour12 ? 'h12' : 'h23'
-    });
+    return toLocalClock(date, dateFormat, hour12);
 }
 
 function toLocalDate(date: Date, dateFormat: string) {
     return date.toLocaleDateString(dateFormat, {
-        month: '2-digit',
-        day: '2-digit',
+        month: 'long',
+        day: 'numeric',
         year: 'numeric'
     });
 }
@@ -185,7 +195,10 @@ export function formatClockWithPreferences(
 
 export function formatRelativeTimeWithPreferences(
     value: unknown,
-    preferences: DateTimeFormatPreferences & { nowMs?: number } = {}
+    preferences: DateTimeFormatPreferences & {
+        nowMs?: number;
+        style?: Intl.RelativeTimeFormatStyle;
+    } = {}
 ) {
     if (!value) {
         return preferences.fallback ?? '';
@@ -220,7 +233,8 @@ export function formatRelativeTimeWithPreferences(
 
     try {
         return new Intl.RelativeTimeFormat(locale, {
-            numeric: 'auto'
+            numeric: 'auto',
+            style: preferences.style || 'long'
         }).format(amount, unit);
     } catch {
         return preferences.fallback ?? '';
