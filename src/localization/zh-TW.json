@@ -404,6 +404,12 @@
             "no_authenticated_user_snapshot_is_available": "登入後才能重新整理好友"
         }
     },
+    "support_vrcx": {
+        "title": "支持 VRCX-0",
+        "description": "透過 GitHub Sponsors 或 Ko-fi 支持 VRCX-0 後續開發。",
+        "github_sponsors": "GitHub Sponsors",
+        "kofi": "Ko-fi"
+    },
     "view": {
         "login": {
             "savedAccounts": "已儲存的帳號",
@@ -4728,6 +4734,10 @@
             "close": "關閉",
             "donate": "贊助",
             "github": "GitHub",
+            "support_title": "如果 VRCX-0 對你有幫助",
+            "support_description": "給專案點個 Star 就是最直接的支持。",
+            "star_on_github": "給專案點 Star",
+            "support_development": "支持開發",
             "loading": "正在載入更新日誌...",
             "failed_to_load": "更新日誌載入失敗。",
             "latest_release": "最新版本",

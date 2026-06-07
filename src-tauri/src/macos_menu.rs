@@ -44,7 +44,8 @@ pub(crate) fn configure_macos_app_menu(app: &AppHandle) -> tauri::Result<()> {
         .text("mac-menu-report-issue", "Report Issue")
         .text("mac-menu-discord", "Discord")
         .text("mac-menu-qq-group", "QQ Group")
-        .text("mac-menu-changelog", "Changelog");
+        .text("mac-menu-changelog", "Changelog")
+        .text("mac-menu-support-vrcx", "Support VRCX-0");
     #[cfg(feature = "devtools")]
     {
         help_menu = help_menu.separator().text("mac-menu-open-devtools", "Open DevTools");

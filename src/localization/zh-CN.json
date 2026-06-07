@@ -404,6 +404,12 @@
             "no_authenticated_user_snapshot_is_available": "登录后才能刷新好友"
         }
     },
+    "support_vrcx": {
+        "title": "支持 VRCX-0",
+        "description": "通过 GitHub Sponsors 或 Ko-fi 支持 VRCX-0 后续开发。",
+        "github_sponsors": "GitHub Sponsors",
+        "kofi": "Ko-fi"
+    },
     "view": {
         "login": {
             "savedAccounts": "已保存的账号",
@@ -4728,6 +4734,10 @@
             "close": "关闭",
             "donate": "捐赠支持",
             "github": "在 GitHub 上查看",
+            "support_title": "如果 VRCX-0 对你有帮助",
+            "support_description": "给项目点个 Star 就是最直接的支持。",
+            "star_on_github": "给项目点 Star",
+            "support_development": "支持开发",
             "loading": "正在加载更新日志...",
             "failed_to_load": "更新日志加载失败。",
             "latest_release": "最新版本",

@@ -1,3 +1,4 @@
+import { HeartIcon, StarIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
@@ -15,6 +16,7 @@ import { links } from '@/shared/constants/link';
 import { Button } from '@/ui/shadcn/button';
 import {
     Dialog,
+    DialogClose,
     DialogContent,
     DialogFooter,
     DialogHeader,
@@ -170,7 +172,6 @@ export function ChangelogDialog({ open, onOpenChange, targetVersion }: any) {
         latestRelease?.displayName ||
         latestRelease?.tagName ||
         t('dialog.change_log.latest_release');
-    const githubUrl = latestRelease?.htmlUrl || links.releases;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -256,16 +257,41 @@ export function ChangelogDialog({ open, onOpenChange, targetVersion }: any) {
                     </div>
                 )}
 
-                <DialogFooter showCloseButton>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                            openExternalLink(githubUrl);
-                        }}
-                    >
-                        {t('dialog.change_log.github')}
-                    </Button>
+                <DialogFooter className="flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 text-left">
+                        <div className="text-sm font-medium">
+                            {t('dialog.change_log.support_title')}
+                        </div>
+                        <div className="text-muted-foreground text-xs leading-relaxed">
+                            {t('dialog.change_log.support_description')}
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => {
+                                openExternalLink(links.githubSponsors);
+                            }}
+                        >
+                            <HeartIcon data-icon="inline-start" />
+                            {t('dialog.change_log.support_development')}
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                openExternalLink(links.github);
+                            }}
+                        >
+                            <StarIcon data-icon="inline-start" />
+                            {t('dialog.change_log.star_on_github')}
+                        </Button>
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">
+                                {t('common.actions.close')}
+                            </Button>
+                        </DialogClose>
+                    </div>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

@@ -1,6 +1,8 @@
 const links: any = {
     wiki: 'https://github.com/Map1en/VRCX-0/wiki',
     github: 'https://github.com/Map1en/VRCX-0',
+    githubSponsors: 'https://github.com/sponsors/Map1en',
+    kofi: 'https://ko-fi.com/map1en_',
     issues: 'https://github.com/Map1en/VRCX-0/issues',
     releases: 'https://github.com/Map1en/VRCX-0/releases',
     discord: 'https://discord.gg/fehKP3SVPN',

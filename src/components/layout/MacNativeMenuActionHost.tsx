@@ -20,6 +20,7 @@ import {
     restartApplication
 } from '@/services/shellIntegrationService';
 import { normalizeZoomLevel } from '@/services/themeService';
+import { SupportVrcxDialog } from '@/components/support/SupportVrcxDialog';
 import { links } from '@/shared/constants/link';
 import { publishNavCustomizeRequested } from '@/shared/events/navLayoutEvents';
 import { formatReleaseDisplayVersion } from '@/shared/utils/releaseVersion';
@@ -58,6 +59,7 @@ export function MacNativeMenuActionHost() {
     const [quickSearchOpen, setQuickSearchOpen] = useState(false);
     const [aboutOpen, setAboutOpen] = useState(false);
     const [openSourceNoticeOpen, setOpenSourceNoticeOpen] = useState(false);
+    const [supportOpen, setSupportOpen] = useState(false);
     const { openDirectAccessFromClipboard } = useDirectAccessAction();
     const hostPlatform = useRuntimeStore(
         (state: any) => state.hostCapabilities.platform
@@ -163,6 +165,7 @@ export function MacNativeMenuActionHost() {
                 action !== 'discord' &&
                 action !== 'qq-group' &&
                 action !== 'changelog' &&
+                action !== 'support-vrcx' &&
                 action !== 'open-source-licenses' &&
                 action !== 'about' &&
                 action !== 'open-devtools';
@@ -248,6 +251,9 @@ export function MacNativeMenuActionHost() {
                 case 'changelog':
                     openExternalLink(links.releases);
                     break;
+                case 'support-vrcx':
+                    setSupportOpen(true);
+                    break;
                 case 'open-devtools':
                     runOpenDevtools();
                     break;
@@ -320,6 +326,10 @@ export function MacNativeMenuActionHost() {
             <OpenSourceNoticeDialog
                 open={openSourceNoticeOpen}
                 onOpenChange={setOpenSourceNoticeOpen}
+            />
+            <SupportVrcxDialog
+                open={supportOpen}
+                onOpenChange={setSupportOpen}
             />
             <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
                 <DialogContent showCloseButton={false}>

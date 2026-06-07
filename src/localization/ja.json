@@ -404,6 +404,12 @@
             "no_authenticated_user_snapshot_is_available": "フレンドを更新するにはログインしてください"
         }
     },
+    "support_vrcx": {
+        "title": "VRCX-0 をサポート",
+        "description": "VRCX-0 の開発を続けていくため、GitHub Sponsors または Ko-fi から応援していただけます。",
+        "github_sponsors": "GitHub Sponsors",
+        "kofi": "Ko-fi"
+    },
     "view": {
         "login": {
             "savedAccounts": "ログイン済みのアカウント",
@@ -4728,6 +4734,10 @@
             "close": "閉じる",
             "donate": "寄付",
             "github": "GitHub",
+            "support_title": "VRCX-0 が役に立っているなら",
+            "support_description": "Star を付けてもらえるだけでも、開発を続ける大きな励みになります。",
+            "star_on_github": "GitHub で Star",
+            "support_development": "開発を支援",
             "loading": "更新履歴を読み込んでいます...",
             "failed_to_load": "更新履歴の読み込みに失敗しました。",
             "latest_release": "最新リリース",

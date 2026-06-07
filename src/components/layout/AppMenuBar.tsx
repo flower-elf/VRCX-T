@@ -27,6 +27,7 @@ import {
     isToolCapabilityAvailable,
     triggerToolByKey
 } from '@/services/toolActionService';
+import { SupportVrcxDialog } from '@/components/support/SupportVrcxDialog';
 import { links } from '@/shared/constants/link';
 import {
     TOOLS_QUICK_ACCESS_UPDATED_EVENT,
@@ -132,6 +133,7 @@ export function AppMenuBar({
     const navigate = useNavigate();
     const [aboutOpen, setAboutOpen] = useState(false);
     const [openSourceNoticeOpen, setOpenSourceNoticeOpen] = useState(false);
+    const [supportOpen, setSupportOpen] = useState(false);
     const [quickAccessKeys, setQuickAccessKeys] = useState<any[]>([]);
     const zoomLevel = useShellStore((state: any) => state.zoomLevel);
     const sidebarOpen = useShellStore((state: any) => state.sidebarOpen);
@@ -528,6 +530,9 @@ export function AppMenuBar({
                             >
                                 {t('nav_menu.changelog')}
                             </MenuItem>
+                            <MenuItem onSelect={() => setSupportOpen(true)}>
+                                {t('support_vrcx.title')}
+                            </MenuItem>
                         </MenubarGroup>
                         <MenubarSeparator />
                         {developerToolsAvailable ? (
@@ -560,6 +565,10 @@ export function AppMenuBar({
             <OpenSourceNoticeDialog
                 open={openSourceNoticeOpen}
                 onOpenChange={setOpenSourceNoticeOpen}
+            />
+            <SupportVrcxDialog
+                open={supportOpen}
+                onOpenChange={setSupportOpen}
             />
 
             <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>

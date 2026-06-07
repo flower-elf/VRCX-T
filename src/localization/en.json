@@ -404,6 +404,12 @@
             "no_authenticated_user_snapshot_is_available": "Sign in before refreshing friends"
         }
     },
+    "support_vrcx": {
+        "title": "Support VRCX-0",
+        "description": "Support future VRCX-0 development through GitHub Sponsors or Ko-fi.",
+        "github_sponsors": "GitHub Sponsors",
+        "kofi": "Ko-fi"
+    },
     "view": {
         "login": {
             "savedAccounts": "Saved Accounts",
@@ -4728,6 +4734,10 @@
             "close": "Close",
             "donate": "Donate",
             "github": "GitHub",
+            "support_title": "If VRCX-0 helps you",
+            "support_description": "A GitHub Star is the easiest way to support the project.",
+            "star_on_github": "Star on GitHub",
+            "support_development": "Support development",
             "loading": "Loading changelog...",
             "failed_to_load": "Failed to load changelog.",
             "latest_release": "Latest release",
