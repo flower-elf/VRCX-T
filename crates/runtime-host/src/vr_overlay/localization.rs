@@ -4,8 +4,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use vrcx_0_application::OverlayActivityText;
 
-const OVERLAY_NOTIFICATIONS_JSON: &str =
-    include_str!("localization/overlay_notifications.json");
+const OVERLAY_NOTIFICATIONS_JSON: &str = include_str!("localization/overlay_notifications.json");
 const EN_LOCALE: &str = "en";
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -160,7 +159,11 @@ mod tests {
         let localizer = OverlayLocalizer::new(OverlayLocale::ZhCn);
 
         assert_eq!(
-            localizer.text(&activity_text("notifications.has_joined", json!({}), "has joined")),
+            localizer.text(&activity_text(
+                "notifications.has_joined",
+                json!({}),
+                "has joined"
+            )),
             "加入了房间"
         );
     }

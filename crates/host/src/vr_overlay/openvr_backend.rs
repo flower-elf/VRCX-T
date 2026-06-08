@@ -138,7 +138,9 @@ impl OverlayBackend for OpenVrOverlayBackend {
                 let now = Instant::now();
                 let can_upload = surface
                     .last_visible_frame_upload_at
-                    .map(|last| now.saturating_duration_since(last) >= VISIBLE_FRAME_UPLOAD_INTERVAL)
+                    .map(|last| {
+                        now.saturating_duration_since(last) >= VISIBLE_FRAME_UPLOAD_INTERVAL
+                    })
                     .unwrap_or(true);
                 if !can_upload {
                     surface.pending_frame = Some(frame);
@@ -270,7 +272,8 @@ impl OpenVrOverlayBackend {
                 }
             }
 
-            let visible = transform_device.is_some() && opened_until.is_some_and(|until| now <= until);
+            let visible =
+                transform_device.is_some() && opened_until.is_some_and(|until| now <= until);
             if !visible && opened_until.is_some_and(|until| now > until) {
                 opened_until = None;
             }

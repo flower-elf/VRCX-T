@@ -106,12 +106,9 @@ async fn fetch_all_friends(
     endpoint: &str,
     offline: bool,
 ) -> Result<Vec<Value>> {
-    let rows = fetch_paged_array(
-        deps,
-        FRIEND_PAGE_SIZE,
-        None,
-        |n, offset| remote_friends::friends_get_input(endpoint.to_string(), offline, n, offset),
-    )
+    let rows = fetch_paged_array(deps, FRIEND_PAGE_SIZE, None, |n, offset| {
+        remote_friends::friends_get_input(endpoint.to_string(), offline, n, offset)
+    })
     .await?;
     Ok(rows.into_iter().filter(is_valid_friend_user).collect())
 }
@@ -648,8 +645,12 @@ pub async fn build_friend_roster_baseline(
         return Ok(stale_friend_output(user_id, String::new()));
     }
 
-    let snapshot =
-        build_fast_roster_snapshot(&user_id, &expected_ids, &state_by_id, &fetched_friends_by_id);
+    let snapshot = build_fast_roster_snapshot(
+        &user_id,
+        &expected_ids,
+        &state_by_id,
+        &fetched_friends_by_id,
+    );
     let detail = String::new();
     let count = snapshot
         .get("orderedFriendIds")

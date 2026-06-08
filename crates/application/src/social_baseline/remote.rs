@@ -98,8 +98,7 @@ where
 async fn execute_vrchat_json_page_request(
     deps: &SocialBaselineDeps,
     request: HttpApiRequestInput,
-) -> Result<Value>
-{
+) -> Result<Value> {
     let response = deps
         .web
         .execute_api(request, ApiScope::Vrchat, deps.db.as_ref())
@@ -195,7 +194,10 @@ where
 }
 
 fn offset_allowed(offset: i64, max_offset: Option<i64>) -> bool {
-    offset >= 0 && max_offset.map(|max_offset| offset <= max_offset).unwrap_or(true)
+    offset >= 0
+        && max_offset
+            .map(|max_offset| offset <= max_offset)
+            .unwrap_or(true)
 }
 
 fn backoff_delay(attempt: usize) -> Duration {
@@ -229,8 +231,14 @@ mod tests {
         .unwrap();
 
         assert_eq!(rows.len(), 262);
-        assert_eq!(rows.first().and_then(|row| row.get("offset")), Some(&json!(0)));
-        assert_eq!(rows.last().and_then(|row| row.get("offset")), Some(&json!(250)));
+        assert_eq!(
+            rows.first().and_then(|row| row.get("offset")),
+            Some(&json!(0))
+        );
+        assert_eq!(
+            rows.last().and_then(|row| row.get("offset")),
+            Some(&json!(250))
+        );
     }
 
     #[tokio::test]

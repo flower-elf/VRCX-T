@@ -48,7 +48,9 @@ pub(crate) fn configure_macos_app_menu(app: &AppHandle) -> tauri::Result<()> {
         .text("mac-menu-support-vrcx", "Support VRCX-0");
     #[cfg(feature = "devtools")]
     {
-        help_menu = help_menu.separator().text("mac-menu-open-devtools", "Open DevTools");
+        help_menu = help_menu
+            .separator()
+            .text("mac-menu-open-devtools", "Open DevTools");
     }
     let help_menu = help_menu.build()?;
 

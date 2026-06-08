@@ -249,8 +249,7 @@ impl RealtimeHostRuntime {
                 baseline_started_ms,
             );
             let baseline_projection = if result.accepted {
-                self
-                    .friends
+                self.friends
                     .snapshot()
                     .filter(|snapshot| snapshot.generation == active.generation)
                     .and_then(|snapshot| {
@@ -1501,7 +1500,10 @@ mod tests {
             projection.payload["patches"][0]["patch"]["stateBucket"],
             "offline"
         );
-        assert_eq!(projection.payload["patches"][0]["patch"]["location"], "offline");
+        assert_eq!(
+            projection.payload["patches"][0]["patch"]["location"],
+            "offline"
+        );
         Ok(())
     }
 
