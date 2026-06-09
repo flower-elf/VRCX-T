@@ -34,8 +34,6 @@ export function GalleryPage() {
                         isVrcPlusSupporter: pageState.isVrcPlusSupporter,
                         loadingByTab: pageState.loadingByTab,
                         mutatingKey: pageState.mutatingKey,
-                        printCropBorder: pageState.printCropBorder,
-                        printUploadNote: pageState.printUploadNote,
                         profilePicOverride: pageState.profilePicOverride,
                         tabCounts: pageState.tabCounts,
                         uploadingTab: pageState.uploadingTab,
@@ -54,8 +52,6 @@ export function GalleryPage() {
                             pageState.deletePrint(printId);
                         },
                         onPreview: pageState.openImagePreview,
-                        onPrintCropBorderChange: pageState.setPrintCropBorder,
-                        onPrintUploadNoteChange: pageState.setPrintUploadNote,
                         onRefresh: (tab: any) => {
                             pageState.refreshTab(tab);
                         },
@@ -69,8 +65,8 @@ export function GalleryPage() {
             <GalleryDialogs
                 cropRequest={pageState.cropRequest}
                 onClearCropRequest={() => pageState.setCropRequest(null)}
-                onConfirmCrop={(blob: any) =>
-                    pageState.confirmCroppedUpload(blob)
+                onConfirmCrop={(blob: any, uploadOptions: any) =>
+                    pageState.confirmCroppedUpload(blob, uploadOptions)
                 }
                 onResetUploadAuthTarget={() => {
                     pageState.uploadAuthTargetRef.current = null;

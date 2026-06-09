@@ -9,6 +9,21 @@ export function GalleryDialogs({
     onResetUploadAuthTarget
 }: any) {
     const { t } = useTranslation();
+    const printNoteField =
+        cropRequest?.tab === 'prints'
+            ? {
+                  label: t('dialog.gallery_icons.note'),
+                  placeholder: t('dialog.gallery_icons.note'),
+                  maxLength: 32
+              }
+            : undefined;
+    const printCropWhiteBorderField =
+        cropRequest?.tab === 'prints'
+            ? {
+                  label: t('dialog.gallery_icons.crop_print_border'),
+                  defaultChecked: true
+              }
+            : undefined;
 
     return (
         <>
@@ -17,6 +32,8 @@ export function GalleryDialogs({
                 file={cropRequest?.file || null}
                 aspectRatio={cropRequest?.aspectRatio || 1}
                 title={t('dialog.change_content_image.upload')}
+                noteField={printNoteField}
+                cropWhiteBorderField={printCropWhiteBorderField}
                 onOpenChange={(open: any) => {
                     if (!open) {
                         onClearCropRequest();

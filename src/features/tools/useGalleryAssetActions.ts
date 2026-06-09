@@ -1,3 +1,8 @@
+import {
+    buildPrintUploadParams,
+    resolvePrintCropWhiteBorder
+} from './galleryUploadParams';
+
 export function useGalleryAssetActions({
     FILE_TABS,
     UPLOAD_ASPECT_RATIOS,
@@ -16,8 +21,6 @@ export function useGalleryAssetActions({
     isVrcPlusSupporter,
     mediaRepository,
     parseEmojiUploadSettings,
-    printCropBorder,
-    printUploadNote,
     readFileAsBase64,
     setAssets,
     setCropRequest,
@@ -217,7 +220,12 @@ export function useGalleryAssetActions({
         }
         return params;
     }
-    function uploadAsset(tab: any, base64Body: any, settings: any) {
+    function uploadAsset(
+        tab: any,
+        base64Body: any,
+        settings: any,
+        uploadOptions: any = {}
+    ) {
         const endpoint = currentEndpoint;
         if (tab === 'emojis') {
             return mediaRepository.uploadAssetImage(base64Body, {
@@ -230,11 +238,13 @@ export function useGalleryAssetActions({
             return mediaRepository.uploadAssetImage(base64Body, {
                 endpoint,
                 assetKind: tab,
-                cropWhiteBorder: printCropBorder,
-                params: {
-                    note: printUploadNote,
+                cropWhiteBorder: resolvePrintCropWhiteBorder(
+                    uploadOptions.cropWhiteBorder
+                ),
+                params: buildPrintUploadParams({
+                    note: uploadOptions.note,
                     timestamp: getLocalTimestampString()
-                }
+                })
             });
         }
         if (tab === 'gallery' || tab === 'icons' || tab === 'stickers') {
@@ -294,7 +304,7 @@ export function useGalleryAssetActions({
             aspectRatio: UPLOAD_ASPECT_RATIOS[tab] || 1
         });
     }
-    async function confirmCroppedUpload(blob: any) {
+    async function confirmCroppedUpload(blob: any, uploadOptions: any = {}) {
         const request = cropRequest;
         if (!request || !blob || !isRuntimeAuthTarget(request.authTarget)) {
             return;
@@ -307,7 +317,7 @@ export function useGalleryAssetActions({
                 return;
             }
             const args = await withUploadTimeout(
-                uploadAsset(tab, base64Body, settings)
+                uploadAsset(tab, base64Body, settings, uploadOptions)
             );
             if (!isRuntimeAuthTarget(authTarget)) {
                 return;

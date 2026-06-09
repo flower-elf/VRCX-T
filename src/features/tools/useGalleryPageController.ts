@@ -64,8 +64,6 @@ export function useGalleryPageController() {
     const [uploadingTab, setUploadingTab] = useState('');
     const [mutatingKey, setMutatingKey] = useState('');
     const [cropRequest, setCropRequest] = useState(null);
-    const [printUploadNote, setPrintUploadNote] = useState('');
-    const [printCropBorder, setPrintCropBorder] = useState(true);
     const [emojiAnimFps, setEmojiAnimFps] = useState(15);
     const [emojiAnimFrameCount, setEmojiAnimFrameCount] = useState(4);
     const [emojiAnimType, setEmojiAnimType] = useState(false);
@@ -124,8 +122,6 @@ export function useGalleryPageController() {
         emojiAnimType,
         emojiAnimationStyle,
         isVrcPlusSupporter,
-        printCropBorder,
-        printUploadNote,
         setAssets,
         setCropRequest,
         setEmojiAnimFps,
@@ -180,8 +176,6 @@ export function useGalleryPageController() {
         setEmojiAnimFrameCount,
         setEmojiAnimLoopPingPong,
         setEmojiAnimType,
-        setPrintCropBorder,
-        setPrintUploadNote,
         redeemReward,
         refreshTab,
         activeTab,
@@ -196,8 +190,6 @@ export function useGalleryPageController() {
         isVrcPlusSupporter,
         loadingByTab,
         mutatingKey,
-        printCropBorder,
-        printUploadNote,
         profilePicOverride,
         tabCounts,
         userIcon,

@@ -7,6 +7,7 @@ import {
     validateImageUploadFile
 } from '@/shared/utils/imageUpload';
 import { Button } from '@/ui/shadcn/button';
+import { Checkbox } from '@/ui/shadcn/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -16,6 +17,7 @@ import {
     DialogTitle
 } from '@/ui/shadcn/dialog';
 import { Field, FieldGroup, FieldLabel } from '@/ui/shadcn/field';
+import { Input } from '@/ui/shadcn/input';
 import { Slider } from '@/ui/shadcn/slider';
 import { Spinner } from '@/ui/shadcn/spinner';
 
@@ -25,6 +27,8 @@ export function ImageCropDialog({
     description,
     file,
     aspectRatio = 1,
+    noteField,
+    cropWhiteBorderField,
     onOpenChange,
     onConfirm
 }: any) {
@@ -35,10 +39,17 @@ export function ImageCropDialog({
     const [zoom, setZoom] = useState(1);
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
+    const [note, setNote] = useState('');
+    const [cropWhiteBorder, setCropWhiteBorder] = useState(true);
     const [isConfirming, setIsConfirming] = useState(false);
     const resolvedTitle = title || t('message.image.label.crop_image');
     const resolvedDescription =
         description || t('message.image.description.crop_description');
+    const noteEnabled = Boolean(noteField);
+    const noteMaxLength = Number(noteField?.maxLength) || 32;
+    const cropWhiteBorderEnabled = Boolean(cropWhiteBorderField);
+    const cropWhiteBorderDefault =
+        cropWhiteBorderField?.defaultChecked !== false;
 
     useEffect(() => {
         if (
@@ -52,7 +63,6 @@ export function ImageCropDialog({
         }
 
         let active = true;
-        let bitmap = null;
         setImageBitmap(null);
         setZoom(1);
         setOffsetX(0);
@@ -63,7 +73,6 @@ export function ImageCropDialog({
                     nextBitmap.close();
                     return;
                 }
-                bitmap = nextBitmap;
                 setImageBitmap(nextBitmap);
             })
             .catch(() => {
@@ -73,9 +82,21 @@ export function ImageCropDialog({
             });
         return () => {
             active = false;
-            bitmap?.close();
+            // A published ImageBitmap stays owned by React state; closing it here
+            // can detach the canvas source during React effect replay.
         };
     }, [file, open]);
+
+    useEffect(() => {
+        setNote('');
+        setCropWhiteBorder(cropWhiteBorderDefault);
+    }, [
+        cropWhiteBorderDefault,
+        cropWhiteBorderEnabled,
+        file,
+        noteEnabled,
+        open
+    ]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -100,17 +121,25 @@ export function ImageCropDialog({
             return;
         }
         context.clearRect(0, 0, crop.width, crop.height);
-        context.drawImage(
-            imageBitmap,
-            crop.x,
-            crop.y,
-            crop.width,
-            crop.height,
-            0,
-            0,
-            crop.width,
-            crop.height
-        );
+        try {
+            context.drawImage(
+                imageBitmap,
+                crop.x,
+                crop.y,
+                crop.width,
+                crop.height,
+                0,
+                0,
+                crop.width,
+                crop.height
+            );
+        } catch (error) {
+            if ((error as any)?.name === 'InvalidStateError') {
+                setImageBitmap(null);
+                return;
+            }
+            throw error;
+        }
     }, [aspectRatio, imageBitmap, offsetX, offsetY, zoom]);
 
     async function confirmCrop() {
@@ -125,7 +154,17 @@ export function ImageCropDialog({
                 offsetX: offsetX / 100,
                 offsetY: offsetY / 100
             });
-            await onConfirm?.(blob);
+            const uploadOptions: any = {};
+            if (noteEnabled) {
+                uploadOptions.note = note.slice(0, noteMaxLength);
+            }
+            if (cropWhiteBorderEnabled) {
+                uploadOptions.cropWhiteBorder = cropWhiteBorder;
+            }
+            await onConfirm?.(
+                blob,
+                Object.keys(uploadOptions).length > 0 ? uploadOptions : undefined
+            );
         } finally {
             setIsConfirming(false);
         }
@@ -201,6 +240,41 @@ export function ImageCropDialog({
                             />
                         </Field>
                     </FieldGroup>
+                    {noteEnabled ? (
+                        <Field>
+                            <FieldLabel htmlFor="image-crop-upload-note">
+                                {noteField.label}
+                            </FieldLabel>
+                            <Input
+                                id="image-crop-upload-note"
+                                maxLength={noteMaxLength}
+                                value={note}
+                                onChange={(event: any) =>
+                                    setNote(
+                                        String(event.target.value || '').slice(
+                                            0,
+                                            noteMaxLength
+                                        )
+                                    )
+                                }
+                                placeholder={noteField.placeholder}
+                            />
+                        </Field>
+                    ) : null}
+                    {cropWhiteBorderEnabled ? (
+                        <Field orientation="horizontal" className="h-9 w-auto">
+                            <Checkbox
+                                id="image-crop-white-border"
+                                checked={cropWhiteBorder}
+                                onCheckedChange={(value: any) =>
+                                    setCropWhiteBorder(Boolean(value))
+                                }
+                            />
+                            <FieldLabel htmlFor="image-crop-white-border">
+                                {cropWhiteBorderField.label}
+                            </FieldLabel>
+                        </Field>
+                    ) : null}
                 </div>
                 <DialogFooter>
                     <Button

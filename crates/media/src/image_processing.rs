@@ -125,8 +125,8 @@ pub fn resize_print_image_bytes(base64data: &str) -> Result<Vec<u8>, Error> {
             PRINT_CONTENT_HEIGHT,
             image::Rgba([255, 255, 255, 255]),
         );
-        let x = i64::from((PRINT_CONTENT_WIDTH - new_width) / 2);
-        let y = i64::from((PRINT_CONTENT_HEIGHT - new_height) / 2);
+        let x = (i64::from(PRINT_CONTENT_WIDTH) - i64::from(new_width)) / 2;
+        let y = (i64::from(PRINT_CONTENT_HEIGHT) - i64::from(new_height)) / 2;
         image::imageops::overlay(&mut canvas, &resized.to_rgba8(), x, y);
         img = image::DynamicImage::ImageRgba8(canvas);
     }
@@ -398,6 +398,15 @@ mod tests {
     #[test]
     fn resize_print_image_bytes_outputs_print_canvas() -> Result<(), Error> {
         let input = encode_test_png(64, 64)?;
+        let output = super::resize_print_image_bytes(&input)?;
+
+        assert_eq!(decoded_dimensions(&output)?, (2048, 1440));
+        Ok(())
+    }
+
+    #[test]
+    fn resize_print_image_bytes_handles_wide_images_without_overflow() -> Result<(), Error> {
+        let input = encode_test_png(4000, 300)?;
         let output = super::resize_print_image_bytes(&input)?;
 
         assert_eq!(decoded_dimensions(&output)?, (2048, 1440));

@@ -12,8 +12,6 @@ export function GalleryTabsSection({
         isVrcPlusSupporter,
         loadingByTab,
         mutatingKey,
-        printCropBorder,
-        printUploadNote,
         profilePicOverride,
         tabCounts,
         uploadingTab,
@@ -26,8 +24,6 @@ export function GalleryTabsSection({
         onDeleteFile,
         onDeletePrint,
         onPreview,
-        onPrintCropBorderChange,
-        onPrintUploadNoteChange,
         onRefresh,
         onSetProfileField
     } = galleryCommands;
@@ -61,12 +57,8 @@ export function GalleryTabsSection({
                 mutatingKey,
                 isVrcPlusSupporter,
                 gridDensityConfig,
-                printUploadNote,
-                printCropBorder,
                 onRefresh,
                 onBeginUpload,
-                onPrintUploadNoteChange,
-                onPrintCropBorderChange,
                 onPreview,
                 onDeletePrint
             }}
