@@ -89,7 +89,7 @@ export function UserDialogHeaderActions(props: any) {
 
     return (
         <>
-            {!isCurrentUser ? (
+            {!isCurrentUser && isFriend ? (
                 <FavoriteActionMenu
                     kind="friend"
                     entityId={profile.id}
