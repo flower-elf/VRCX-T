@@ -11,14 +11,6 @@ import {
 } from '@/shared/constants/photonEmojis';
 import { Button } from '@/ui/shadcn/button';
 import {
-    Combobox,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxInput,
-    ComboboxItem,
-    ComboboxList
-} from '@/ui/shadcn/combobox';
-import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -27,6 +19,13 @@ import {
     DialogTitle
 } from '@/ui/shadcn/dialog';
 import { Input } from '@/ui/shadcn/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/ui/shadcn/select';
 import { Spinner } from '@/ui/shadcn/spinner';
 
 type PhotonEmojiRow = {
@@ -38,6 +37,8 @@ const photonEmojiRows: PhotonEmojiRow[] = photonEmojis.map((name) => ({
     id: photonEmojiId(name),
     name
 }));
+
+const noDefaultEmojiValue = '__none__';
 
 function getFileImageUrl(file: any) {
     const versions = Array.isArray(file?.versions) ? file.versions : [];
@@ -114,8 +115,11 @@ export function BoopEmojiDialog({
         }
     }, [endpoint, isLocalUserVrcPlusSupporter, open]);
 
-    const selectedDefaultEmoji = useMemo(
-        () => photonEmojiRows.find((row) => row.id === emojiId) || null,
+    const selectedDefaultEmojiId = useMemo(
+        () =>
+            photonEmojiRows.some((row) => row.id === emojiId)
+                ? emojiId
+                : undefined,
         [emojiId]
     );
     const filteredEmojiRows = useMemo(() => {
@@ -173,39 +177,52 @@ export function BoopEmojiDialog({
                         <div className="text-muted-foreground text-xs font-medium">
                             {t('dialog.boop_dialog.default_emojis')}
                         </div>
-                        <Combobox
-                            autoHighlight
-                            items={photonEmojiRows}
-                            value={selectedDefaultEmoji}
-                            itemToStringLabel={(row: any) => row?.name || ''}
-                            onValueChange={(row: any) =>
-                                setEmojiId(row?.id || '')
-                            }
-                        >
-                            <ComboboxInput
-                                className="w-full"
-                                disabled={sending}
-                                placeholder={t(
-                                    'dialog.boop_dialog.select_default_emoji'
-                                )}
-                                showClear
-                            />
-                            <ComboboxContent>
-                                <ComboboxEmpty>
-                                    {t('dialog.user.empty.no_results')}
-                                </ComboboxEmpty>
-                                <ComboboxList>
-                                    {(row: PhotonEmojiRow) => (
-                                        <ComboboxItem
-                                            key={row.id}
-                                            value={row}
-                                        >
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Select
+                                value={selectedDefaultEmojiId}
+                                onValueChange={(value) => {
+                                    setEmojiId(
+                                        value === noDefaultEmojiValue
+                                            ? ''
+                                            : value
+                                    );
+                                }}
+                            >
+                                <SelectTrigger
+                                    className="w-full min-w-56 flex-1"
+                                    disabled={sending}
+                                >
+                                    <SelectValue
+                                        placeholder={t(
+                                            'dialog.boop_dialog.select_default_emoji'
+                                        )}
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={noDefaultEmojiValue}>
+                                        {t(
+                                            'view.notification.action.clear_selection'
+                                        )}
+                                    </SelectItem>
+                                    {photonEmojiRows.map((row) => (
+                                        <SelectItem key={row.id} value={row.id}>
                                             {row.name}
-                                        </ComboboxItem>
-                                    )}
-                                </ComboboxList>
-                            </ComboboxContent>
-                        </Combobox>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={sending || !selectedDefaultEmojiId}
+                                onClick={() => setEmojiId('')}
+                            >
+                                {t(
+                                    'view.notification.action.clear_selection'
+                                )}
+                            </Button>
+                        </div>
                     </div>
                     {isLocalUserVrcPlusSupporter ? (
                         <div className="flex min-h-0 flex-col gap-2">
