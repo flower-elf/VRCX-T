@@ -205,6 +205,17 @@
     #root {
         width: 100%;
         height: 100%;
+        /*
+         * Under Virtual Desktop / VR the WebView2 host feeds touch input, whose
+         * default overscroll/rubber-band gesture drags the whole document
+         * (titlebar + content ride the viewport; only the position:fixed sidebar
+         * stays put), so the UI "drifts" under a touch that should behave like a
+         * mouse. Pin the document scroll and kill viewport overscroll here. We do
+         * NOT set touch-action:none — Blink intersects it down the ancestor chain,
+         * which would also break touch-scroll in every nested overflow:auto list.
+         */
+        overflow: hidden;
+        overscroll-behavior: none;
     }
 
     body {
