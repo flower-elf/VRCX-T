@@ -22,16 +22,22 @@ fn format_timestamp() -> String {
     )
 }
 
+const NETWORK_ERROR_MARKERS: &[&str] = &[
+    "failed to load resource",
+    "web api execution failed",
+    "vrchat request failed",
+    "github release request failed",
+    "translation api error",
+    "avatar search failed",
+    "media file upload failed",
+    "update download failed",
+];
+
 fn has_network_error_text(message: &str) -> bool {
     let lower = message.to_ascii_lowercase();
-    lower.contains("failed to load resource")
-        || lower.contains("web api execution failed")
-        || lower.contains("vrchat request failed")
-        || lower.contains("github release request failed")
-        || lower.contains("translation api error")
-        || lower.contains("avatar search failed")
-        || lower.contains("media file upload failed")
-        || lower.contains("update download failed")
+    NETWORK_ERROR_MARKERS
+        .iter()
+        .any(|marker| lower.contains(marker))
         || (lower.contains("http ") && contains_http_error_status(&lower))
         || (lower.contains("status") && contains_http_error_status(&lower))
         || (lower.contains("request failed") && contains_http_error_status(&lower))

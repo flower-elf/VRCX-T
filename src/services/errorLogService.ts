@@ -168,13 +168,27 @@ function hasHttpErrorStatus(
     return false;
 }
 
+const NETWORK_ERROR_MARKERS = [
+    'failed to load resource',
+    'web api execution failed',
+    'vrchat request failed',
+    'github release request failed',
+    'translation api error',
+    'avatar search failed',
+    'media file upload failed',
+    'update download failed'
+];
+
 function hasNetworkErrorText(text: string): boolean {
+    const lower = text.toLowerCase();
+    if (NETWORK_ERROR_MARKERS.some((marker: any) => lower.includes(marker))) {
+        return true;
+    }
+
     return [
-        /Failed to load resource/i,
         /\bHTTP\s+(?:4\d\d|5\d\d)\b/i,
         /\bstatus(?:Code|\s+code)?[:=]?\s*(?:4\d\d|5\d\d)\b/i,
         /\b(?:GET|POST|PUT|PATCH|DELETE)\b[^\n]*(?:4\d\d|5\d\d)\b/i,
-        /\b(?:VRChat request|GitHub release request|Translation API|Avatar search|Media file upload|Update download|Web API execution)\s+failed\b/i,
         /\brequest failed\s*\((?:4\d\d|5\d\d)\)/i,
         /\berror:\s*\{?[^\n]*(?:4\d\d|5\d\d)\b/i
     ].some((pattern: any) => pattern.test(text));
