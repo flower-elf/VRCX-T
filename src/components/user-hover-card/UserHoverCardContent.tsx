@@ -175,7 +175,7 @@ export function UserHoverCardContent({ userId, seed }: any) {
                             {population ? (
                                 <span className="text-foreground/90 inline-flex items-center gap-1.5">
                                     <UsersIcon className="text-muted-foreground size-3.5" />
-                                    <span className="font-mono">
+                                    <span>
                                         {population.capacity
                                             ? `${population.nUsers}/${population.capacity}`
                                             : population.nUsers}
