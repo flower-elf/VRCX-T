@@ -79,86 +79,94 @@ export function useFriendLogColumns({
                     );
                 }
             },
-        {
-            id: 'type',
-            size: 160,
-            accessorFn: (row: any) => row?.type || '',
-            header: ({ column }: any) => (
-                <SortButton column={column} label={t('table.friendLog.type')} />
-            ),
-            cell: ({ row }: any) => (
-                <Badge variant="outline" className="text-muted-foreground">
-                    {friendLogTypeLabel(row.original?.type, t) ||
-                        row.original?.type ||
-                        ''}
-                </Badge>
-            )
-        },
-        {
-            id: 'displayName',
-            size: 260,
-            minSize: 80,
-            accessorFn: (row: any) => row?.displayName || row?.userId || '',
-            enableSorting: false,
-            header: () => t('table.friendLog.user'),
-            cell: ({ row }: any) => renderUserCell(row.original)
-        },
-        {
-            id: 'action',
-            size: 80,
-            maxSize: 80,
-            enableSorting: false,
-            accessorFn: (row: any) => getFriendLogRowKey(row, rowsOwnerUserId),
-            header: () => t('table.friendLog.action'),
-            cell: ({ row }: any) => {
-                const rowKey = getFriendLogRowKey(
-                    row.original,
-                    rowsOwnerUserId
-                );
-                return (
-                    <div className="flex justify-end">
-                        <Button
-                            type="button"
-                            size="icon-xs"
-                            variant="ghost"
-                            className="text-muted-foreground hover:text-foreground"
-                            aria-label={t('common.actions.delete')}
-                            disabled={
-                                !currentUserId ||
-                                rowsOwnerUserId !==
-                                    normalizeUserId(currentUserId) ||
-                                loadStatus === 'running' ||
-                                deletingRowKey === rowKey
-                            }
-                            onClick={(event: any) =>
-                                handleDeleteRow(row.original, {
-                                    skipConfirm: shiftHeld || event.shiftKey
-                                })
-                            }
-                        >
-                            {deletingRowKey === rowKey ? (
-                                <Spinner data-icon="inline-start" />
-                            ) : shiftHeld ? (
-                                <XIcon
-                                    data-icon="inline-start"
-                                    className="text-destructive"
-                                />
-                            ) : (
-                                <Trash2Icon data-icon="inline-start" />
-                            )}
-                        </Button>
-                    </div>
-                );
+            {
+                id: 'type',
+                size: 160,
+                accessorFn: (row: any) => row?.type || '',
+                header: ({ column }: any) => (
+                    <SortButton
+                        column={column}
+                        label={t('table.friendLog.type')}
+                    />
+                ),
+                cell: ({ row }: any) => (
+                    <Badge variant="outline" className="text-muted-foreground">
+                        {friendLogTypeLabel(row.original?.type, t) ||
+                            row.original?.type ||
+                            ''}
+                    </Badge>
+                )
+            },
+            {
+                id: 'displayName',
+                size: 260,
+                minSize: 80,
+                accessorFn: (row: any) =>
+                    row?.resolvedDisplayName ||
+                    row?.displayName ||
+                    row?.userId ||
+                    '',
+                enableSorting: false,
+                header: () => t('table.friendLog.user'),
+                cell: ({ row }: any) => renderUserCell(row.original)
+            },
+            {
+                id: 'action',
+                size: 80,
+                maxSize: 80,
+                enableSorting: false,
+                accessorFn: (row: any) =>
+                    getFriendLogRowKey(row, rowsOwnerUserId),
+                header: () => t('table.friendLog.action'),
+                cell: ({ row }: any) => {
+                    const rowKey = getFriendLogRowKey(
+                        row.original,
+                        rowsOwnerUserId
+                    );
+                    return (
+                        <div className="flex justify-end">
+                            <Button
+                                type="button"
+                                size="icon-xs"
+                                variant="ghost"
+                                className="text-muted-foreground hover:text-foreground"
+                                aria-label={t('common.actions.delete')}
+                                disabled={
+                                    !currentUserId ||
+                                    rowsOwnerUserId !==
+                                        normalizeUserId(currentUserId) ||
+                                    loadStatus === 'running' ||
+                                    deletingRowKey === rowKey
+                                }
+                                onClick={(event: any) =>
+                                    handleDeleteRow(row.original, {
+                                        skipConfirm: shiftHeld || event.shiftKey
+                                    })
+                                }
+                            >
+                                {deletingRowKey === rowKey ? (
+                                    <Spinner data-icon="inline-start" />
+                                ) : shiftHeld ? (
+                                    <XIcon
+                                        data-icon="inline-start"
+                                        className="text-destructive"
+                                    />
+                                ) : (
+                                    <Trash2Icon data-icon="inline-start" />
+                                )}
+                            </Button>
+                        </div>
+                    );
+                }
+            },
+            {
+                id: 'trailing',
+                size: 5,
+                enableSorting: false,
+                enableResizing: false,
+                header: () => null,
+                cell: () => null
             }
-        },
-        {
-            id: 'trailing',
-            size: 5,
-            enableSorting: false,
-            enableResizing: false,
-            header: () => null,
-            cell: () => null
-        }
         ],
         [
             currentUserId,

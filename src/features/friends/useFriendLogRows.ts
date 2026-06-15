@@ -5,6 +5,7 @@ import { usePreferencesStore } from '@/state/preferencesStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
 
 import { matchesSearch, normalizeUserId, sortRows } from './friendLogRows';
+import { useFriendLogResolvedNames } from './useFriendLogResolvedNames';
 
 export function useFriendLogRows({
     refreshToken,
@@ -15,8 +16,12 @@ export function useFriendLogRows({
     searchQuery: string;
     selectedTypes: any[];
 }) {
-    const currentUserId = useRuntimeStore((state: any) => state.auth.currentUserId);
-    const hideUnfriends = usePreferencesStore((state: any) => state.hideUnfriends);
+    const currentUserId = useRuntimeStore(
+        (state: any) => state.auth.currentUserId
+    );
+    const hideUnfriends = usePreferencesStore(
+        (state: any) => state.hideUnfriends
+    );
     const [rows, setRows] = useState<any[]>([]);
     const [rowsOwnerUserId, setRowsOwnerUserId] = useState('');
     const [loadStatus, setLoadStatus] = useState('idle');
@@ -75,21 +80,32 @@ export function useFriendLogRows({
         };
     }, [currentUserId, refreshToken]);
 
+    const resolveDisplayName = useFriendLogResolvedNames(currentUserId, rows);
+
     const filteredRows = useMemo(() => {
         const activeTypeSet = selectedTypes.length
             ? new Set(selectedTypes)
             : null;
 
-        return rows.filter((row: any) => {
+        const result: any[] = [];
+        for (const row of rows) {
             if (hideUnfriends && row?.type === 'Unfriend') {
-                return false;
+                continue;
             }
             if (activeTypeSet && !activeTypeSet.has(row?.type)) {
-                return false;
+                continue;
             }
-            return matchesSearch(row, searchQuery);
-        });
-    }, [hideUnfriends, rows, searchQuery, selectedTypes]);
+            const enrichedRow = {
+                ...row,
+                resolvedDisplayName: resolveDisplayName(row)
+            };
+            if (!matchesSearch(enrichedRow, searchQuery)) {
+                continue;
+            }
+            result.push(enrichedRow);
+        }
+        return result;
+    }, [hideUnfriends, rows, resolveDisplayName, searchQuery, selectedTypes]);
 
     const orderedRows = useMemo(() => sortRows(filteredRows), [filteredRows]);
 

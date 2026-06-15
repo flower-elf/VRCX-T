@@ -88,7 +88,8 @@ export function FriendLogTypeFilterDropdown({ value, onChange }: any) {
 }
 
 export function renderUserCell(row: any) {
-    const displayName = row?.displayName || row?.userId || '';
+    const displayName =
+        row?.resolvedDisplayName || row?.displayName || row?.userId || '';
     const userLabel = row?.userId ? (
         <Button
             type="button"
