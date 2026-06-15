@@ -27,6 +27,7 @@ export const ConfigKeys = {
     branch: { type: 'string', default: '' },
     telemetryInstallId: { type: 'string', default: null },
     telemetryBasicInfoReportedVersion: { type: 'string', default: '' },
+    telemetryConfigReportedVersion: { type: 'string', default: '' },
     lastUserLoggedIn: { type: 'string', default: null },
     savedCredentials: { type: 'string', default: '{}' },
 

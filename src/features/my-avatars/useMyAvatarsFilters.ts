@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useState } from 'react';
 
 import configRepository from '@/repositories/configRepository';
+import { recordViewModeUsage } from '@/services/telemetry/telemetryViewModeUsage';
 
 import {
     MY_AVATARS_DEFAULT_CARD_SCALE,
@@ -10,10 +11,7 @@ import {
     resolveMyAvatarsGridDensity,
     sanitizeMyAvatarsGridDensity
 } from './myAvatarsState';
-import type {
-    MyAvatarsGridDensity,
-    MyAvatarsViewMode
-} from './myAvatarsTypes';
+import type { MyAvatarsGridDensity, MyAvatarsViewMode } from './myAvatarsTypes';
 
 export function useMyAvatarsFilters() {
     const [viewMode, setViewMode] = useState<MyAvatarsViewMode>('grid');
@@ -73,6 +71,7 @@ export function useMyAvatarsFilters() {
     function handleViewModeChange(nextViewMode: MyAvatarsViewMode) {
         setViewMode(nextViewMode);
         configRepository.setString('MyAvatarsViewMode', nextViewMode);
+        recordViewModeUsage('myAvatarsViewMode', nextViewMode);
     }
 
     function handleGridDensityChange(value: MyAvatarsGridDensity) {

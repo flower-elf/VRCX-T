@@ -10,6 +10,7 @@ import {
 import { useTodayDate } from '@/lib/useTodayDate';
 import configRepository from '@/repositories/configRepository';
 import { GAME_LOG_FILTER_TYPES } from '@/repositories/gameLogRepository';
+import { recordViewModeUsage } from '@/services/telemetry/telemetryViewModeUsage';
 
 import {
     clampGameLogSessionDateInputRange,
@@ -244,6 +245,7 @@ export function useGameLogFilters() {
     const changeViewMode = useCallback((nextViewMode: GameLogViewMode) => {
         setViewMode(nextViewMode);
         configRepository.setString('gameLogViewMode', nextViewMode);
+        recordViewModeUsage('gameLogViewMode', nextViewMode);
     }, []);
 
     const toggleFavoritesOnly = useCallback(() => {

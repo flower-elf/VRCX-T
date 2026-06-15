@@ -25,6 +25,7 @@ import {
     setZoomLevelPreference
 } from '@/services/preferencesService';
 import { openUGCPhotosFolder } from '@/services/shellIntegrationService';
+import { recordViewModeUsage } from '@/services/telemetry/telemetryViewModeUsage';
 import { feedFiltersOptions } from '@/shared/constants/feedFilters';
 import {
     DEFAULT_MAX_TABLE_SIZE,
@@ -471,6 +472,7 @@ export function useSettingsPageState() {
                     'feedTimeDisplayMode',
                     nextValue
                 );
+                recordViewModeUsage('feedTimeDisplayMode', nextValue);
             },
             onHideUserNotesChange: (checked: any) => {
                 saveBoolPreference('hideUserNotes', 'hideUserNotes', !checked);

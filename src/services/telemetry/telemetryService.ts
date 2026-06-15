@@ -1,25 +1,32 @@
 import configRepository from '@/repositories/configRepository';
 import { useRuntimeStore } from '@/state/runtimeStore';
+
+import { postTelemetry } from './telemetryClient';
 import {
     TELEMETRY_BASIC_INFO_REPORTED_VERSION_CONFIG_KEY,
     TELEMETRY_HEARTBEAT_INTERVAL_MS,
     isAnonymousUsageTelemetryEnabled,
     isTelemetryEnabled
 } from './telemetryConfig';
-import { postTelemetry } from './telemetryClient';
+import { sendConfigSnapshot } from './telemetryConfigSnapshot';
+import {
+    createTelemetrySessionId,
+    getOrCreateTelemetryInstallIdentity
+} from './telemetryIdentity';
 import {
     buildBasicTelemetryContext,
     buildTelemetryContext,
     waitForInitialTelemetryContext
 } from './telemetryPayload';
-import {
-    createTelemetrySessionId,
-    getOrCreateTelemetryInstallIdentity
-} from './telemetryIdentity';
 import type {
     TelemetrySessionState,
     TelemetryVrchatLifecycleState
 } from './telemetryTypes';
+import {
+    resetViewModeUsage,
+    seedViewModeUsage,
+    sendViewModeUsage
+} from './telemetryViewModeUsage';
 
 let activeSession: TelemetrySessionState | null = null;
 
@@ -78,7 +85,9 @@ async function sendHeartbeat(session: TelemetrySessionState): Promise<void> {
     );
 }
 
-async function sendSessionEndHeartbeat(session: TelemetrySessionState): Promise<void> {
+async function sendSessionEndHeartbeat(
+    session: TelemetrySessionState
+): Promise<void> {
     if (!isAnonymousUsageTelemetryEnabled()) {
         return;
     }
@@ -177,21 +186,30 @@ export function startTelemetryLifecycle(): () => void {
         if (disposed) {
             return;
         }
-        const initialVrchatRunning = buildTelemetryContext(session).vrchatRunning;
+        await seedViewModeUsage().catch(() => {});
+        silently(sendConfigSnapshot(session));
+        const initialVrchatRunning =
+            buildTelemetryContext(session).vrchatRunning;
         lastVrchatRunning = initialVrchatRunning;
         if (initialVrchatRunning && isAnonymousUsageTelemetryEnabled()) {
             requestVrchatLifecycle(true, { force: true });
         }
-        runtimeUnsubscribe = useRuntimeStore.subscribe((state, previousState) => {
-            const nextVrchatRunning = state.gameState.isGameRunning === true;
-            const previousVrchatRunning =
-                previousState?.gameState?.isGameRunning === true;
-            if (nextVrchatRunning !== previousVrchatRunning) {
-                requestVrchatLifecycle(nextVrchatRunning);
+        runtimeUnsubscribe = useRuntimeStore.subscribe(
+            (state, previousState) => {
+                const nextVrchatRunning =
+                    state.gameState.isGameRunning === true;
+                const previousVrchatRunning =
+                    previousState?.gameState?.isGameRunning === true;
+                if (nextVrchatRunning !== previousVrchatRunning) {
+                    requestVrchatLifecycle(nextVrchatRunning);
+                }
             }
-        });
+        );
         heartbeatTimer = window.setInterval(() => {
             requestHeartbeat();
+            if (activeSession) {
+                silently(sendViewModeUsage(activeSession));
+            }
         }, TELEMETRY_HEARTBEAT_INTERVAL_MS);
     })().catch(() => {});
 
@@ -208,9 +226,11 @@ export function startTelemetryLifecycle(): () => void {
         }
         if (activeSession) {
             silently(sendSessionEndHeartbeat(activeSession));
+            silently(sendViewModeUsage(activeSession));
         }
         if (lastVrchatRunning === true && activeSession) {
             requestVrchatLifecycle(false, { force: true });
         }
+        resetViewModeUsage();
     };
 }

@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import configRepository from '@/repositories/configRepository';
+import { recordViewModeUsage } from '@/services/telemetry/telemetryViewModeUsage';
 
+import {
+    DEFAULT_FEED_COLUMN_DENSITY,
+    type FeedColumnDensity,
+    sanitizeFeedColumnDensity
+} from './feedColumnsDensity';
 import {
     FEED_COLUMNS_DEFAULT_CONFIG,
     type FeedColumnConfig,
@@ -9,16 +15,11 @@ import {
     sanitizeFeedColumnsConfig,
     sanitizeFeedViewMode
 } from './feedColumnsState';
-import {
-    DEFAULT_FEED_COLUMN_DENSITY,
-    type FeedColumnDensity,
-    sanitizeFeedColumnDensity
-} from './feedColumnsDensity';
 import { safeJsonParse } from './feedTableState';
 
 export function useFeedViewModeState() {
     const [ready, setReady] = useState(false);
-    const [viewMode, setViewMode] = useState<FeedViewMode>('table');
+    const [viewMode, setViewModeState] = useState<FeedViewMode>('table');
     const [density, setDensityState] = useState<FeedColumnDensity>(
         DEFAULT_FEED_COLUMN_DENSITY
     );
@@ -43,8 +44,10 @@ export function useFeedViewModeState() {
                 if (!active) {
                     return;
                 }
-                setViewMode(sanitizeFeedViewMode(savedMode));
-                setColumns(sanitizeFeedColumnsConfig(safeJsonParse(savedColumns)));
+                setViewModeState(sanitizeFeedViewMode(savedMode));
+                setColumns(
+                    sanitizeFeedColumnsConfig(safeJsonParse(savedColumns))
+                );
                 setDensityState(sanitizeFeedColumnDensity(savedDensity));
                 setReady(true);
             })
@@ -88,11 +91,19 @@ export function useFeedViewModeState() {
             hasWrittenColumnsRef.current = true;
             return;
         }
-        configRepository.setString('feedColumnsConfig', JSON.stringify(columns));
+        configRepository.setString(
+            'feedColumnsConfig',
+            JSON.stringify(columns)
+        );
     }, [columns, ready]);
 
     const setDensity = useCallback((value: unknown) => {
         setDensityState(sanitizeFeedColumnDensity(value));
+    }, []);
+
+    const setViewMode = useCallback((value: FeedViewMode) => {
+        recordViewModeUsage('feedViewMode', value);
+        setViewModeState(value);
     }, []);
 
     return {
