@@ -1,12 +1,12 @@
-import { parseLocation } from '@/shared/utils/locationParser';
-import { useInstancePresenceStore } from '@/state/instancePresenceStore';
-import { useLocationHintStore } from '@/state/locationHintStore';
-import { useUserFactsStore } from '@/state/userFactsStore';
-
+import { ingestUserFactEntries } from '@/domain/users/userFactAccess';
 import type {
     UserFactMergeOptions,
     UserFactSource
 } from '@/domain/users/userFacts';
+import { parseLocation } from '@/shared/utils/locationParser';
+import { useInstancePresenceStore } from '@/state/instancePresenceStore';
+import { useLocationHintStore } from '@/state/locationHintStore';
+import { useUserFactsStore } from '@/state/userFactsStore';
 
 interface RecordKnownUserOptions extends UserFactMergeOptions {
     source?: UserFactSource;
@@ -18,11 +18,6 @@ interface FriendPatchInput {
     patch?: Record<string, unknown>;
     stateBucket?: unknown;
     stateBucketAuthority?: unknown;
-}
-
-interface FriendRosterFactsInput {
-    endpoint?: unknown;
-    friendsById?: Record<string, Record<string, unknown> | undefined>;
 }
 
 interface GameRuntimePresenceInput {
@@ -53,6 +48,20 @@ function record(value: unknown): Record<string, unknown> {
         : {};
 }
 
+function toIngestEntry(
+    user: Record<string, unknown>,
+    options: RecordKnownUserOptions
+) {
+    return {
+        user,
+        source: typeof options.source === 'string' ? options.source : 'seed',
+        isFriend: Boolean(options.isFriend),
+        isCurrentUser: Boolean(options.isCurrentUser),
+        stateBucket:
+            typeof options.stateBucket === 'string' ? options.stateBucket : ''
+    };
+}
+
 function recordKnownUser(
     user: Record<string, unknown> | null | undefined,
     options: RecordKnownUserOptions = {}
@@ -60,19 +69,19 @@ function recordKnownUser(
     if (!user || typeof user !== 'object') {
         return;
     }
-    useUserFactsStore.getState().upsertUserFact(user, options);
+    ingestUserFactEntries([toIngestEntry(user, options)]);
 }
 
 function recordKnownUsers(
     users: Array<Record<string, unknown> | null | undefined>,
     options: RecordKnownUserOptions = {}
 ) {
-    useUserFactsStore.getState().upsertUserFacts(
-        (Array.isArray(users) ? users : []).filter(
-            (user: any): user is Record<string, unknown> =>
+    ingestUserFactEntries(
+        (Array.isArray(users) ? users : [])
+            .filter((user: any): user is Record<string, unknown> =>
                 Boolean(user && typeof user === 'object')
-        ),
-        options
+            )
+            .map((user) => toIngestEntry(user, options))
     );
 }
 
@@ -109,29 +118,6 @@ function recordFriendPatch({
             isFriend: true,
             stateBucket
         }
-    );
-}
-
-function recordFriendRosterFacts({
-    endpoint = '',
-    friendsById = {}
-}: FriendRosterFactsInput = {}) {
-    useUserFactsStore.getState().upsertUserFactEntries(
-        Object.entries(friendsById || {})
-            .filter(([, friend]: any) => Boolean(friend))
-            .map(([userId, friend]: any) => ({
-                input: {
-                    ...friend,
-                    id: friend.id || userId,
-                    stateBucket: friend.stateBucket || friend.state
-                },
-                options: {
-                    endpoint,
-                    source: 'friend',
-                    isFriend: true,
-                    stateBucket: friend.stateBucket || friend.state
-                }
-            }))
     );
 }
 
@@ -246,7 +232,9 @@ function recordLocationHintsFromInstances({
                 record(source.group).name ||
                 record(source.group).displayName,
             instanceName:
-                source.displayName || source.instanceDisplayName || parsed.instanceName,
+                source.displayName ||
+                source.instanceDisplayName ||
+                parsed.instanceName,
             region: parsed.region || source.region,
             isClosed: source.closedAt || source.closed_at || source.isClosed,
             ageGate: source.ageGate || parsed.ageGate
@@ -290,7 +278,9 @@ function recordLocationHintsFromInstances({
                 record(source.group).name ||
                 record(source.group).displayName,
             instanceName:
-                source.displayName || source.instanceDisplayName || parsed.instanceName,
+                source.displayName ||
+                source.instanceDisplayName ||
+                parsed.instanceName,
             players: users
         });
     }
@@ -305,7 +295,6 @@ function resetDomainFacts() {
 export {
     recordCurrentUserSnapshot,
     recordFriendPatch,
-    recordFriendRosterFacts,
     recordGameRuntimePresence,
     recordKnownUser,
     recordKnownUsers,

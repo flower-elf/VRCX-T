@@ -1,14 +1,10 @@
-import {
-    getKnownUserFact,
-    recordUserProfile
-} from '@/domain/users/userFactAccess';
+import { recordUserProfile } from '@/domain/users/userFactAccess';
 import {
     entityQueryPolicies,
     fetchCachedData,
     getCachedQueryData,
     queryKeys,
-    setCachedQueryData,
-    userProfileQueryPolicy
+    setCachedQueryData
 } from '@/lib/entityQueryCache';
 import { tauriClient } from '@/platform/tauri/client';
 import { stripDefaultAvatarImage } from '@/shared/utils/avatar';
@@ -97,19 +93,38 @@ function normalizeUserProfile(user: unknown): UserProfileRecord {
         Array.isArray(base.tags) ? base.tags : [],
         typeof base.developerType === 'string' ? base.developerType : ''
     );
+    const hasUpstreamTrust =
+        typeof source.$trustClass === 'string' && source.$trustClass.length > 0;
+    const trustFields = hasUpstreamTrust
+        ? {
+              $trustLevel: source.$trustLevel,
+              $trustClass: source.$trustClass,
+              $trustSortNum: source.$trustSortNum,
+              $isModerator: source.$isModerator,
+              $isTroll: source.$isTroll,
+              $isProbableTroll: source.$isProbableTroll
+          }
+        : {
+              $trustLevel: trust.trustLevel,
+              $trustClass: trust.trustClass,
+              $trustSortNum: trust.trustSortNum,
+              $isModerator: trust.isModerator,
+              $isTroll: trust.isTroll,
+              $isProbableTroll: trust.isProbableTroll
+          };
 
     return {
         ...base,
-        $trustLevel: trust.trustLevel,
-        $trustClass: trust.trustClass,
-        $trustSortNum: trust.trustSortNum,
-        $isModerator: trust.isModerator,
-        $isTroll: trust.isTroll,
-        $isProbableTroll: trust.isProbableTroll,
-        $platform: computeUserPlatform(
-            typeof base.platform === 'string' ? base.platform : '',
-            typeof base.last_platform === 'string' ? base.last_platform : ''
-        )
+        ...trustFields,
+        $platform:
+            typeof source.$platform === 'string' && source.$platform
+                ? source.$platform
+                : computeUserPlatform(
+                      typeof base.platform === 'string' ? base.platform : '',
+                      typeof base.last_platform === 'string'
+                          ? base.last_platform
+                          : ''
+                  )
     } as UserProfileRecord;
 }
 
@@ -213,9 +228,7 @@ function mergeCurrentUserUpdateResponse(
 async function getUserProfile({
     userId,
     endpoint = '',
-    force = false,
-    dialog = false,
-    isFriend = null
+    force = false
 }: UserProfileInput) {
     const normalizedUserId =
         typeof userId === 'string'
@@ -227,32 +240,16 @@ async function getUserProfile({
         );
     }
 
-    const knownUser = getKnownUserFact(endpoint, normalizedUserId);
-    const shouldUseFriendPolicy =
-        isFriend === true ||
-        (isFriend !== false && Boolean(knownUser?.isFriend));
-
-    const json = await fetchCachedData({
-        queryKey: queryKeys.user(normalizedUserId, endpoint),
-        policy: userProfileQueryPolicy({
-            dialog,
-            isFriend: shouldUseFriendPolicy
-        }),
-        force,
-        queryFn: async () => {
-            const response = await tauriClient.app.VrchatUserGet({
-                userId: normalizedUserId,
-                endpoint
-            });
-            return unwrapVrchatUserResponse(
-                response,
-                `users/${encodeURIComponent(normalizedUserId)}`
-            ).json;
-        }
+    const response = await tauriClient.app.VrchatUserGet({
+        userId: normalizedUserId,
+        endpoint,
+        force
     });
-    const profile = normalize(json);
-    recordUserProfile(profile, { endpoint, source: 'profile' });
-    return profile;
+    const json = unwrapVrchatUserResponse(
+        response,
+        `users/${encodeURIComponent(normalizedUserId)}`
+    ).json;
+    return normalize(json);
 }
 
 async function getMutualCounts({ userId, endpoint = '' }: UserEndpointInput) {

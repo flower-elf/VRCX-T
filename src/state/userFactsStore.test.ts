@@ -2,51 +2,64 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { useUserFactsStore } from './userFactsStore';
 
+function rustUser(overrides: Record<string, unknown> = {}) {
+    return {
+        id: 'usr_test',
+        endpoint: 'api',
+        displayName: 'Mirror User',
+        stateBucket: 'online',
+        location: 'wrld_live:123',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        fieldRanks: { displayName: 80 },
+        fieldSources: { displayName: 'profile' },
+        ...overrides
+    };
+}
+
 describe('userFactsStore', () => {
     beforeEach(() => {
         useUserFactsStore.getState().resetUserFacts();
     });
 
-    it('stores known users by endpoint and keeps stable id arrays for unchanged lower-priority writes', () => {
+    it('mirrors Rust user objects verbatim, bumps version, and tracks ids by endpoint', () => {
+        const store = useUserFactsStore.getState();
+        const user = rustUser();
+
+        store.replaceUserFacts([user]);
+
+        const state = useUserFactsStore.getState();
+        expect(state.usersByKey['api::usr_test']).toBe(user);
+        expect(state.version).toBe(1);
+        expect(state.userIdsByEndpoint.api).toEqual(['usr_test']);
+
+        const replacement = rustUser({ displayName: 'Mirror User v2' });
+        store.replaceUserFacts([replacement]);
+
+        const nextState = useUserFactsStore.getState();
+        expect(nextState.usersByKey['api::usr_test']).toBe(replacement);
+        expect(nextState.version).toBe(2);
+    });
+
+    it('ignores empty arrays and skips entries without an id', () => {
         const store = useUserFactsStore.getState();
 
-        store.upsertUserFact(
-            {
-                id: 'usr_test',
-                displayName: 'Profile User'
-            },
-            { endpoint: 'api', source: 'profile' }
-        );
+        store.replaceUserFacts([]);
+        expect(useUserFactsStore.getState().version).toBe(0);
+        expect(useUserFactsStore.getState().usersByKey).toEqual({});
 
-        const firstState = useUserFactsStore.getState();
-        const firstIds = firstState.userIdsByEndpoint.api;
-        const firstFact = firstState.usersByKey['api::usr_test'];
+        store.replaceUserFacts([
+            rustUser(),
+            { endpoint: 'api', displayName: 'No Id' } as any
+        ]);
 
-        store.upsertUserFact(
-            {
-                id: 'usr_test',
-                displayName: 'Seed User'
-            },
-            { endpoint: 'api', source: 'seed' }
-        );
-
-        const secondState = useUserFactsStore.getState();
-
-        expect(secondState.userIdsByEndpoint.api).toBe(firstIds);
-        expect(secondState.usersByKey['api::usr_test']).toBe(firstFact);
-        expect(secondState.usersByKey['api::usr_test'].displayName).toBe(
-            'Profile User'
-        );
+        const state = useUserFactsStore.getState();
+        expect(state.version).toBe(1);
+        expect(Object.keys(state.usersByKey)).toEqual(['api::usr_test']);
+        expect(state.userIdsByEndpoint.api).toEqual(['usr_test']);
     });
 
     it('resets user facts on auth boundary changes', () => {
-        useUserFactsStore.getState().upsertUserFact(
-            {
-                id: 'usr_test',
-                displayName: 'Profile User'
-            },
-            { endpoint: 'api', source: 'profile' }
-        );
+        useUserFactsStore.getState().replaceUserFacts([rustUser()]);
 
         useUserFactsStore.getState().resetUserFacts();
 

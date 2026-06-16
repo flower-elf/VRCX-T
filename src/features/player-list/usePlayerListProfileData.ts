@@ -1,18 +1,14 @@
 import { useQueries } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 
-import { recordUserProfile } from '@/domain/users/userFactAccess';
 import { useKnownUserFacts } from '@/domain/users/useKnownUser';
-import { queryKeys, userProfileQueryPolicy } from '@/lib/entityQueryCache';
+import { queryKeys } from '@/lib/entityQueryCache';
+import userProfileRepository from '@/repositories/userProfileRepository';
 import vrchatAuthRepository from '@/repositories/vrchatAuthRepository';
 import vrchatFriendRepository from '@/repositories/vrchatFriendRepository';
-import userProfileRepository from '@/repositories/userProfileRepository';
 import { normalizeLanguageOptionsFromConfig } from '@/shared/utils/userLanguage';
 
-import {
-    normalizeString,
-    resolvePlayerRowUserId
-} from './playerListRows';
+import { normalizeString, resolvePlayerRowUserId } from './playerListRows';
 
 function buildPlayerProfileIds(playerRows: any, currentUserId: any) {
     const currentUserKey = normalizeString(currentUserId);
@@ -84,9 +80,7 @@ export function usePlayerListProfileData({
 
     const languageOptionsMap = useMemo(
         () =>
-            new Map(
-                languageOptions.map((option: any) => [option.key, option])
-            ),
+            new Map(languageOptions.map((option: any) => [option.key, option])),
         [languageOptions]
     );
     const playerProfileIds = useMemo(
@@ -98,12 +92,9 @@ export function usePlayerListProfileData({
     });
     const profilesByUserId = useQueries({
         queries: playerProfileIds.map((userId: any) => {
-            const policy = userProfileQueryPolicy({
-                isFriend: Boolean(knownUsersById[userId]?.isFriend)
-            });
             return {
                 enabled: Boolean(userId),
-                gcTime: policy.gcTime,
+                gcTime: 300_000,
                 queryFn: async () => {
                     const response = await vrchatFriendRepository.getUser({
                         endpoint: currentUserEndpoint,
@@ -112,16 +103,12 @@ export function usePlayerListProfileData({
                     const profile = userProfileRepository.normalize(
                         response.json
                     );
-                    recordUserProfile(profile, {
-                        endpoint: currentUserEndpoint,
-                        source: 'profile'
-                    });
                     return profile;
                 },
                 queryKey: queryKeys.user(userId, currentUserEndpoint),
-                refetchOnWindowFocus: policy.refetchOnWindowFocus,
-                retry: policy.retry,
-                staleTime: policy.staleTime
+                refetchOnWindowFocus: false,
+                retry: 1,
+                staleTime: 0
             };
         }),
         combine: (results: any) =>

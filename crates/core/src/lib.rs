@@ -6,3 +6,5 @@ pub mod location;
 pub mod log_watcher;
 pub mod realtime;
 pub mod screenshots;
+pub mod trust;
+pub mod user_facts;

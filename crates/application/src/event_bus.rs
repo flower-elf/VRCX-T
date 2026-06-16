@@ -168,6 +168,10 @@ impl RuntimeEventBus {
         self.emit("realtimeFriendProjection", payload);
     }
 
+    pub fn emit_realtime_user_projection(&self, payload: Value) {
+        self.emit("realtimeUserProjection", payload);
+    }
+
     pub fn emit_realtime_notification_projection(&self, payload: RealtimeNotificationProjection) {
         self.emit("realtimeNotificationProjection", payload);
     }

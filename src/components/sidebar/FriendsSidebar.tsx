@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 
 import { useLocationMetadataBatch } from '@/components/location/useLocationMetadata';
 import { useVirtualSidebarRows } from '@/components/sidebar/useVirtualSidebarRows';
+import { mergeRosterFriendFacts } from '@/domain/friends/friendRosterFacts';
 import { useCurrentInstancePresence } from '@/domain/presence/useCurrentInstancePresence';
+import { useKnownUserFacts } from '@/domain/users/useKnownUser';
 import { subscribeRecentActions } from '@/services/recentActionService';
 import { checkCanInvite } from '@/shared/utils/invite';
 import { useFavoriteStore } from '@/state/favoriteStore';
@@ -111,10 +113,15 @@ function useFriendsSidebarRosterState() {
     const activeIds = useFriendRosterStore((state: any) => state.activeIds);
     const offlineIds = useFriendRosterStore((state: any) => state.offlineIds);
     const loadStatus = useFriendRosterStore((state: any) => state.loadStatus);
+    const factsById = useKnownUserFacts(orderedFriendIds);
+    const mergedFriendsById = useMemo(
+        () => mergeRosterFriendFacts(friendsById, factsById),
+        [friendsById, factsById]
+    );
 
     return {
         activeIds,
-        friendsById,
+        friendsById: mergedFriendsById,
         loadStatus,
         offlineIds,
         onlineIds,

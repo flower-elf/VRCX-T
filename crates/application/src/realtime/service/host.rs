@@ -31,6 +31,8 @@ use crate::realtime::instance_queue::apply_instance_queue_ws_message;
 use crate::realtime::notifications::{
     apply_instance_closed_ws_message, apply_notification_ws_message,
 };
+use crate::realtime::user_cache::UserCacheRuntime;
+use crate::realtime::user_query_cache::UserQueryCache;
 use crate::realtime::{
     FriendBaselineResult, FriendProjection, PendingOfflineTimerAction,
     RealtimeCurrentUserAuthority, RealtimeCurrentUserOutput, RealtimeFriendApplyResult,

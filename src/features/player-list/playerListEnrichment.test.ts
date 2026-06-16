@@ -42,6 +42,9 @@ describe('enrichPlayerListRows', () => {
                     statusDescription: 'Profile presence',
                     bioLinks: ['https://example.test/profile'],
                     tags: ['system_trust_trusted', 'language_jpn'],
+                    $trustLevel: 'Known User',
+                    $trustClass: 'x-tag-trusted',
+                    $platform: 'standalonewindows',
                     last_platform: 'standalonewindows'
                 }
             }

@@ -1260,6 +1260,7 @@ export interface AppTauriCommandNamespace extends TauriCommandNamespace {
     VrchatUserGet(input: {
         endpoint?: string;
         userId: string;
+        force?: boolean;
     }): Promise<VrchatHttpApiResult>;
     VrchatUserMutualCountsGet(input: {
         endpoint?: string;
@@ -1901,6 +1902,7 @@ export interface AppTauriCommandNamespace extends TauriCommandNamespace {
         sessionActive: boolean,
         currentLocation: string
     ): Promise<void>;
+    IngestUserFacts(entries: Array<Record<string, unknown>>): Promise<void>;
     StartRealtimeTransport(
         userId: string,
         endpoint: string,

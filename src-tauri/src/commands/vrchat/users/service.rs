@@ -3,7 +3,7 @@
 use tauri::State;
 use vrcx_0_application::vrchat_api::users::{
     current_user_badge_update_input, current_user_tags_add_input, current_user_tags_remove_input,
-    current_user_update_input, user_get_input, user_groups_get_input, user_mutual_counts_get_input,
+    current_user_update_input, user_groups_get_input, user_mutual_counts_get_input,
     user_mutual_friends_get_input, user_represented_group_get_input,
 };
 
@@ -57,74 +57,27 @@ pub async fn app__vrchat_user_get(
     state: State<'_, AppState>,
     input: VrchatUserInput,
 ) -> Result<VrchatApiResponse, AppError> {
-    let endpoint = input.endpoint.clone();
-    let realtime_runtime = state.realtime_runtime.clone();
-    let (user_id, request) = user_get_input(input.endpoint, input.user_id)?;
-    let response = execute_user_read_api(
-        state,
+    let diagnostics = state.runtime_context.diagnostics.clone();
+    diagnostics.record_command(
         "app__vrchat_user_get",
-        format!("Getting user {user_id}."),
-        request,
-    )
-    .await?;
-    if (200..300).contains(&response.status) {
-        match serde_json::from_str::<serde_json::Value>(&response.data) {
-            Ok(profile) => {
-                let profile_user_id = profile
-                    .get("id")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or("")
-                    .trim()
-                    .to_string();
-                if profile_user_id == user_id {
-                    let state = profile
-                        .get("state")
-                        .and_then(serde_json::Value::as_str)
-                        .unwrap_or("")
-                        .trim()
-                        .to_string();
-                    let location = profile
-                        .get("location")
-                        .and_then(serde_json::Value::as_str)
-                        .unwrap_or("")
-                        .trim()
-                        .to_string();
-                    let display_name = profile
-                        .get("displayName")
-                        .and_then(serde_json::Value::as_str)
-                        .unwrap_or("")
-                        .trim()
-                        .to_string();
-                    match realtime_runtime.apply_friend_profile_refresh(
-                        endpoint,
-                        user_id.clone(),
-                        profile,
-                    ) {
-                        Ok(_merged) => {}
-                        Err(error) => {
-                            tracing::warn!(
-                                user_id = %user_id,
-                                display_name = %display_name,
-                                state = %state,
-                                location = %location,
-                                "User profile realtime cache merge failed: {error}"
-                            );
-                        }
-                    }
-                } else {
-                    tracing::warn!(
-                        requested_user_id = %user_id,
-                        profile_user_id = %profile_user_id,
-                        "[Realtime] UserDialog getUser profile merge skipped: response user mismatch"
-                    );
-                }
-            }
-            Err(error) => {
-                tracing::warn!("User profile realtime cache json decode failed: {error}");
-            }
+        "running",
+        format!("Getting user {}.", input.user_id),
+    );
+    let result = state
+        .realtime_runtime
+        .get_user_via_cache(input.endpoint, input.user_id, input.force)
+        .await;
+    match &result {
+        Ok(response) => diagnostics.record_command(
+            "app__vrchat_user_get",
+            "ok",
+            format!("status={}", response.status),
+        ),
+        Err(error) => {
+            diagnostics.record_command("app__vrchat_user_get", "error", error.to_string())
         }
     }
-    Ok(response)
+    Ok(result?)
 }
 
 #[tauri::command]

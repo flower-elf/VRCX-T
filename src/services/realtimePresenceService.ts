@@ -4,12 +4,10 @@ import { useFriendLogStore } from '@/state/friendLogStore';
 import { useFriendRosterStore } from '@/state/friendRosterStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
 import { useShellStore } from '@/state/shellStore';
+import { useUserFactsStore } from '@/state/userFactsStore';
 import { useVrcNotificationStore } from '@/state/vrcNotificationStore';
 
-import {
-    recordCurrentUserSnapshot,
-    recordFriendPatch
-} from './domainIngestionService';
+import { recordCurrentUserSnapshot } from './domainIngestionService';
 import { handleInviteAutomationNotification } from './inviteAutomationService';
 import { handleRealtimeInstanceQueueProjection } from './realtimeInstanceQueueService';
 import { pushSharedFeedNotification } from './sharedFeedFilterService';
@@ -133,13 +131,6 @@ function applyFriendPatch(
         stateBucket,
         stateBucketAuthority
     });
-    recordFriendPatch({
-        endpoint: useRuntimeStore.getState().auth.currentUserEndpoint,
-        userId: normalizedUserId,
-        patch,
-        stateBucket,
-        stateBucketAuthority
-    });
 }
 
 function pushProjectionFeedEntry(entry: unknown) {
@@ -250,6 +241,12 @@ function handleRealtimeFriendProjection(payload: unknown) {
         useShellStore.getState().notifyMenu('friend-log');
         useFriendLogStore.getState().bumpRevision();
     }
+}
+
+export function handleRealtimeUserCacheProjection(payload: unknown) {
+    const projection = asRecord(payload);
+    const users = Array.isArray(projection.users) ? projection.users : [];
+    useUserFactsStore.getState().replaceUserFacts(users);
 }
 
 async function handleRealtimeNotificationProjection(payload: unknown) {

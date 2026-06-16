@@ -230,6 +230,7 @@ const commandArgs: Record<string, string[]> = {
     app__set_user_agent: [],
     app__check_game_running: [],
     app__set_game_client_runtime_state: ['sessionActive', 'currentLocation'],
+    app__ingest_user_facts: ['entries'],
     app__start_realtime_transport: [
         'userId',
         'endpoint',

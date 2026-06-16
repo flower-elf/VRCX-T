@@ -1,14 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { recordUserProfile } from '@/domain/users/userFactAccess';
+const tauriMock = vi.hoisted(() => ({
+    app: {
+        IngestUserFacts: vi.fn()
+    }
+}));
+
+vi.mock('@/platform/tauri/client', () => ({
+    tauriClient: tauriMock,
+    default: tauriMock
+}));
+
 import { useFriendRosterStore } from '@/state/friendRosterStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
 import { useUserFactsStore } from '@/state/userFactsStore';
 
 import { resolveUserByDisplayName } from './userIdentityService';
 
+function ingestedEntryFor(userId: string) {
+    return tauriMock.app.IngestUserFacts.mock.calls
+        .flatMap((call) => (Array.isArray(call[0]) ? call[0] : []))
+        .find((entry: any) => entry?.user?.id === userId);
+}
+
 describe('userIdentityService', () => {
     beforeEach(() => {
+        tauriMock.app.IngestUserFacts.mockReset();
+        tauriMock.app.IngestUserFacts.mockResolvedValue(undefined);
         useRuntimeStore.getState().resetRuntimeState();
         useFriendRosterStore.getState().resetRoster();
         useUserFactsStore.getState().resetUserFacts();
@@ -18,13 +36,13 @@ describe('userIdentityService', () => {
         useRuntimeStore.getState().setAuthBootstrap({
             currentUserEndpoint: 'api'
         });
-        recordUserProfile(
+        useUserFactsStore.getState().replaceUserFacts([
             {
                 id: 'usr_known',
+                endpoint: 'api',
                 displayName: 'Known User'
-            },
-            { endpoint: 'api', source: 'profile' }
-        );
+            }
+        ]);
         useFriendRosterStore.getState().applyFriendPatch({
             userId: 'usr_friend',
             patch: {
@@ -63,11 +81,15 @@ describe('userIdentityService', () => {
             title: 'Friend User',
             source: 'friend'
         });
-        expect(repositories.gameLogRepository.getUserIdFromDisplayName).not.toHaveBeenCalled();
-        expect(repositories.vrchatSearchRepository.getUsers).not.toHaveBeenCalled();
+        expect(
+            repositories.gameLogRepository.getUserIdFromDisplayName
+        ).not.toHaveBeenCalled();
+        expect(
+            repositories.vrchatSearchRepository.getUsers
+        ).not.toHaveBeenCalled();
     });
 
-    it('uses game log and search fallbacks and records resolved users as known facts', async () => {
+    it('uses game log and search fallbacks and ingests resolved users to Rust', async () => {
         const repositories: any = {
             gameLogRepository: {
                 getUserIdFromDisplayName: vi
@@ -108,12 +130,14 @@ describe('userIdentityService', () => {
             source: 'search'
         });
 
-        expect(useUserFactsStore.getState().usersByKey).toMatchObject({
-            'api::usr_log': {
+        expect(ingestedEntryFor('usr_log')).toMatchObject({
+            user: {
                 id: 'usr_log',
                 displayName: 'Log User'
-            },
-            'api::usr_search': {
+            }
+        });
+        expect(ingestedEntryFor('usr_search')).toMatchObject({
+            user: {
                 id: 'usr_search',
                 displayName: 'Search User'
             }

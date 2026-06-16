@@ -383,10 +383,38 @@ export const useFriendRosterStore = create<FriendRosterStore>((set: any) => ({
     setRosterSnapshot({
         currentUserId,
         friendsById,
+        orderedFriendIds,
+        onlineIds,
+        activeIds,
+        offlineIds,
         detail = ''
     }: any) {
+        const sourceFriendsById =
+            friendsById && typeof friendsById === 'object' ? friendsById : {};
+        // Guard against an empty `[]` ordering blanking a populated roster.
+        const hasPrecomputedOrdering =
+            Array.isArray(orderedFriendIds) &&
+            Array.isArray(onlineIds) &&
+            Array.isArray(activeIds) &&
+            Array.isArray(offlineIds) &&
+            (Object.keys(sourceFriendsById).length === 0 ||
+                orderedFriendIds.length > 0);
+        if (hasPrecomputedOrdering) {
+            set({
+                currentUserId,
+                loadStatus: 'ready',
+                detail,
+                lastLoadedAt: new Date().toISOString(),
+                friendsById: sourceFriendsById,
+                orderedFriendIds,
+                onlineIds,
+                activeIds,
+                offlineIds
+            });
+            return;
+        }
         const normalizedFriendsById =
-            normalizeRosterSnapshotFriends(friendsById);
+            normalizeRosterSnapshotFriends(sourceFriendsById);
         const ordering = buildRosterOrdering(normalizedFriendsById);
         set({
             currentUserId,
@@ -400,11 +428,7 @@ export const useFriendRosterStore = create<FriendRosterStore>((set: any) => ({
             offlineIds: ordering.offlineIds
         });
     },
-    setRosterSeedSnapshot({
-        currentUserId,
-        friendsById,
-        detail = ''
-    }: any) {
+    setRosterSeedSnapshot({ currentUserId, friendsById, detail = '' }: any) {
         const normalizedFriendsById =
             normalizeRosterSnapshotFriends(friendsById);
         const ordering = buildRosterOrdering(normalizedFriendsById);

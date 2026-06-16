@@ -98,3 +98,12 @@ pub fn app__stop_realtime_transport(
         generation,
     });
 }
+
+#[tauri::command]
+pub fn app__ingest_user_facts(
+    state: State<'_, AppState>,
+    entries: Vec<Value>,
+) -> Result<(), AppError> {
+    state.realtime_runtime.ingest_user_facts(entries);
+    Ok(())
+}

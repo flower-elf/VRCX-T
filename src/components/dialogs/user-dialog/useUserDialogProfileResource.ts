@@ -7,6 +7,7 @@ import {
     buildCurrentUserPresenceView,
     mergeCurrentUserPresenceFields
 } from '@/shared/utils/currentUserPresence';
+import { useFriendRosterStore } from '@/state/friendRosterStore';
 
 import { normalizeUserId } from './userProfileFields';
 
@@ -30,6 +31,35 @@ const SNAPSHOT_DEFAULT_FIELDS = [
 
 function hasOwnField(source: any, field: any) {
     return Object.prototype.hasOwnProperty.call(source, field);
+}
+
+const FRIEND_PRESENCE_OVERRIDE_FIELDS = [
+    'state',
+    'stateBucket',
+    'location',
+    'status',
+    'travelingToLocation',
+    'travelingToTime',
+    'locationAt',
+    'pendingOffline'
+];
+
+function overlayFriendPresence(base: any, friend: any) {
+    if (!base || !friend) {
+        return base;
+    }
+    let next = base;
+    for (const field of FRIEND_PRESENCE_OVERRIDE_FIELDS) {
+        const value = friend[field];
+        if (value === undefined) {
+            continue;
+        }
+        if (next === base) {
+            next = { ...base };
+        }
+        next[field] = value;
+    }
+    return next;
 }
 
 function stripSyntheticSnapshotDefaults(profile: any, snapshot: any) {
@@ -86,7 +116,11 @@ function profilesEqual(left: any, right: any) {
     return true;
 }
 
-function preserveProfileIdentity(currentProfile: any, nextProfile: any, targetUserId: any) {
+function preserveProfileIdentity(
+    currentProfile: any,
+    nextProfile: any,
+    targetUserId: any
+) {
     const currentTargetProfile = previousTargetProfile(
         currentProfile,
         targetUserId
@@ -219,17 +253,19 @@ function normalizedAvatarName(value: any) {
 
 function isUnknownAvatarName(value: any) {
     const name = normalizedAvatarName(value).toLowerCase();
-    return !name || name === '-' || name === 'unknown' || name === 'unknown avatar';
+    return (
+        !name || name === '-' || name === 'unknown' || name === 'unknown avatar'
+    );
 }
 
 function shouldHydrateCurrentAvatar(profile: any) {
     return Boolean(
         normalizeUserId(profile?.currentAvatar) &&
-            (isUnknownAvatarName(
-                profile?.currentAvatarName || profile?.avatarName
-            ) ||
-                (!hasRefreshValue(profile?.currentAvatarImageUrl) &&
-                    !hasRefreshValue(profile?.currentAvatarThumbnailImageUrl)))
+        (isUnknownAvatarName(
+            profile?.currentAvatarName || profile?.avatarName
+        ) ||
+            (!hasRefreshValue(profile?.currentAvatarImageUrl) &&
+                !hasRefreshValue(profile?.currentAvatarThumbnailImageUrl)))
     );
 }
 
@@ -306,14 +342,16 @@ function hasUsefulAvatarDetails(avatar: any) {
     }
     return Boolean(
         !isUnknownAvatarName(avatar.name) ||
-            hasRefreshValue(avatar.imageUrl) ||
-            hasRefreshValue(avatar.thumbnailImageUrl)
+        hasRefreshValue(avatar.imageUrl) ||
+        hasRefreshValue(avatar.thumbnailImageUrl)
     );
 }
 
 function hasUsefulAvatarName(avatar: any) {
     return Boolean(
-        avatar && typeof avatar === 'object' && !isUnknownAvatarName(avatar.name)
+        avatar &&
+        typeof avatar === 'object' &&
+        !isUnknownAvatarName(avatar.name)
     );
 }
 
@@ -437,7 +475,10 @@ function mergeSeedAndKnownSnapshot(seedData: any, knownTargetUser: any) {
         : seedData;
 }
 
-export function mergeLocalSnapshotIntoProfile(localSnapshot: any, profile: any) {
+export function mergeLocalSnapshotIntoProfile(
+    localSnapshot: any,
+    profile: any
+) {
     if (!localSnapshot) {
         return profile || null;
     }
@@ -514,26 +555,31 @@ export function useUserDialogProfileResource({
                 : normalizedLocalSnapshot,
         [baseProfile, normalizedLocalSnapshot, normalizedUserId]
     );
-    const profile = useMemo(
-        () =>
-            isTargetCurrentUser
-                ? buildCurrentUserPresenceView(activeBaseProfile, {
-                      currentUserSnapshot: currentUserPresenceSnapshot,
-                      gameState,
-                      gameLogDisabled
-                  })
-                : activeBaseProfile,
-        [
-            activeBaseProfile,
-            currentUserPresenceSnapshot,
-            gameState?.currentDestination,
-            gameState?.currentLocation,
-            gameState?.currentWorldId,
-            gameState?.isGameRunning,
-            gameLogDisabled,
-            isTargetCurrentUser
-        ]
+    const friendPresenceSource = useFriendRosterStore((state: any) =>
+        isFriend && !isTargetCurrentUser
+            ? state.friendsById[normalizedUserId] || null
+            : null
     );
+    const profile = useMemo(() => {
+        const base = isTargetCurrentUser
+            ? buildCurrentUserPresenceView(activeBaseProfile, {
+                  currentUserSnapshot: currentUserPresenceSnapshot,
+                  gameState,
+                  gameLogDisabled
+              })
+            : activeBaseProfile;
+        return overlayFriendPresence(base, friendPresenceSource);
+    }, [
+        activeBaseProfile,
+        currentUserPresenceSnapshot,
+        gameState?.currentDestination,
+        gameState?.currentLocation,
+        gameState?.currentWorldId,
+        gameState?.isGameRunning,
+        gameLogDisabled,
+        isTargetCurrentUser,
+        friendPresenceSource
+    ]);
     const profileRef = useRef(profile);
     profileRef.current = profile;
     const [loadStatus, setLoadStatus] = useState(

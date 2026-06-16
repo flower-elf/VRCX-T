@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const serviceMocks = vi.hoisted(() => ({
     recordFriendPatch: vi.fn(),
-    recordFriendRosterFacts: vi.fn(),
     getFriendLogCurrent: vi.fn(),
     upsertFriendLogCurrent: vi.fn(),
     replaceFriendLogCurrent: vi.fn(),
@@ -43,13 +42,11 @@ vi.mock('@/repositories/configRepository', () => ({
 }));
 
 vi.mock('./domainIngestionService', () => ({
-    recordFriendPatch: serviceMocks.recordFriendPatch,
-    recordFriendRosterFacts: serviceMocks.recordFriendRosterFacts
+    recordFriendPatch: serviceMocks.recordFriendPatch
 }));
 
 vi.mock('./vrchatAuthErrorService', () => ({
-    notifyRuntimeVrchatAuthFailure:
-        serviceMocks.notifyRuntimeVrchatAuthFailure
+    notifyRuntimeVrchatAuthFailure: serviceMocks.notifyRuntimeVrchatAuthFailure
 }));
 
 function deferred<T>() {
@@ -128,9 +125,8 @@ describe('friendBootstrapService startup seed and reconciliation', () => {
         const { useFriendRosterStore } =
             await import('@/state/friendRosterStore');
         const { useSessionStore } = await import('@/state/sessionStore');
-        const { bootstrapFriendRoster } = await import(
-            './friendBootstrapService'
-        );
+        const { bootstrapFriendRoster } =
+            await import('./friendBootstrapService');
         const baseline = deferred<Record<string, any>>();
         serviceMocks.getFriendLogCurrent.mockResolvedValue([
             {
@@ -260,9 +256,8 @@ describe('friendBootstrapService startup seed and reconciliation', () => {
         const { useFriendRosterStore } =
             await import('@/state/friendRosterStore');
         const { useSessionStore } = await import('@/state/sessionStore');
-        const { bootstrapFriendRoster } = await import(
-            './friendBootstrapService'
-        );
+        const { bootstrapFriendRoster } =
+            await import('./friendBootstrapService');
         const userGet = deferred<Record<string, any>>();
         serviceMocks.socialFriendRosterBaselineGet.mockResolvedValue({
             stale: false,
@@ -340,9 +335,8 @@ describe('friendBootstrapService startup seed and reconciliation', () => {
 
     it('reconciles startup friend history after the fast roster without blocking loaded state', async () => {
         const { useSessionStore } = await import('@/state/sessionStore');
-        const { bootstrapFriendRoster } = await import(
-            './friendBootstrapService'
-        );
+        const { bootstrapFriendRoster } =
+            await import('./friendBootstrapService');
         serviceMocks.getFriendLogCurrent.mockResolvedValue([
             {
                 userId: 'usr_existing',
@@ -420,7 +414,9 @@ describe('friendBootstrapService startup seed and reconciliation', () => {
             userId: 'usr_removed'
         });
         await vi.waitFor(() => {
-            expect(serviceMocks.deleteFriendLogCurrentArray).toHaveBeenCalledWith(
+            expect(
+                serviceMocks.deleteFriendLogCurrentArray
+            ).toHaveBeenCalledWith(
                 'usr_self',
                 ['usr_removed'],
                 expect.objectContaining({
@@ -438,9 +434,8 @@ describe('friendBootstrapService startup seed and reconciliation', () => {
     });
 
     it('initializes friend log current in the background without creating friend history spam', async () => {
-        const { bootstrapFriendRoster } = await import(
-            './friendBootstrapService'
-        );
+        const { bootstrapFriendRoster } =
+            await import('./friendBootstrapService');
         serviceMocks.getConfigBool.mockResolvedValue(false);
         serviceMocks.getFriendLogCurrent.mockResolvedValue([]);
         serviceMocks.socialFriendRosterBaselineGet.mockResolvedValue({
@@ -500,9 +495,8 @@ describe('friendBootstrapService startup seed and reconciliation', () => {
 
     it('does not write startup friend history after the bootstrap target changes', async () => {
         const { useRuntimeStore } = await import('@/state/runtimeStore');
-        const { bootstrapFriendRoster } = await import(
-            './friendBootstrapService'
-        );
+        const { bootstrapFriendRoster } =
+            await import('./friendBootstrapService');
         const backgroundRows = deferred<Record<string, any>[]>();
         serviceMocks.getFriendLogCurrent
             .mockResolvedValueOnce([])
@@ -554,9 +548,8 @@ describe('friendBootstrapService startup seed and reconciliation', () => {
         const { useFriendRosterStore } =
             await import('@/state/friendRosterStore');
         const { useSessionStore } = await import('@/state/sessionStore');
-        const { bootstrapFriendRoster } = await import(
-            './friendBootstrapService'
-        );
+        const { bootstrapFriendRoster } =
+            await import('./friendBootstrapService');
         serviceMocks.getFriendLogCurrent.mockResolvedValue([
             {
                 userId: 'usr_online',
@@ -602,9 +595,8 @@ describe('friendBootstrapService startup seed and reconciliation', () => {
         const { useFriendRosterStore } =
             await import('@/state/friendRosterStore');
         const { useSessionStore } = await import('@/state/sessionStore');
-        const { bootstrapFriendRoster } = await import(
-            './friendBootstrapService'
-        );
+        const { bootstrapFriendRoster } =
+            await import('./friendBootstrapService');
         serviceMocks.getFriendLogCurrent.mockResolvedValue([
             {
                 userId: 'usr_active',

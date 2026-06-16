@@ -9,12 +9,9 @@ import { useFriendRosterStore } from '@/state/friendRosterStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
 import { useSessionStore } from '@/state/sessionStore';
 
-import {
-    recordFriendPatch,
-    recordFriendRosterFacts
-} from './domainIngestionService';
-import { notifyRuntimeVrchatAuthFailure } from './vrchatAuthErrorService';
+import { recordFriendPatch } from './domainIngestionService';
 import { syncStartupServicesTask } from './startupServicesStatus';
+import { notifyRuntimeVrchatAuthFailure } from './vrchatAuthErrorService';
 
 const activeBootstraps = new Map<string, Promise<unknown>>();
 const friendLogMutationQueues = new Map<string, Promise<unknown>>();
@@ -80,7 +77,10 @@ function enqueueFriendLogMutation(userId: unknown, mutation: () => unknown) {
     return run;
 }
 
-function getExplicitFriendLogAddIntentKey(currentUserId: any, targetUserId: any) {
+function getExplicitFriendLogAddIntentKey(
+    currentUserId: any,
+    targetUserId: any
+) {
     const normalizedCurrentUserId = normalizeUserId(currentUserId);
     const normalizedTargetUserId = normalizeUserId(targetUserId);
     if (
@@ -252,7 +252,9 @@ function parseVrchatResponseData(response: any) {
 }
 
 function isValidUserProfile(value: any) {
-    return Boolean(value && typeof value === 'object' && normalizeUserId(value.id));
+    return Boolean(
+        value && typeof value === 'object' && normalizeUserId(value.id)
+    );
 }
 
 function bulkFriendStateInput(friend: Record<string, any> | null | undefined) {
@@ -344,16 +346,20 @@ export async function recordFriendLogFriendByUserId({
             normalizedCurrentUserId
         )) as Record<string, any>[];
         const existingRow = existingRows.find(
-            (entry: any) => normalizeUserId(entry?.userId) === normalizedTargetUserId
+            (entry: any) =>
+                normalizeUserId(entry?.userId) === normalizedTargetUserId
         );
-        const maxFriendNumber = existingRows.reduce((maxValue: any, row: any) => {
-            const friendNumber =
-                Number.parseInt(
-                    row?.friendNumber ?? row?.$friendNumber ?? 0,
-                    10
-                ) || 0;
-            return Math.max(maxValue, friendNumber);
-        }, 0);
+        const maxFriendNumber = existingRows.reduce(
+            (maxValue: any, row: any) => {
+                const friendNumber =
+                    Number.parseInt(
+                        row?.friendNumber ?? row?.$friendNumber ?? 0,
+                        10
+                    ) || 0;
+                return Math.max(maxValue, friendNumber);
+            },
+            0
+        );
         const nextFriendNumber =
             Number.parseInt(
                 targetUser?.friendNumber ??
@@ -438,7 +444,8 @@ export async function recordFriendLogUnfriendByUserId({
             normalizedCurrentUserId
         )) as Record<string, any>[];
         const row = existingRows.find(
-            (entry: any) => normalizeUserId(entry?.userId) === normalizedTargetUserId
+            (entry: any) =>
+                normalizeUserId(entry?.userId) === normalizedTargetUserId
         );
         const historyEntry = row
             ? buildUnfriendHistoryEntry(row, nowIso())
@@ -573,10 +580,8 @@ function buildSeedRosterFriendsById(
         const row = rowsById.get(userId) ?? {};
         const trustLevel = normalizeUserId(row?.trustLevel) || 'Visitor';
         const friendNumber =
-            Number.parseInt(
-                row?.friendNumber ?? row?.$friendNumber ?? 0,
-                10
-            ) || 0;
+            Number.parseInt(row?.friendNumber ?? row?.$friendNumber ?? 0, 10) ||
+            0;
         const displayName = normalizeUserId(row?.displayName) || userId;
         friendsById[userId] = {
             id: userId,
@@ -808,7 +813,9 @@ async function runFriendLogStartupReconciliation({
                         friendNumber: index + 1
                     })
                 );
-            if (!isCurrentBootstrapTarget(normalizedUserId, endpoint, websocket)) {
+            if (
+                !isCurrentBootstrapTarget(normalizedUserId, endpoint, websocket)
+            ) {
                 return;
             }
             await friendLogRepository.replaceFriendLogCurrent(
@@ -824,7 +831,9 @@ async function runFriendLogStartupReconciliation({
                     );
                 }
             }
-            if (!isCurrentBootstrapTarget(normalizedUserId, endpoint, websocket)) {
+            if (
+                !isCurrentBootstrapTarget(normalizedUserId, endpoint, websocket)
+            ) {
                 return;
             }
             await configRepository.setBool(
@@ -835,10 +844,15 @@ async function runFriendLogStartupReconciliation({
         }
 
         for (const friendId of currentFriendIds) {
-            if (!isCurrentBootstrapTarget(normalizedUserId, endpoint, websocket)) {
+            if (
+                !isCurrentBootstrapTarget(normalizedUserId, endpoint, websocket)
+            ) {
                 return;
             }
-            if (friendId === normalizedUserId || existingRowsById.has(friendId)) {
+            if (
+                friendId === normalizedUserId ||
+                existingRowsById.has(friendId)
+            ) {
                 continue;
             }
             const friend = fastFriendsById[friendId] || { id: friendId };
@@ -867,7 +881,13 @@ async function runFriendLogStartupReconciliation({
 
         if (initialized) {
             for (const row of existingRows) {
-                if (!isCurrentBootstrapTarget(normalizedUserId, endpoint, websocket)) {
+                if (
+                    !isCurrentBootstrapTarget(
+                        normalizedUserId,
+                        endpoint,
+                        websocket
+                    )
+                ) {
                     return;
                 }
                 const friendId = normalizeUserId(row?.userId);
@@ -889,7 +909,11 @@ async function runFriendLogStartupReconciliation({
                 }
                 if (
                     !confirmedRemoved ||
-                    !isCurrentBootstrapTarget(normalizedUserId, endpoint, websocket)
+                    !isCurrentBootstrapTarget(
+                        normalizedUserId,
+                        endpoint,
+                        websocket
+                    )
                 ) {
                     continue;
                 }
@@ -1044,7 +1068,13 @@ async function runFriendBootstrap({
     const detail = String(result.detail || snapshot?.detail || '');
 
     if (result.stale || !snapshot) {
-        if (isCurrentBootstrapTarget(normalizedUserId, endpoint, realtimeWebsocket)) {
+        if (
+            isCurrentBootstrapTarget(
+                normalizedUserId,
+                endpoint,
+                realtimeWebsocket
+            )
+        ) {
             throw new Error(
                 `Friend roster baseline was stale for ${normalizedUserId}.`
             );
@@ -1058,7 +1088,9 @@ async function runFriendBootstrap({
         };
     }
 
-    if (!isCurrentBootstrapTarget(normalizedUserId, endpoint, realtimeWebsocket)) {
+    if (
+        !isCurrentBootstrapTarget(normalizedUserId, endpoint, realtimeWebsocket)
+    ) {
         return {
             userId: normalizedUserId,
             count: result.count ?? 0,
@@ -1075,10 +1107,6 @@ async function runFriendBootstrap({
         activeIds: snapshot.activeIds || [],
         offlineIds: snapshot.offlineIds || [],
         detail
-    });
-    recordFriendRosterFacts({
-        endpoint,
-        friendsById: snapshot.friendsById || {}
     });
     useSessionStore.getState().setFriendsLoaded(true);
     syncStartupServicesTask([detail]);
@@ -1118,7 +1146,8 @@ export function bootstrapFriendRoster(options: any) {
     const activeKey = bootstrapTargetKey(
         normalizedUserId,
         options?.endpoint,
-        options?.websocket ?? useRuntimeStore.getState().auth.currentUserWebsocket
+        options?.websocket ??
+            useRuntimeStore.getState().auth.currentUserWebsocket
     );
     if (activeBootstraps.has(activeKey)) {
         return activeBootstraps.get(activeKey);

@@ -7,8 +7,7 @@ const serviceMocks = vi.hoisted(() => ({
     handleInviteAutomationNotification: vi.fn(),
     pushSharedFeedNotification: vi.fn(),
     recordCurrentUserSnapshot: vi.fn(),
-    recordFriendPatch: vi.fn(),
-    recordFriendRosterFacts: vi.fn()
+    recordFriendPatch: vi.fn()
 }));
 
 vi.mock('@/repositories/configRepository', () => ({
@@ -17,8 +16,7 @@ vi.mock('@/repositories/configRepository', () => ({
 
 vi.mock('./domainIngestionService', () => ({
     recordCurrentUserSnapshot: serviceMocks.recordCurrentUserSnapshot,
-    recordFriendPatch: serviceMocks.recordFriendPatch,
-    recordFriendRosterFacts: serviceMocks.recordFriendRosterFacts
+    recordFriendPatch: serviceMocks.recordFriendPatch
 }));
 
 vi.mock('./inviteAutomationService', () => ({
@@ -108,13 +106,7 @@ describe('realtimePresenceService projection boundary', () => {
         expect(
             useFriendRosterStore.getState().friendsById.usr_friend.stateBucket
         ).toBe('online');
-        expect(serviceMocks.recordFriendPatch).toHaveBeenCalledWith(
-            expect.objectContaining({
-                endpoint: 'https://api.example.test',
-                userId: 'usr_friend',
-                stateBucket: 'online'
-            })
-        );
+        expect(serviceMocks.recordFriendPatch).not.toHaveBeenCalled();
         expect(
             useRuntimeStore.getState().auth.currentUserSnapshot
         ).toMatchObject({
@@ -150,7 +142,6 @@ describe('realtimePresenceService projection boundary', () => {
             feedEntries: [],
             friendLogChanged: false
         });
-        // A projection without a friend-log change must not emit an extra refresh signal.
         expect(useFriendLogStore.getState().revision).toBe(before + 1);
     });
 

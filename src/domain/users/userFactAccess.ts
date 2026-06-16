@@ -1,3 +1,4 @@
+import { tauriClient } from '@/platform/tauri/client';
 import { useUserFactsStore } from '@/state/userFactsStore';
 
 import {
@@ -29,6 +30,30 @@ function getKnownUserFact(endpoint: unknown, userId: unknown): UserFact | null {
     return key ? useUserFactsStore.getState().usersByKey[key] || null : null;
 }
 
+function ingestUserFactEntries(
+    entries: Array<{
+        user: Record<string, unknown>;
+        source?: string;
+        isFriend?: boolean;
+        isCurrentUser?: boolean;
+        stateBucket?: string;
+    }>
+): void {
+    const valid = entries.filter(
+        (entry) =>
+            entry &&
+            entry.user &&
+            typeof entry.user === 'object' &&
+            userIdFromRecord(entry.user)
+    );
+    if (!valid.length) {
+        return;
+    }
+    tauriClient.app.IngestUserFacts(valid).catch((error: any) => {
+        console.warn('Failed to ingest user facts:', error);
+    });
+}
+
 function recordUserProfile(
     profile: Record<string, unknown> | null | undefined,
     options: UserFactMergeOptions = {}
@@ -44,17 +69,19 @@ function recordUserProfile(
     }
 
     const endpoint = normalizeEndpoint(options.endpoint);
-    useUserFactsStore.getState().upsertUserFact(
+    ingestUserFactEntries([
         {
-            ...source,
-            id
-        },
-        {
-            source: 'profile',
-            ...options,
-            endpoint
+            user: { ...source, id },
+            source:
+                typeof options.source === 'string' ? options.source : 'profile',
+            isFriend: Boolean(options.isFriend),
+            isCurrentUser: Boolean(options.isCurrentUser),
+            stateBucket:
+                typeof options.stateBucket === 'string'
+                    ? options.stateBucket
+                    : ''
         }
-    );
+    ]);
 
     return getKnownUserFact(endpoint, id);
 }
@@ -70,6 +97,7 @@ function recordUserProfiles(
 
 export {
     getKnownUserFact,
+    ingestUserFactEntries,
     normalizeEndpoint,
     normalizeUserId,
     recordUserProfile,

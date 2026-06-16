@@ -1,4 +1,5 @@
 use super::*;
+use vrcx_0_core::trust::{compute_trust_level, compute_user_platform};
 use vrcx_0_vrchat_client::auth::current_user_get_input;
 
 fn add_state_bucket_ids(
@@ -23,16 +24,6 @@ struct RemoteFriendProfile {
     id: String,
     raw: Value,
     source_state_bucket: Option<String>,
-}
-
-#[derive(Clone, Debug)]
-struct TrustLevelInfo {
-    trust_level: String,
-    trust_class: String,
-    trust_sort_num: f64,
-    is_moderator: bool,
-    is_troll: bool,
-    is_probable_troll: bool,
 }
 
 impl RemoteFriendProfile {
@@ -141,74 +132,6 @@ fn insert_fetched_friend(
     if should_replace {
         fetched_friends_by_id.insert(friend_id, friend);
     }
-}
-
-fn compute_trust_level(tags: &[String], developer_type: &str) -> TrustLevelInfo {
-    let mut is_moderator = !developer_type.is_empty() && developer_type != "none";
-    let mut is_troll = false;
-    let mut is_probable_troll = false;
-    let mut trust_level = "Visitor".to_string();
-    let mut trust_class = "x-tag-untrusted".to_string();
-    let mut trust_color_key = "untrusted".to_string();
-    let mut trust_sort_num = 1.0;
-
-    if tags.iter().any(|tag| tag == "admin_moderator") {
-        is_moderator = true;
-    }
-    if tags.iter().any(|tag| tag == "system_troll") {
-        is_troll = true;
-    }
-    if tags.iter().any(|tag| tag == "system_probable_troll") && !is_troll {
-        is_probable_troll = true;
-    }
-
-    if tags.iter().any(|tag| tag == "system_trust_veteran") {
-        trust_level = "Trusted User".into();
-        trust_class = "x-tag-veteran".into();
-        trust_color_key = "veteran".into();
-        trust_sort_num = 5.0;
-    } else if tags.iter().any(|tag| tag == "system_trust_trusted") {
-        trust_level = "Known User".into();
-        trust_class = "x-tag-trusted".into();
-        trust_color_key = "trusted".into();
-        trust_sort_num = 4.0;
-    } else if tags.iter().any(|tag| tag == "system_trust_known") {
-        trust_level = "User".into();
-        trust_class = "x-tag-known".into();
-        trust_color_key = "known".into();
-        trust_sort_num = 3.0;
-    } else if tags.iter().any(|tag| tag == "system_trust_basic") {
-        trust_level = "New User".into();
-        trust_class = "x-tag-basic".into();
-        trust_color_key = "basic".into();
-        trust_sort_num = 2.0;
-    }
-
-    if is_troll || is_probable_troll {
-        trust_color_key = "troll".into();
-        trust_sort_num += 0.1;
-    }
-    if is_moderator {
-        trust_color_key = "vip".into();
-        trust_sort_num += 0.3;
-    }
-
-    let _ = trust_color_key;
-    TrustLevelInfo {
-        trust_level,
-        trust_class,
-        trust_sort_num,
-        is_moderator,
-        is_troll,
-        is_probable_troll,
-    }
-}
-
-fn compute_user_platform(platform: &str, last_platform: &str) -> String {
-    if !platform.is_empty() && platform != "offline" && platform != "web" {
-        return platform.to_string();
-    }
-    last_platform.to_string()
 }
 
 fn number_value(value: i64) -> Value {
@@ -354,9 +277,7 @@ fn normalize_friend_entry(
         .map(value_as_string)
         .unwrap_or_default();
     object.insert("displayName".into(), Value::String(display_name));
-    // Presence is the real-time list bucket (state_by_id, from /auth/user's online/active/offline),
-    // not location — matching upstream, where location never participates in bucketing (it only
-    // colors the status dot). location is kept on the record for the dot/sidebar.
+    // location never participates in bucketing; the /auth/user list bucket is the only authority.
     object.insert("state".into(), Value::String(state_bucket.to_string()));
     object.insert(
         "stateBucket".into(),
@@ -608,9 +529,6 @@ pub async fn build_friend_roster_baseline(
         return Ok(stale_friend_output(user_id, String::new()));
     }
 
-    // Refresh /auth/user so the online/active/offline lists are real-time (scope already verified);
-    // the cached snapshot lags and is the root cause of stale-list misclassification. Fall back to
-    // the cached snapshot on failure so a transient API error never blanks the roster.
     let current_user =
         execute_vrchat_json_request(&deps, current_user_get_input(input.endpoint.clone()))
             .await
@@ -646,8 +564,7 @@ pub async fn build_friend_roster_baseline(
     let mut fetched_friends_by_id: HashMap<String, RemoteFriendProfile> = HashMap::new();
     let mut fetched_friend_ids_ordered = Vec::new();
     let mut fetched_friend_ids_seen = HashSet::new();
-    // The bucket comes only from the /auth/user lists; the fetched `state` is unreliable and must
-    // never overwrite it (upstream: "we don't update friend state here, it's not reliable").
+    // Fetched `state` is unreliable and must never overwrite the /auth/user list bucket.
     for friend in online_friends {
         insert_fetched_friend(
             &mut fetched_friends_by_id,
@@ -754,8 +671,6 @@ mod tests {
         let suspicious =
             collect_suspicious_friend_ids(&expected_ids, &state_by_id, &fetched_friends_by_id);
 
-        // online & offline friends match their list bucket → skipped; the PC-platform friend under an
-        // "active" list bucket and the "traveling" friend → flagged for a getUser location repair.
         assert_eq!(
             suspicious,
             vec!["usr_active_pc".to_string(), "usr_traveling".to_string()]
@@ -764,10 +679,6 @@ mod tests {
 
     #[test]
     fn insert_fetched_friend_collects_profile_and_prefers_online_source() {
-        // insert_fetched_friend only collects profile/location into fetched_friends_by_id; it no
-        // longer feeds any state bucket — the /auth/user lists stay the bucket authority, so a stale
-        // `state` on the fetched object can't flip anyone. When the same friend shows up in both the
-        // offline and online fetch, the online one wins (fresher location).
         let mut fetched_friends_by_id = HashMap::new();
         let mut ordered = Vec::new();
         let mut seen = HashSet::new();
@@ -864,9 +775,6 @@ mod tests {
 
     #[test]
     fn placeholder_friend_uses_realtime_list_bucket() {
-        // build no longer re-buckets by location; it trusts the (now real-time) list bucket. A
-        // placeholder (live fetch returned nothing) keeps its list bucket and is tagged placeholder;
-        // realtime::set_baseline reconciles it against ws history.
         let expected_ids = vec!["usr_stale".to_string()];
         let state_by_id = HashMap::from([("usr_stale".to_string(), "online".to_string())]);
         let fetched_friends_by_id = HashMap::new();
@@ -895,7 +803,6 @@ mod tests {
 
     #[test]
     fn placeholder_active_friend_is_kept_active() {
-        // Active friends can legitimately be absent from the world fetch; keep them active.
         let expected_ids = vec!["usr_active".to_string()];
         let state_by_id = HashMap::from([("usr_active".to_string(), "active".to_string())]);
         let fetched_friends_by_id = HashMap::new();
@@ -928,7 +835,6 @@ mod tests {
 
     #[test]
     fn online_friend_in_private_world_stays_online() {
-        // location=private is a hidden world, still online — must NOT be demoted to offline.
         let expected_ids = vec!["usr_priv".to_string()];
         let state_by_id = HashMap::from([("usr_priv".to_string(), "online".to_string())]);
         let fetched_friends_by_id = HashMap::from([(
@@ -965,9 +871,6 @@ mod tests {
 
     #[test]
     fn list_bucket_decides_state_not_location() {
-        // location never participates in bucketing (matches upstream). An offline list bucket stays
-        // offline even with a real world location — the real-time /auth/user lists are the source of
-        // truth, so a genuinely in-world friend would already be in the online list.
         let expected_ids = vec!["usr_inworld".to_string()];
         let state_by_id = HashMap::from([("usr_inworld".to_string(), "offline".to_string())]);
         let fetched_friends_by_id = HashMap::from([(
@@ -1006,8 +909,6 @@ mod tests {
 
     #[test]
     fn active_list_bucket_ignores_location() {
-        // An "active" list bucket stays active regardless of any location on the fetched profile —
-        // location does not re-bucket.
         let expected_ids = vec!["usr_active_inworld".to_string()];
         let state_by_id = HashMap::from([("usr_active_inworld".to_string(), "active".to_string())]);
         let fetched_friends_by_id = HashMap::from([(

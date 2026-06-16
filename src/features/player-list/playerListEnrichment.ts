@@ -1,8 +1,4 @@
 import { userImage } from '@/services/entityMediaService';
-import {
-    computeTrustLevel,
-    computeUserPlatform
-} from '@/shared/utils/userTransforms';
 import { normalizeProfileLanguageRows } from '@/shared/utils/userLanguage';
 
 import { resolvePlatformMeta } from './playerListDisplay';
@@ -27,31 +23,31 @@ function hasUsefulProfileFields(source: any) {
 
     return Boolean(
         hasProfileText(source.$trustLevel) ||
-            hasProfileText(source.$trustClass) ||
-            Number(source.$trustSortNum) > 0 ||
-            hasArrayItems(source.tags) ||
-            hasProfileText(source.developerType) ||
-            hasProfileText(source.$platform) ||
-            hasProfileText(source.platform) ||
-            hasProfileText(source.last_platform) ||
-            hasProfileText(source.status) ||
-            hasProfileText(source.statusDescription) ||
-            hasProfileText(source.profilePicOverrideThumbnail) ||
-            hasProfileText(source.profilePicOverride) ||
-            hasProfileText(source.thumbnailUrl) ||
-            hasProfileText(source.currentAvatarThumbnailImageUrl) ||
-            hasProfileText(source.currentAvatarImageUrl) ||
-            hasProfileText(source.userIcon) ||
-            hasArrayItems(source.$languages) ||
-            hasArrayItems(source.languages) ||
-            hasArrayItems(source.bioLinks) ||
-            hasProfileText(source.note) ||
-            hasProfileText(source.memo) ||
-            source.$moderations ||
-            source.moderations ||
-            source.ageVerified === true ||
-            hasProfileText(source.ageVerificationStatus) ||
-            source.isFriend === true
+        hasProfileText(source.$trustClass) ||
+        Number(source.$trustSortNum) > 0 ||
+        hasArrayItems(source.tags) ||
+        hasProfileText(source.developerType) ||
+        hasProfileText(source.$platform) ||
+        hasProfileText(source.platform) ||
+        hasProfileText(source.last_platform) ||
+        hasProfileText(source.status) ||
+        hasProfileText(source.statusDescription) ||
+        hasProfileText(source.profilePicOverrideThumbnail) ||
+        hasProfileText(source.profilePicOverride) ||
+        hasProfileText(source.thumbnailUrl) ||
+        hasProfileText(source.currentAvatarThumbnailImageUrl) ||
+        hasProfileText(source.currentAvatarImageUrl) ||
+        hasProfileText(source.userIcon) ||
+        hasArrayItems(source.$languages) ||
+        hasArrayItems(source.languages) ||
+        hasArrayItems(source.bioLinks) ||
+        hasProfileText(source.note) ||
+        hasProfileText(source.memo) ||
+        source.$moderations ||
+        source.moderations ||
+        source.ageVerified === true ||
+        hasProfileText(source.ageVerificationStatus) ||
+        source.isFriend === true
     );
 }
 
@@ -68,29 +64,18 @@ function normalizeUserRef(source: any, fallbackUserId: any) {
         return null;
     }
 
-    const tags = Array.isArray(source.tags) ? source.tags : [];
-    const canComputeTrust =
-        Array.isArray(source.tags) || hasProfileText(source.developerType);
-    const trust = canComputeTrust
-        ? computeTrustLevel(tags, normalizeString(source.developerType))
-        : null;
     const id = normalizeString(source.id || source.userId || fallbackUserId);
 
     return {
         ...source,
         id: id || source.id,
-        $trustLevel: source.$trustLevel || trust?.trustLevel || '',
-        $trustClass: source.$trustClass || trust?.trustClass || '',
-        $trustSortNum:
-            Number(source.$trustSortNum ?? trust?.trustSortNum ?? 0) || 0,
-        $isModerator: Boolean(source.$isModerator || trust?.isModerator),
-        $isTroll: Boolean(source.$isTroll || trust?.isTroll),
-        $isProbableTroll: Boolean(
-            source.$isProbableTroll || trust?.isProbableTroll
-        ),
-        $platform:
-            source.$platform ||
-            computeUserPlatform(source.platform, source.last_platform)
+        $trustLevel: source.$trustLevel || '',
+        $trustClass: source.$trustClass || '',
+        $trustSortNum: Number(source.$trustSortNum ?? 0) || 0,
+        $isModerator: Boolean(source.$isModerator),
+        $isTroll: Boolean(source.$isTroll),
+        $isProbableTroll: Boolean(source.$isProbableTroll),
+        $platform: source.$platform || ''
     };
 }
 
@@ -247,15 +232,15 @@ export function enrichPlayerListRows({
             : false;
         const isBlocked = Boolean(
             row.isBlocked ||
-                userRef?.$moderations?.isBlocked ||
-                userRef?.moderations?.isBlocked ||
-                moderation?.block
+            userRef?.$moderations?.isBlocked ||
+            userRef?.moderations?.isBlocked ||
+            moderation?.block
         );
         const isMuted = Boolean(
             row.isMuted ||
-                userRef?.$moderations?.isMuted ||
-                userRef?.moderations?.isMuted ||
-                moderation?.mute
+            userRef?.$moderations?.isMuted ||
+            userRef?.moderations?.isMuted ||
+            moderation?.mute
         );
         const isAvatarInteractionDisabled = Boolean(
             userRef?.$moderations?.isAvatarInteractionDisabled ||
@@ -280,15 +265,14 @@ export function enrichPlayerListRows({
             ) || 0;
         const ageVerified = Boolean(
             row.ageVerified ||
-                userRef?.ageVerified ||
-                row.ageVerificationStatus === '18+' ||
-                userRef?.ageVerificationStatus === '18+'
+            userRef?.ageVerified ||
+            row.ageVerificationStatus === '18+' ||
+            userRef?.ageVerificationStatus === '18+'
         );
         const moderationTags = normalizedUserId
-            ? [
-                  isBlocked ? 'blocked' : '',
-                  isMuted ? 'muted' : ''
-              ].filter(Boolean)
+            ? [isBlocked ? 'blocked' : '', isMuted ? 'muted' : ''].filter(
+                  Boolean
+              )
             : [];
         const moderationSeverity =
             moderationTags[0] === 'blocked'

@@ -1,24 +1,47 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const tauriMock = vi.hoisted(() => ({
+    app: {
+        IngestUserFacts: vi.fn()
+    }
+}));
+
+vi.mock('@/platform/tauri/client', () => ({
+    tauriClient: tauriMock,
+    default: tauriMock
+}));
+
+import { useInstancePresenceStore } from '@/state/instancePresenceStore';
+import { useLocationHintStore } from '@/state/locationHintStore';
 
 import {
     recordCurrentUserSnapshot,
     recordFriendPatch,
-    recordFriendRosterFacts,
     recordGameRuntimePresence,
     recordLocationHintsFromInstances,
     recordKnownUser,
     resetDomainFacts
 } from './domainIngestionService';
-import { useInstancePresenceStore } from '@/state/instancePresenceStore';
-import { useLocationHintStore } from '@/state/locationHintStore';
-import { useUserFactsStore } from '@/state/userFactsStore';
+
+function ingestedEntryFor(userId: string, source?: string) {
+    return tauriMock.app.IngestUserFacts.mock.calls
+        .flatMap((call) => (Array.isArray(call[0]) ? call[0] : []))
+        .filter(
+            (entry: any) =>
+                entry?.user?.id === userId &&
+                (source === undefined || entry?.source === source)
+        )
+        .at(-1);
+}
 
 describe('domainIngestionService', () => {
     beforeEach(() => {
+        tauriMock.app.IngestUserFacts.mockReset();
+        tauriMock.app.IngestUserFacts.mockResolvedValue(undefined);
         resetDomainFacts();
     });
 
-    it('records current user, friend patches, and roster facts as lightweight user facts', () => {
+    it('forwards current user and friend patch users to the Rust ingest IPC', () => {
         recordCurrentUserSnapshot(
             {
                 id: 'usr_self',
@@ -37,37 +60,26 @@ describe('domainIngestionService', () => {
                 location: 'wrld_live:123'
             }
         });
-        recordFriendRosterFacts({
-            endpoint: 'api',
-            friendsById: {
-                usr_other: {
-                    id: 'usr_other',
-                    displayName: 'Other',
-                    stateBucket: 'active'
-                }
-            }
-        });
 
-        const facts = useUserFactsStore.getState().usersByKey;
+        expect(tauriMock.app.IngestUserFacts).toHaveBeenCalled();
 
-        expect(facts['api::usr_self']).toMatchObject({
-            id: 'usr_self',
-            displayName: 'Self',
-            isCurrentUser: true,
-            isBoopingEnabled: false
+        expect(ingestedEntryFor('usr_self')).toMatchObject({
+            user: {
+                id: 'usr_self',
+                displayName: 'Self'
+            },
+            isCurrentUser: true
         });
-        expect(facts['api::usr_friend']).toMatchObject({
-            id: 'usr_friend',
-            displayName: 'Friend',
+        expect(ingestedEntryFor('usr_friend')).toMatchObject({
+            user: {
+                id: 'usr_friend',
+                displayName: 'Friend',
+                stateBucket: 'online',
+                location: 'wrld_live:123'
+            },
+            source: 'realtime',
             isFriend: true,
-            stateBucket: 'online',
-            location: 'wrld_live:123'
-        });
-        expect(facts['api::usr_other']).toMatchObject({
-            id: 'usr_other',
-            displayName: 'Other',
-            isFriend: true,
-            stateBucket: 'active'
+            stateBucket: 'online'
         });
     });
 
@@ -98,9 +110,14 @@ describe('domainIngestionService', () => {
             ]
         });
 
-        expect(
-            useUserFactsStore.getState().usersByKey['api::usr_self'].location
-        ).toBe('wrld_game:12345');
+        expect(ingestedEntryFor('usr_self', 'gameRuntime')).toMatchObject({
+            user: {
+                id: 'usr_self',
+                location: 'wrld_game:12345'
+            },
+            source: 'gameRuntime',
+            isCurrentUser: true
+        });
         expect(
             useInstancePresenceStore.getState().presenceByKey[
                 'api::wrld_game:12345'
@@ -127,11 +144,14 @@ describe('domainIngestionService', () => {
             ]
         });
 
-        expect(
-            useUserFactsStore.getState().usersByKey['api::usr_self']
-        ).toMatchObject({
-            location: 'traveling',
-            travelingToLocation: 'wrld_destination:12345'
+        expect(ingestedEntryFor('usr_self', 'gameRuntime')).toMatchObject({
+            user: {
+                id: 'usr_self',
+                location: 'traveling',
+                travelingToLocation: 'wrld_destination:12345'
+            },
+            source: 'gameRuntime',
+            isCurrentUser: true
         });
         expect(useInstancePresenceStore.getState().presenceByKey).toEqual({});
     });
@@ -166,15 +186,16 @@ describe('domainIngestionService', () => {
             instanceName: 'Instance',
             isClosed: true
         });
-        expect(
-            useUserFactsStore.getState().usersByKey['api::usr_api']
-        ).toMatchObject({
-            id: 'usr_api',
-            displayName: 'API User'
+        expect(ingestedEntryFor('usr_api')).toMatchObject({
+            user: {
+                id: 'usr_api',
+                displayName: 'API User'
+            },
+            source: 'instance'
         });
     });
 
-    it('resets all domain stores on auth boundaries', () => {
+    it('resets domain stores on auth boundaries', () => {
         recordKnownUser(
             {
                 id: 'usr_test',
@@ -187,9 +208,13 @@ describe('domainIngestionService', () => {
             instances: [{ location: 'wrld_test:12345', worldName: 'World' }]
         });
 
+        expect(ingestedEntryFor('usr_test')).toMatchObject({
+            user: { id: 'usr_test', displayName: 'User' },
+            source: 'profile'
+        });
+
         resetDomainFacts();
 
-        expect(useUserFactsStore.getState().usersByKey).toEqual({});
         expect(useInstancePresenceStore.getState().presenceByKey).toEqual({});
         expect(useLocationHintStore.getState().hintsByKey).toEqual({});
     });

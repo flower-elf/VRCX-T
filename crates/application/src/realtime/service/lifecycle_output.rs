@@ -1,4 +1,5 @@
 use super::*;
+use vrcx_0_core::user_facts::UserFactMergeOptions;
 
 impl RealtimeHostRuntime {
     pub(super) fn apply_friend_output(self: &Arc<Self>, mut output: RealtimeFriendOutput) {
@@ -35,6 +36,23 @@ impl RealtimeHostRuntime {
         self.deps
             .overlay_activity
             .ingest_friend_projection(&projection);
+        if !projection.patches.is_empty() {
+            let values: Vec<Value> = projection
+                .patches
+                .iter()
+                .map(|patch| patch.patch.clone())
+                .collect();
+            self.record_users_into_cache(
+                &values,
+                &UserFactMergeOptions {
+                    endpoint: self.active_endpoint(),
+                    source: "realtime".into(),
+                    received_at: chrono::Utc::now().to_rfc3339(),
+                    is_friend: true,
+                    ..Default::default()
+                },
+            );
+        }
         self.deps
             .event_bus
             .emit_realtime_friend_projection(projection);

@@ -66,7 +66,7 @@ pub struct HttpApiRequestInput {
     pub file_md5: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct HttpApiExecuteResponse {
     pub status: i32,
     pub data: String,

@@ -12,6 +12,8 @@ impl RealtimeHostRuntime {
             cancel_tx,
             friends: RealtimeFriendsRuntime::new(),
             current_user: RealtimeCurrentUserRuntime::new(),
+            user_cache: UserCacheRuntime::new(),
+            user_query_cache: UserQueryCache::new(),
         }
     }
 
@@ -91,6 +93,9 @@ impl RealtimeHostRuntime {
                 current_user_snapshot,
             );
         }
+        self.user_cache.clear();
+        self.user_query_cache.clear();
+        self.record_baseline_friends_into_cache();
         let transport_deps = RealtimeTransportDeps {
             db: Arc::clone(&self.deps.db),
             web: Arc::clone(&self.deps.web),
@@ -233,6 +238,9 @@ impl RealtimeHostRuntime {
                 final_current_user_output,
             )
         };
+
+        self.user_cache.clear();
+        self.user_query_cache.clear();
 
         if let Some(output) = final_current_user_output {
             self.apply_current_user_output(output);

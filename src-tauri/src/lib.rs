@@ -336,6 +336,7 @@ pub fn run() {
             commands::application::realtime::app__sync_realtime_current_user_snapshot,
             commands::application::realtime::app__expire_realtime_notification,
             commands::application::realtime::app__stop_realtime_transport,
+            commands::application::realtime::app__ingest_user_facts,
             commands::application::background_mode::app__start_background_mode,
             commands::application::background_mode::app__stop_background_mode,
             commands::application::background_mode::app__get_backend_runtime_snapshot,

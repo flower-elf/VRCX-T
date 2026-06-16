@@ -8,6 +8,8 @@ pub struct VrchatUserInput {
     pub(crate) endpoint: String,
     #[serde(default)]
     pub(crate) user_id: String,
+    #[serde(default)]
+    pub(crate) force: bool,
 }
 
 #[derive(Debug, Deserialize)]

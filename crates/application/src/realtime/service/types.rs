@@ -86,6 +86,8 @@ pub struct RealtimeHostRuntime {
     pub(super) cancel_tx: watch::Sender<u64>,
     pub(super) friends: RealtimeFriendsRuntime,
     pub(super) current_user: RealtimeCurrentUserRuntime,
+    pub(super) user_cache: UserCacheRuntime,
+    pub(super) user_query_cache: UserQueryCache,
 }
 
 pub(super) struct RealtimeHostRuntimeMessageSink {

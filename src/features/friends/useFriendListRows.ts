@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { applyFactDerivedFields } from '@/domain/friends/friendRosterFacts';
+import { useKnownUserFacts } from '@/domain/users/useKnownUser';
 import gameLogRepository from '@/repositories/gameLogRepository';
 import memoPersistenceRepository from '@/repositories/memoPersistenceRepository';
 import mutualGraphPersistenceRepository from '@/repositories/mutualGraphPersistenceRepository';
@@ -24,14 +26,18 @@ export function useFriendListRows({
     favoritesOnly: boolean;
     searchQuery: string;
 }) {
-    const currentUserId = useRuntimeStore((state: any) => state.auth.currentUserId);
+    const currentUserId = useRuntimeStore(
+        (state: any) => state.auth.currentUserId
+    );
     const currentUserSnapshot = useRuntimeStore(
         (state: any) => state.auth.currentUserSnapshot
     );
     const isFavoritesLoaded = useSessionStore(
         (state: any) => state.isFavoritesLoaded
     );
-    const friendLoadStatus = useFriendRosterStore((state: any) => state.loadStatus);
+    const friendLoadStatus = useFriendRosterStore(
+        (state: any) => state.loadStatus
+    );
     const friendDetail = useFriendRosterStore((state: any) => state.detail);
     const orderedFriendIds = useFriendRosterStore(
         (state: any) => state.orderedFriendIds
@@ -53,14 +59,19 @@ export function useFriendListRows({
         () => buildFavoriteIdSet(remoteFavoriteFriendIds, localFriendFavorites),
         [localFriendFavorites, remoteFavoriteFriendIds]
     );
+    const factsById = useKnownUserFacts(orderedFriendIds);
     const rosterRows = useMemo(
         () =>
             orderedFriendIds
                 .map((friendId: any, index: any) => {
-                    const friend = friendsById[friendId];
-                    if (!friend) {
+                    const rosterFriend = friendsById[friendId];
+                    if (!rosterFriend) {
                         return null;
                     }
+                    const friend = applyFactDerivedFields(
+                        rosterFriend,
+                        factsById[friendId]
+                    );
                     const friendNumber =
                         Number.parseInt(
                             friend.$friendNumber ?? friend.friendNumber ?? 0,
@@ -76,7 +87,7 @@ export function useFriendListRows({
                     };
                 })
                 .filter(Boolean),
-        [friendsById, orderedFriendIds]
+        [friendsById, orderedFriendIds, factsById]
     );
     const rosterStatsKey = useMemo(
         () =>

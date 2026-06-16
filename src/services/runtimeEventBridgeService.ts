@@ -27,7 +27,8 @@ import {
     handleRealtimeCurrentUserProjection,
     handleRealtimeFriendProjection,
     handleRealtimeInstanceClosedProjection,
-    handleRealtimeNotificationProjection
+    handleRealtimeNotificationProjection,
+    handleRealtimeUserCacheProjection
 } from './realtimePresenceService';
 import { pushSharedFeedNotification } from './sharedFeedFilterService';
 import { showSQLiteErrorDialog } from './sqliteErrorDialogService';
@@ -45,6 +46,7 @@ type RuntimeEventName =
     | 'overlayActivitySnapshot'
     | 'notificationDelivery'
     | 'realtimeFriendProjection'
+    | 'realtimeUserProjection'
     | 'realtimeNotificationProjection'
     | 'realtimeCurrentUserProjection'
     | 'realtimeInstanceClosedProjection'
@@ -312,6 +314,7 @@ function sameBackendRealtimeProjectionScope(
 function isRealtimeProjectionEvent(name: RuntimeEventName): boolean {
     return (
         name === 'realtimeFriendProjection' ||
+        name === 'realtimeUserProjection' ||
         name === 'realtimeNotificationProjection' ||
         name === 'realtimeCurrentUserProjection' ||
         name === 'realtimeInstanceClosedProjection' ||
@@ -337,6 +340,8 @@ function deliverBackendRealtimeProjectionEvent(
     useRuntimeStore.getState().recordRuntimeEvent(name, payload);
     if (name === 'realtimeFriendProjection') {
         handleRealtimeFriendProjection(payload);
+    } else if (name === 'realtimeUserProjection') {
+        handleRealtimeUserCacheProjection(payload);
     } else if (name === 'realtimeNotificationProjection') {
         Promise.resolve(handleRealtimeNotificationProjection(payload)).catch(
             handleBackendRealtimeProjectionFailure
@@ -699,6 +704,7 @@ export async function bindRuntimeEvents(): Promise<() => void> {
         'gameClientEvent',
         'runtimeWorkerError',
         'realtimeFriendProjection',
+        'realtimeUserProjection',
         'realtimeNotificationProjection',
         'realtimeCurrentUserProjection',
         'realtimeInstanceClosedProjection',
