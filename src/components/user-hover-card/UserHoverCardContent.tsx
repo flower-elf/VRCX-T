@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { openUserDialog, openWorldDialog } from '@/services/dialogService';
 import { getTrustColor, TRUST_COLOR_ENTRIES } from '@/shared/utils/trustColors';
 import { useModalStore } from '@/state/modalStore';
+import { Skeleton } from '@/ui/shadcn/skeleton';
 
 import { useUserHoverCardData } from './useUserHoverCardData';
 
@@ -52,8 +53,15 @@ function NoteLine({ icon, label, text }: any) {
 
 export function UserHoverCardContent({ userId, seed }: any) {
     const { t } = useTranslation();
-    const { model, worldThumb, population, memo, trustColor, instanceEpoch } =
-        useUserHoverCardData({ userId, seed });
+    const {
+        model,
+        worldThumb,
+        population,
+        populationLoading,
+        memo,
+        trustColor,
+        instanceEpoch
+    } = useUserHoverCardData({ userId, seed });
     const openImagePreview = useModalStore(
         (state: any) => state.openImagePreview
     );
@@ -207,6 +215,11 @@ export function UserHoverCardContent({ userId, seed }: any) {
                                             ? `${population.nUsers}/${population.capacity}`
                                             : population.nUsers}
                                     </span>
+                                </span>
+                            ) : populationLoading ? (
+                                <span className="inline-flex items-center gap-1.5">
+                                    <UsersIcon className="text-muted-foreground size-3.5" />
+                                    <Skeleton className="h-3 w-9" />
                                 </span>
                             ) : null}
                             {instanceEpoch ? (

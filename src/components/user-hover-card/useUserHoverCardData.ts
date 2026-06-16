@@ -30,6 +30,7 @@ export function useUserHoverCardData({ userId, seed }: any) {
     const [profile, setProfile] = useState<any>(null);
     const [memo, setMemo] = useState('');
     const [population, setPopulation] = useState<any>(null);
+    const [populationLoading, setPopulationLoading] = useState(false);
     const [profileLoading, setProfileLoading] = useState(true);
 
     const nowMs = useMemo(() => Date.now(), [profile, seed]);
@@ -101,8 +102,10 @@ export function useUserHoverCardData({ userId, seed }: any) {
         let active = true;
         setPopulation(null);
         if (!isRealInstance || !worldId || !instanceId) {
+            setPopulationLoading(false);
             return undefined;
         }
+        setPopulationLoading(true);
         vrchatInstanceRepository
             .getInstance({ worldId, instanceId, endpoint })
             .then((response: any) => {
@@ -112,7 +115,12 @@ export function useUserHoverCardData({ userId, seed }: any) {
                     );
                 }
             })
-            .catch(() => {});
+            .catch(() => {})
+            .finally(() => {
+                if (active) {
+                    setPopulationLoading(false);
+                }
+            });
         return () => {
             active = false;
         };
@@ -131,6 +139,7 @@ export function useUserHoverCardData({ userId, seed }: any) {
         model,
         worldThumb,
         population,
+        populationLoading,
         memo,
         trustColor,
         instanceEpoch,
