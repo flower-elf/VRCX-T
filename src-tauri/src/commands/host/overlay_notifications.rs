@@ -93,6 +93,19 @@ mod tests {
     }
 
     #[test]
+    fn generic_webhook_test_payload_ignores_localized_field_names() {
+        let payload = webhook_test_payload("generic", r#"["locationId","位置","タイトル"]"#);
+
+        assert_eq!(payload.as_object().unwrap().len(), 1);
+        assert_eq!(
+            payload.get("locationId").and_then(|value| value.as_str()),
+            Some("wrld_00000000-0000-0000-0000-000000000000:12345")
+        );
+        assert!(payload.get("位置").is_none());
+        assert!(payload.get("タイトル").is_none());
+    }
+
+    #[test]
     fn discord_webhook_test_payload_ignores_selected_fields() {
         let payload = webhook_test_payload("discord", r#"["locationId"]"#);
 

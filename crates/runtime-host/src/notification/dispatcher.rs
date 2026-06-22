@@ -828,7 +828,8 @@ mod tests {
     use crate::vr_overlay::OverlayLocale;
 
     use super::{
-        overlay_notification_render, render_delivery, webhook_payload, RenderedNotification,
+        overlay_notification_render, parse_webhook_fields, render_delivery, webhook_payload,
+        RenderedNotification,
     };
 
     #[test]
@@ -855,6 +856,20 @@ mod tests {
         assert_eq!(local_time.len(), "2026-06-18 17:30:00".len());
         assert!(payload.get("timestamp").is_none());
         assert!(payload.get("worldName").is_none());
+    }
+
+    #[test]
+    fn generic_webhook_fields_ignore_localized_names() {
+        let fields = parse_webhook_fields(r#"["locationId","位置","タイトル"]"#);
+        let payload = webhook_payload(&delivery(), &rendered(), "generic", &fields);
+
+        assert_eq!(payload.as_object().unwrap().len(), 1);
+        assert_eq!(
+            payload.get("locationId").and_then(|value| value.as_str()),
+            Some("wrld_named:123")
+        );
+        assert!(payload.get("位置").is_none());
+        assert!(payload.get("タイトル").is_none());
     }
 
     #[test]
