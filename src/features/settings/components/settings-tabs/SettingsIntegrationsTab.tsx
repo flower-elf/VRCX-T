@@ -482,7 +482,7 @@ export function SettingsIntegrationsTab({ integrations }: any) {
                     className="lg:grid-cols-1 lg:items-start"
                     controlClassName="lg:justify-start"
                 >
-                    <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
+                    <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3">
                         <Button
                             type="button"
                             variant="outline"
@@ -507,31 +507,14 @@ export function SettingsIntegrationsTab({ integrations }: any) {
                             disabled={!mcpClientConfig}
                             onClick={() =>
                                 copyMcpSnippet(
-                                    'claudeDesktopJson',
-                                    'view.settings.integrations.mcp_server.copy_claude_desktop'
+                                    'mcpRemoteJson',
+                                    'view.settings.integrations.mcp_server.copy_mcp_remote'
                                 )
                             }
                         >
                             <CopyIcon data-icon="inline-start" />
                             {t(
-                                'view.settings.integrations.mcp_server.copy_claude_desktop'
-                            )}
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={!mcpClientConfig}
-                            onClick={() =>
-                                copyMcpSnippet(
-                                    'codexToml',
-                                    'view.settings.integrations.mcp_server.copy_codex'
-                                )
-                            }
-                        >
-                            <CopyIcon data-icon="inline-start" />
-                            {t(
-                                'view.settings.integrations.mcp_server.copy_codex'
+                                'view.settings.integrations.mcp_server.copy_mcp_remote'
                             )}
                         </Button>
                         <Button

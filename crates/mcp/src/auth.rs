@@ -62,11 +62,8 @@ pub fn client_config_snippets(port: u16, token: &str) -> ClientConfigSnippets {
         claude_code_command: format!(
             "claude mcp add --transport http vrcx-0 {url} --header \"{auth_header}\""
         ),
-        claude_desktop_json: format!(
+        mcp_remote_json: format!(
             "{{\n  \"mcpServers\": {{\n    \"vrcx-0\": {{\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"mcp-remote\", \"{url}\", \"--header\", \"{auth_header}\"]\n    }}\n  }}\n}}"
-        ),
-        codex_toml: format!(
-            "[mcp_servers.vrcx-0]\ncommand = \"npx\"\nargs = [\"-y\", \"mcp-remote\", \"{url}\", \"--header\", \"{auth_header}\"]\n"
         ),
         generic_json: format!(
             "{{\n  \"mcpServers\": {{\n    \"vrcx-0\": {{\n      \"url\": \"{url}\",\n      \"headers\": {{\n        \"Authorization\": \"Bearer {token}\"\n      }}\n    }}\n  }}\n}}"
@@ -150,10 +147,11 @@ mod tests {
         assert!(snippets
             .claude_code_command
             .contains("Authorization: Bearer tok_secret"));
-        assert!(snippets.codex_toml.contains("[mcp_servers.vrcx-0]"));
         assert!(snippets.generic_json.contains("\"mcpServers\""));
         assert!(snippets.generic_json.contains("http://127.0.0.1:7654/mcp"));
-        assert!(snippets.codex_toml.contains("mcp-remote"));
-        assert!(snippets.codex_toml.contains("http://127.0.0.1:7654/mcp"));
+        assert!(snippets.mcp_remote_json.contains("mcp-remote"));
+        assert!(snippets
+            .mcp_remote_json
+            .contains("http://127.0.0.1:7654/mcp"));
     }
 }

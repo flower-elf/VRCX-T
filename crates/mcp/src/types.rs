@@ -5,8 +5,7 @@ use specta::Type;
 #[serde(rename_all = "camelCase")]
 pub struct ClientConfigSnippets {
     pub claude_code_command: String,
-    pub claude_desktop_json: String,
-    pub codex_toml: String,
+    pub mcp_remote_json: String,
     pub generic_json: String,
 }
 
