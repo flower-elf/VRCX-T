@@ -138,4 +138,4 @@ function formatDifferenceHtml(
         .replace(/<br> /g, '<br>');
 }
 
-export { formatDifferenceHtml };
+export { escapeHtml, formatDifferenceHtml };
