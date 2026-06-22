@@ -4,13 +4,17 @@ pub(super) fn resolve_state_bucket(
     content: &Value,
     patch: &Value,
     previous: Option<&Value>,
+    trust_event_user_state: bool,
     fallback: &str,
 ) -> String {
+    let user_state = trust_event_user_state
+        .then(|| content.get("user").and_then(|user| user.get("state")))
+        .flatten();
     for candidate in [
         content.get("stateBucket"),
         content.get("state"),
         content.get("user").and_then(|user| user.get("stateBucket")),
-        content.get("user").and_then(|user| user.get("state")),
+        user_state,
         patch.get("stateBucket"),
         patch.get("state"),
         previous.and_then(|previous| previous.get("stateBucket")),

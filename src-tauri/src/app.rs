@@ -5,10 +5,10 @@ use crate::commands;
 use crate::macos_menu;
 use crate::state::AppState;
 
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
 use tauri::Emitter;
 use tauri::Manager;
 use tauri::WindowEvent;
-use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
 use vrcx_0_application::{BackendRuntimeMode, BackendRuntimePhase};
 use vrcx_0_persistence::config::{self as config_store, ConfigWriteEntry};
 

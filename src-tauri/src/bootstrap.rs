@@ -4,15 +4,15 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use serde::Serialize;
-use tauri::http::{Request, Response, StatusCode, header::CONTENT_TYPE};
+use tauri::http::{header::CONTENT_TYPE, Request, Response, StatusCode};
 use tauri::menu::{CheckMenuItem, Menu, MenuItem};
 use tauri::{Emitter, Manager, WebviewWindowBuilder};
 use tauri_plugin_autostart::ManagerExt as _;
 use tauri_plugin_notification::NotificationExt;
-use tracing_subscriber::Layer;
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::Layer;
 
 use crate::error::AppError;
 use crate::localization::shell_locale::{
@@ -20,12 +20,12 @@ use crate::localization::shell_locale::{
 };
 use crate::state::{AppState, BACKGROUND_MODE_RESUME_ROUTE_STORAGE_KEY};
 use vrcx_0_application::RuntimeEventSink;
+use vrcx_0_application::{format_runtime_output_event, RuntimeOutputLevel, RuntimeOutputMode};
 use vrcx_0_application::{BackendRuntimeMode, BackendRuntimePhase, BackendRuntimeSnapshot};
-use vrcx_0_application::{RuntimeOutputLevel, RuntimeOutputMode, format_runtime_output_event};
 use vrcx_0_application::{RuntimeTask, RuntimeTaskExecutor, RuntimeTaskHandle};
-use vrcx_0_host::host_capabilities::{HostCapability, is_host_capability_available};
-use vrcx_0_runtime_host::RuntimeHostActions;
+use vrcx_0_host::host_capabilities::{is_host_capability_available, HostCapability};
 use vrcx_0_runtime_host::notification::DesktopNotifier;
+use vrcx_0_runtime_host::RuntimeHostActions;
 
 const AUTH_FAILURE_NOTIFICATION_COOLDOWN: Duration = Duration::from_secs(5);
 
@@ -683,7 +683,7 @@ pub fn background_image_protocol_response(
 pub fn apply_linux_webkit_workaround() {
     #[cfg(target_os = "linux")]
     {
-        use webkit2gtk_nvidia_quirk::{ApplyWorkaroundOptions, apply_workaround_with_options};
+        use webkit2gtk_nvidia_quirk::{apply_workaround_with_options, ApplyWorkaroundOptions};
 
         if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
             tracing::info!("disabling WebKitGTK DMABUF renderer on Linux");

@@ -267,7 +267,7 @@ mod tests {
     }
 
     #[test]
-    fn friend_active_embedded_online_user_keeps_online_like_vue_spread_order() {
+    fn friend_active_with_dirty_online_state_fires_active_not_online() {
         let runtime = RealtimeFriendsRuntime::new();
         runtime.set_baseline(
             FriendRosterBaseline {
@@ -312,11 +312,14 @@ mod tests {
             panic!("friend-active should produce an output");
         };
 
-        let patch = &output.projection.patches[0].patch;
         assert_eq!(output.projection.patches[0].state_bucket, "online");
-        assert_eq!(patch["stateBucket"], "online");
-        assert_eq!(patch["pendingOffline"], false);
-        assert_eq!(output.timer_action, PendingOfflineTimerAction::None);
+        let PendingOfflineTimerAction::Schedule { token, .. } = output.timer_action else {
+            panic!("online->active should schedule pending timer");
+        };
+        let fired = runtime
+            .fire_pending_offline("usr_friend", token, "2026-05-15T00:03:00Z".into())
+            .unwrap();
+        assert_eq!(fired.projection.patches[0].state_bucket, "active");
     }
 
     #[test]

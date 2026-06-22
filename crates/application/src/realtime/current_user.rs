@@ -263,6 +263,7 @@ fn apply_user_update(
         .and_then(Value::as_object)
         .cloned()
         .unwrap_or_default();
+    patch.remove("state");
     let event_user_id = first_owned([
         string_field(patch.get("id")),
         string_field(content.get("userId")),
