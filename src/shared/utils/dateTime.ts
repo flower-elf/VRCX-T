@@ -247,7 +247,7 @@ export function timeToTextWithLabels(
     unitLabels: Partial<TimeUnitLabels> | undefined = undefined
 ) {
     let n = Number(sec);
-    if (Number.isNaN(n)) {
+    if (!Number.isFinite(n)) {
         return String(sec);
     }
 
@@ -255,6 +255,9 @@ export function timeToTextWithLabels(
     const arr = [];
     if (n < 0) {
         n = -n;
+    }
+    if (isNeedSeconds || n < 60) {
+        n = Math.floor((n + 2.5) / 5) * 5;
     }
     const labels: TimeUnitLabels = {
         ...DEFAULT_TIME_UNIT_LABELS,
@@ -277,7 +280,6 @@ export function timeToTextWithLabels(
         n %= 60;
     }
     if (isNeedSeconds || (arr.length === 0 && n < 60)) {
-        n = Math.floor((n + 2.5) / 5) * 5;
         arr.push(`${n}${labels.s}`);
     }
     return arr.join(' ');
