@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, sync::OnceLock};
+use std::{borrow::Cow, collections::BTreeMap, sync::OnceLock};
 
 use serde::Deserialize;
 use serde_json::Value;
@@ -63,7 +63,8 @@ impl OverlayLocalizer {
             .or_else(|| localized_template(catalog, &catalog.fallback_locale, key))
             .unwrap_or(fallback);
 
-        collapse_whitespace(&interpolate(template, &text.params))
+        let params = self.localized_status_params(&text.params);
+        collapse_whitespace(&interpolate(template, params.as_ref()))
     }
 
     pub(crate) fn activity_text(
@@ -145,6 +146,32 @@ impl OverlayLocalizer {
             .or_else(|| localized_template(catalog, &catalog.fallback_locale, key))
             .unwrap_or(fallback);
         collapse_whitespace(template)
+    }
+
+    fn localized_status_params<'a>(&self, params: &'a Value) -> Cow<'a, Value> {
+        let Some(object) = params.as_object() else {
+            return Cow::Borrowed(params);
+        };
+        let Some(status) = object.get("status").and_then(Value::as_str) else {
+            return Cow::Borrowed(params);
+        };
+        let Some(label_key) = status_label_key(status) else {
+            return Cow::Borrowed(params);
+        };
+        let label = self.label(label_key, status.trim());
+        let mut localized = object.clone();
+        localized.insert("status".to_string(), Value::String(label));
+        Cow::Owned(Value::Object(localized))
+    }
+}
+
+fn status_label_key(status: &str) -> Option<&'static str> {
+    match status.trim().to_ascii_lowercase().as_str() {
+        "active" => Some("overlay.status.active"),
+        "join me" | "joinme" => Some("overlay.status.join_me"),
+        "ask me" | "askme" => Some("overlay.status.ask_me"),
+        "busy" => Some("overlay.status.busy"),
+        _ => None,
     }
 }
 
@@ -280,6 +307,48 @@ mod tests {
         assert_eq!(
             localizer.text(&activity_text("notifications.has_left", json!({}), "left")),
             "has left"
+        );
+    }
+
+    #[test]
+    fn status_update_localizes_status_keyword() {
+        let en = OverlayLocalizer::new(OverlayLocale::En);
+
+        assert_eq!(
+            en.text(&activity_text(
+                "notifications.status_update",
+                json!({ "status": "ask me", "description": "" }),
+                "status is now ask me"
+            )),
+            "status is now Ask Me"
+        );
+    }
+
+    #[test]
+    fn status_update_translates_status_for_locale() {
+        let ja = OverlayLocalizer::new(OverlayLocale::Ja);
+
+        let result = ja.text(&activity_text(
+            "notifications.status_update",
+            json!({ "status": "join me", "description": "" }),
+            "status is now join me",
+        ));
+
+        assert!(result.contains("だれでもおいで"), "got: {result}");
+        assert!(!result.contains("join me"));
+    }
+
+    #[test]
+    fn unknown_status_value_is_left_untouched() {
+        let en = OverlayLocalizer::new(OverlayLocale::En);
+
+        assert_eq!(
+            en.text(&activity_text(
+                "notifications.status_update",
+                json!({ "status": "something custom", "description": "" }),
+                "status is now something custom"
+            )),
+            "status is now something custom"
         );
     }
 

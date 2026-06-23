@@ -17,6 +17,7 @@ type WsSender =
     futures_util::stream::SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
 
 const MAX_UDP_PAYLOAD_BYTES: usize = 65_507;
+const XS_BUILTIN_DEFAULT_ICON: &str = "default";
 
 impl OvrToolkit {
     pub fn new() -> Self {
@@ -110,7 +111,7 @@ fn xs_notification_payload(
     let icon = image
         .map(str::trim)
         .filter(|value| !value.is_empty())
-        .unwrap_or_default();
+        .unwrap_or(XS_BUILTIN_DEFAULT_ICON);
     let height = xs_notification_height(content);
     serde_json::json!({
         "messageType": 1,
@@ -193,11 +194,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn xs_payload_without_image_omits_icon() {
+    fn xs_payload_without_image_uses_builtin_default_icon() {
         let payload = xs_notification_payload("VRCX-0", "Friend joined a world", 3, 1.0, None);
 
         assert_eq!(payload["useBase64Icon"], false);
-        assert_eq!(payload["icon"], "");
+        assert_eq!(payload["icon"], "default");
 
         let bytes = serde_json::to_vec(&payload).expect("payload should serialize");
         assert!(

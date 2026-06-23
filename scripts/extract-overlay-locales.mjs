@@ -101,7 +101,11 @@ const pathKeys = [
     [
         'overlay.access.group_plus',
         ['dialog', 'new_instance', 'group_access_type_plus']
-    ]
+    ],
+    ['overlay.status.active', ['dialog', 'user', 'status', 'online']],
+    ['overlay.status.join_me', ['dialog', 'user', 'status', 'join_me']],
+    ['overlay.status.ask_me', ['dialog', 'user', 'status', 'ask_me']],
+    ['overlay.status.busy', ['dialog', 'user', 'status', 'busy']]
 ];
 const shellPathKeys = [
     ['nativeShell.tray.open', ['nativeShell', 'tray', 'open']],

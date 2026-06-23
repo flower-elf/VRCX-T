@@ -45,7 +45,11 @@
             "overlay.access.friends_plus": "Friends+",
             "overlay.access.group": "Group",
             "overlay.access.group_public": "Group Public",
-            "overlay.access.group_plus": "Group+"
+            "overlay.access.group_plus": "Group+",
+            "overlay.status.active": "Online",
+            "overlay.status.join_me": "Join Me",
+            "overlay.status.ask_me": "Ask Me",
+            "overlay.status.busy": "Do Not Disturb"
         },
         "zh-CN": {
             "notifications.has_joined": "加入了房间",
@@ -90,7 +94,11 @@
             "overlay.access.friends_plus": "好友+",
             "overlay.access.group": "群组",
             "overlay.access.group_public": "群组公开",
-            "overlay.access.group_plus": "群组+"
+            "overlay.access.group_plus": "群组+",
+            "overlay.status.active": "在线",
+            "overlay.status.join_me": "欢迎加入",
+            "overlay.status.ask_me": "忙碌",
+            "overlay.status.busy": "请勿打扰"
         },
         "zh-TW": {
             "notifications.has_joined": "已加入",
@@ -135,7 +143,11 @@
             "overlay.access.friends_plus": "好友+",
             "overlay.access.group": "群組",
             "overlay.access.group_public": "公開",
-            "overlay.access.group_plus": "成員+"
+            "overlay.access.group_plus": "成員+",
+            "overlay.status.active": "上線",
+            "overlay.status.join_me": "加入我",
+            "overlay.status.ask_me": "詢問我",
+            "overlay.status.busy": "請勿打擾"
         },
         "ja": {
             "notifications.has_joined": "が参加しました",
@@ -180,7 +192,11 @@
             "overlay.access.friends_plus": "フレンド+",
             "overlay.access.group": "グループ",
             "overlay.access.group_public": "パブリック",
-            "overlay.access.group_plus": "+"
+            "overlay.access.group_plus": "+",
+            "overlay.status.active": "オンライン",
+            "overlay.status.join_me": "だれでもおいで",
+            "overlay.status.ask_me": "きいてみてね",
+            "overlay.status.busy": "取り込み中"
         },
         "ko": {
             "notifications.has_joined": "가입했습니다",
@@ -225,7 +241,11 @@
             "overlay.access.friends_plus": "친구+",
             "overlay.access.group": "그룹",
             "overlay.access.group_public": "공개",
-            "overlay.access.group_plus": "그룹원+"
+            "overlay.access.group_plus": "그룹원+",
+            "overlay.status.active": "온라인",
+            "overlay.status.join_me": "조인 가능",
+            "overlay.status.ask_me": "조인 문의",
+            "overlay.status.busy": "방해 금지"
         }
     }
 }
