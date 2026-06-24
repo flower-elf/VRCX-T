@@ -1,5 +1,6 @@
 import configRepository from '@/repositories/configRepository';
 
+import { TELEMETRY_VIEW_MODE_DIMENSIONS } from './telemetryContract';
 import { postTelemetry } from './telemetryClient';
 import { isAnonymousUsageTelemetryEnabled } from './telemetryConfig';
 import { buildTelemetryContext } from './telemetryPayload';
@@ -22,22 +23,22 @@ const VIEW_MODE_DIMENSIONS: Record<
     gameLogViewMode: {
         configKey: 'gameLogViewMode',
         defaultValue: 'sessions',
-        values: ['sessions', 'table']
+        values: TELEMETRY_VIEW_MODE_DIMENSIONS.gameLogViewMode
     },
     myAvatarsViewMode: {
         configKey: 'MyAvatarsViewMode',
         defaultValue: 'grid',
-        values: ['grid', 'table']
+        values: TELEMETRY_VIEW_MODE_DIMENSIONS.myAvatarsViewMode
     },
     feedViewMode: {
         configKey: 'feedViewMode',
         defaultValue: 'table',
-        values: ['table', 'columns']
+        values: TELEMETRY_VIEW_MODE_DIMENSIONS.feedViewMode
     },
     feedTimeDisplayMode: {
         configKey: 'feedTimeDisplayMode',
         defaultValue: 'relative',
-        values: ['relative', 'exact']
+        values: TELEMETRY_VIEW_MODE_DIMENSIONS.feedTimeDisplayMode
     }
 };
 
