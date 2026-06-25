@@ -7,6 +7,7 @@ import { commands } from '@/platform/tauri/bindings';
 import { createDefaultGroupRef } from '@/shared/utils/groupTransforms';
 import { replaceBioSymbols } from '@/shared/utils/string';
 
+import { VRCHAT_API_DEFAULT_PAGE_SIZE } from './paginationConstants';
 import {
     createRequestError,
     notifyVrchatAuthFailure,
@@ -279,7 +280,7 @@ function responseRows(json: unknown, key = ''): unknown[] {
 async function collectPages(
     fetchPage: (page: PageRequest) => Promise<unknown[]>,
     {
-        pageSize = 100,
+        pageSize = VRCHAT_API_DEFAULT_PAGE_SIZE,
         maxPages = Number.POSITIVE_INFINITY
     }: CollectPagesOptions = {}
 ) {
@@ -389,7 +390,7 @@ async function getUserGroups({
 async function getGroupPosts({
     groupId,
     endpoint = '',
-    n = 100,
+    n = VRCHAT_API_DEFAULT_PAGE_SIZE,
     offset = 0
 }: GroupPageInput) {
     const normalizedGroupId = normalizeEntityId(groupId);
@@ -490,7 +491,7 @@ async function deleteGroupPost({
 async function getGroupMembers({
     groupId,
     endpoint = '',
-    n = 100,
+    n = VRCHAT_API_DEFAULT_PAGE_SIZE,
     offset = 0,
     sort = 'joinedAt:desc',
     roleId = '',
@@ -536,7 +537,7 @@ async function getGroupMembersSearch({
     groupId,
     query = '',
     endpoint = '',
-    n = 100,
+    n = VRCHAT_API_DEFAULT_PAGE_SIZE,
     offset = 0
 }: GroupMembersSearchInput) {
     const normalizedGroupId = normalizeEntityId(groupId);
@@ -576,7 +577,7 @@ async function getGroupGallery({
     groupId,
     galleryId,
     endpoint = '',
-    n = 100,
+    n = VRCHAT_API_DEFAULT_PAGE_SIZE,
     offset = 0,
     force = false
 }: GroupGalleryInput) {
@@ -855,7 +856,7 @@ async function getGroupInstances({
 async function getGroupBans({
     groupId,
     endpoint = '',
-    n = 100,
+    n = VRCHAT_API_DEFAULT_PAGE_SIZE,
     offset = 0
 }: GroupPageInput) {
     const normalizedGroupId = normalizeEntityId(groupId);
@@ -886,7 +887,7 @@ async function getAllGroupBans({ groupId, endpoint = '' }: GroupIdInput) {
 async function getGroupInvites({
     groupId,
     endpoint = '',
-    n = 100,
+    n = VRCHAT_API_DEFAULT_PAGE_SIZE,
     offset = 0
 }: GroupPageInput) {
     const normalizedGroupId = normalizeEntityId(groupId);
@@ -917,7 +918,7 @@ async function getAllGroupInvites({ groupId, endpoint = '' }: GroupIdInput) {
 async function getGroupJoinRequests({
     groupId,
     endpoint = '',
-    n = 100,
+    n = VRCHAT_API_DEFAULT_PAGE_SIZE,
     offset = 0,
     blocked = false
 }: GroupJoinRequestInput) {
@@ -972,7 +973,7 @@ async function getGroupAuditLogTypes({ groupId, endpoint = '' }: GroupIdInput) {
 async function getGroupLogs({
     groupId,
     endpoint = '',
-    n = 100,
+    n = VRCHAT_API_DEFAULT_PAGE_SIZE,
     offset = 0,
     eventTypes = []
 }: GroupLogsInput) {

@@ -8,6 +8,7 @@ import {
     disableInstalledCommunityTheme,
     stopLocalCommunityThemePreview
 } from '@/services/communityThemeService';
+import { HOUR_MS } from '@/shared/constants/time';
 import { useBackgroundImageStore } from '@/state/backgroundImageStore';
 import {
     communityThemeControlsAppearance,
@@ -130,7 +131,7 @@ function isSnapshotFresh(snapshot: BackgroundImageSnapshot | null): boolean {
     }
 
     const ageMs = Date.now() - resolvedAt;
-    return ageMs >= 0 && ageMs < provider.cacheTtlHours * 60 * 60 * 1000;
+    return ageMs >= 0 && ageMs < provider.cacheTtlHours * HOUR_MS;
 }
 
 function toCssString(value: string): string {

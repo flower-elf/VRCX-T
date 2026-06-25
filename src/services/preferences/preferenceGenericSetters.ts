@@ -2,6 +2,7 @@ import { normalizeLanguageCode } from '@/localization/locales';
 import { commands } from '@/platform/tauri/bindings';
 import configRepository from '@/repositories/configRepository';
 import storageRepository from '@/repositories/storageRepository';
+import { MINUTES_PER_DAY } from '@/shared/constants/time';
 import {
     isValidTrustColor,
     normalizeTrustColors,
@@ -186,7 +187,7 @@ export async function setRecentActionCooldownMinutesPreference(
     const parsed = Number.parseInt(String(value), 10);
     const minutes = Number.isNaN(parsed)
         ? 60
-        : Math.min(1440, Math.max(1, parsed));
+        : Math.min(MINUTES_PER_DAY, Math.max(1, parsed));
     await configRepository.setInt('recentActionCooldownMinutes', minutes);
     configureRecentActionCooldown({
         ...readRecentActionCooldown(),

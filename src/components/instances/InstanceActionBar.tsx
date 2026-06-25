@@ -20,6 +20,7 @@ import { formatDateFilter } from '@/lib/dateTime';
 import { cn } from '@/lib/utils';
 import vrchatInstanceRepository from '@/repositories/vrchatInstanceRepository';
 import { recordLocationHintsFromInstances } from '@/services/domainIngestionService';
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import { useLaunchStore } from '@/state/launchStore';
 import { useModalStore } from '@/state/modalStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
@@ -128,7 +129,7 @@ function canCloseInstance(instance: any, currentUserId: any) {
     if (ownerId === currentUserId) {
         return true;
     }
-    if (!ownerId.startsWith('grp_')) {
+    if (!hasGroupIdPrefix(ownerId)) {
         return false;
     }
     return (

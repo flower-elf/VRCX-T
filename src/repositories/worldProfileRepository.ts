@@ -8,6 +8,10 @@ import { commands } from '@/platform/tauri/bindings';
 import { useWorldFactsStore } from '@/state/worldFactsStore';
 
 import {
+    VRCHAT_API_DEFAULT_PAGE_SIZE,
+    VRCHAT_PROFILE_MAX_PAGES
+} from './paginationConstants';
+import {
     createRequestError,
     notifyVrchatAuthFailure,
     parseJsonResponse,
@@ -255,7 +259,10 @@ function normalizeWorldProfile(world: unknown): WorldProfileRecord {
 
 async function collectPages<T>(
     fetchPage: (page: PageRequest) => Promise<T[]>,
-    { pageSize = 100, maxPages = 50 }: CollectPagesOptions = {}
+    {
+        pageSize = VRCHAT_API_DEFAULT_PAGE_SIZE,
+        maxPages = VRCHAT_PROFILE_MAX_PAGES
+    }: CollectPagesOptions = {}
 ): Promise<T[]> {
     const rows: T[] = [];
 

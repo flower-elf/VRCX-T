@@ -1,3 +1,4 @@
+import { DAY_MS } from '@/shared/constants/time';
 import { buildGameLogSessions, type GameLogRow } from '@/shared/utils/gameLog';
 import { normalizeString } from '@/shared/utils/string';
 
@@ -445,7 +446,7 @@ async function loadSessionEvents(
         .filter((epoch) => epoch > 0);
     const minEpoch = epochs.length ? Math.min(...epochs) : Date.now();
     const maxEpoch = epochs.length ? Math.max(...epochs) : Date.now();
-    const dateWindowMs = 24 * 60 * 60 * 1000;
+    const dateWindowMs = DAY_MS;
     const locationTags = Array.from(
         new Set(
             segments

@@ -5,9 +5,9 @@ import type {
     CommunityThemeDarkMode,
     CommunityThemeManifest
 } from '@/features/themes/communityThemeTypes';
+import { links } from '@/shared/constants/link';
 
-export const COMMUNITY_THEME_CATALOG_URL =
-    'https://raw.githubusercontent.com/Map1en/VRCX-0-Community-Themes/master/themes/index.json';
+export const COMMUNITY_THEME_CATALOG_URL = links.communityThemesIndex;
 export const COMMUNITY_THEME_STATS_API_URL =
     'https://vrcx0-theme-stats-api.maplenagisa.workers.dev';
 

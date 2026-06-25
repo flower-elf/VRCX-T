@@ -1,14 +1,18 @@
 import { toast } from 'sonner';
 
 import { emojiAnimationStyleList } from '@/shared/constants/emoji';
-import { validateImageUploadFile } from '@/shared/utils/imageUpload';
+import {
+    MAX_IMAGE_UPLOAD_BYTES,
+    validateImageUploadFile
+} from '@/shared/utils/imageUpload';
 
 import {
     getGalleryGridDensityConfig,
     sanitizeGalleryGridDensity
 } from './galleryDensity';
 
-export const MAX_IMAGE_UPLOAD_BYTES = 20_000_000;
+export { MAX_IMAGE_UPLOAD_BYTES };
+
 export const INVENTORY_GRID_DENSITY_STORAGE_KEY = 'VRCX_InventoryGridDensity';
 
 export const CATEGORY_ORDER = ['emojis', 'stickers', 'items', 'cosmetics'];

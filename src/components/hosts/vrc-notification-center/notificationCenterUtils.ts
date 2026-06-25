@@ -11,6 +11,7 @@ import {
     convertFileUrlToImageUrl,
     openExternalLink
 } from '@/services/entityMediaService';
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import { parseLocation } from '@/shared/utils/location';
 import { getNotificationTs } from '@/shared/utils/notificationCategory';
 
@@ -199,11 +200,11 @@ export function openNotificationLink(link: any) {
 export function openSender(notification: any, t: any) {
     const userId = String(notification?.senderUserId || '').trim();
     if (
-        userId.startsWith('grp_') ||
+        hasGroupIdPrefix(userId) ||
         notification?.type?.startsWith('group.') ||
         notification?.type === 'groupChange'
     ) {
-        const groupId = userId.startsWith('grp_')
+        const groupId = hasGroupIdPrefix(userId)
             ? userId
             : notification?.data?.groupId ||
               notification?.details?.groupId ||

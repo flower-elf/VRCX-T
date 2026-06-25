@@ -7,8 +7,10 @@ use cookie_store::{CookieStore, RawCookie};
 use reqwest::header::{HeaderName, HeaderValue, CONTENT_TYPE, REFERER, USER_AGENT};
 use reqwest::multipart::{Form, Part};
 use reqwest::{Client, Method, Proxy};
+use vrcx_0_core::vrchat_endpoints::{VRCHAT_CLOUD_ROOT_HOST, VRCHAT_SITE_HOST};
 
 pub type Result<T> = std::result::Result<T, WebClientError>;
+pub(crate) const BASE_USER_AGENT: &str = "VRCX-0";
 
 #[derive(Debug, thiserror::Error)]
 pub enum WebClientError {
@@ -28,9 +30,9 @@ pub use crate::cookies::{
 pub(crate) fn build_vrcx_user_agent(app_version: &str) -> String {
     let app_version = app_version.trim();
     if app_version.is_empty() {
-        "VRCX-0".into()
+        BASE_USER_AGENT.into()
     } else {
-        format!("VRCX-0/{app_version}")
+        format!("{BASE_USER_AGENT}/{app_version}")
     }
 }
 
@@ -188,10 +190,15 @@ fn is_vrchat_cookie_domain(domain: &str) -> bool {
         .trim_start_matches('.')
         .trim_end_matches('.')
         .to_ascii_lowercase();
-    domain == "vrchat.com"
-        || domain.ends_with(".vrchat.com")
-        || domain == "vrchat.cloud"
-        || domain.ends_with(".vrchat.cloud")
+    is_domain_or_subdomain(&domain, VRCHAT_SITE_HOST)
+        || is_domain_or_subdomain(&domain, VRCHAT_CLOUD_ROOT_HOST)
+}
+
+fn is_domain_or_subdomain(domain: &str, root: &str) -> bool {
+    domain == root
+        || domain
+            .strip_suffix(root)
+            .is_some_and(|prefix| prefix.ends_with('.'))
 }
 
 pub struct WebClient {
@@ -213,7 +220,7 @@ impl WebClient {
 
         let mut builder = Client::builder()
             .cookie_provider(jar.clone())
-            .user_agent("VRCX-0")
+            .user_agent(BASE_USER_AGENT)
             .gzip(true)
             .brotli(true)
             .deflate(true)

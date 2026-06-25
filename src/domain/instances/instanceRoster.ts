@@ -1,3 +1,4 @@
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import {
     parseLocation,
     resolveFriendPresenceLocation
@@ -98,7 +99,7 @@ export function firstText(...values: unknown[]): string {
 }
 
 export function isGroupId(value: unknown): boolean {
-    return firstText(value).startsWith('grp_');
+    return hasGroupIdPrefix(firstText(value));
 }
 
 function isPresentValue(value: unknown): boolean {

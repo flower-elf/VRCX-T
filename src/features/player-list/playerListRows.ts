@@ -1,9 +1,10 @@
+import { hasUserIdPrefix } from '@/shared/constants/vrchatIds';
 import { parseLocation } from '@/shared/utils/location';
 import { normalizeString } from '@/shared/utils/string';
 
 export function normalizePlayerUserId(value: any) {
     const normalized = normalizeString(value);
-    return normalized.startsWith('usr_') ? normalized : '';
+    return hasUserIdPrefix(normalized) ? normalized : '';
 }
 
 export function resolvePlayerRowUserId(row: any) {

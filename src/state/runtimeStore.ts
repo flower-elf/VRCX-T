@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import { MINUTE_MS } from '@/shared/constants/time';
+
 type TaskState = {
     status: string;
     detail: string;
@@ -448,7 +450,7 @@ const initialState: RuntimeStoreState = {
         summary: '',
         updatedAt: null,
         lastFetchedAt: null,
-        pollingIntervalMs: 15 * 60 * 1000,
+        pollingIntervalMs: 15 * MINUTE_MS,
         refreshing: false,
         error: ''
     },

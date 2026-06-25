@@ -1,6 +1,15 @@
 use super::presence::parse_user_info;
 use super::*;
 
+const VRCHAT_LOCAL_RESOURCE_URL_PREFIXES: [&str; 2] =
+    ["http://127.0.0.1:22500", "http://localhost:22500"];
+
+fn is_vrchat_local_resource_url(url: &str) -> bool {
+    VRCHAT_LOCAL_RESOURCE_URL_PREFIXES
+        .iter()
+        .any(|prefix| url.starts_with(prefix))
+}
+
 pub(super) fn parse_shader_keywords_limit(
     inner: &Inner,
     fname: &str,
@@ -89,9 +98,7 @@ pub(super) fn parse_string_download(
         let rest = &line[pos + tag.len()..];
         if let Some(end) = rest.rfind('\'') {
             let url = &rest[..end];
-            if url.starts_with("http://127.0.0.1:22500")
-                || url.starts_with("http://localhost:22500")
-            {
+            if is_vrchat_local_resource_url(url) {
                 return true;
             }
             append_event(
@@ -124,9 +131,7 @@ pub(super) fn parse_image_download(
         let rest = &line[pos + tag.len()..];
         if let Some(end) = rest.rfind('\'') {
             let url = &rest[..end];
-            if url.starts_with("http://127.0.0.1:22500")
-                || url.starts_with("http://localhost:22500")
-            {
+            if is_vrchat_local_resource_url(url) {
                 return true;
             }
             append_event(

@@ -26,6 +26,13 @@ import {
     stepQueuedZoomLevelPreference,
     syncQueuedZoomLevel
 } from '@/services/zoomPreferenceService';
+import { links } from '@/shared/constants/link';
+import {
+    HOUR_MS,
+    SECOND_MS,
+    SECONDS_PER_HOUR,
+    SECONDS_PER_MINUTE
+} from '@/shared/constants/time';
 import { useModalStore } from '@/state/modalStore';
 import { usePreferencesStore } from '@/state/preferencesStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
@@ -34,8 +41,6 @@ import { ContextMenu, ContextMenuTrigger } from '@/ui/shadcn/context-menu';
 
 import { StatusBarContextMenuContent } from './status-bar/StatusBarContextMenuContent';
 import { StatusBarFooter } from './status-bar/StatusBarFooter';
-
-const STATUS_PAGE_URL = 'https://status.vrchat.com/';
 
 const DEFAULT_VISIBILITY: Record<string, boolean> = {
     vrchat: true,
@@ -118,7 +123,7 @@ const TIMEZONE_OPTIONS = Array.from({ length: 27 }, (_, index) => {
 });
 
 function formatClock(nowMs: any, offset: any) {
-    const shifted = new Date(nowMs + normalizeUtcHour(offset) * 60 * 60 * 1000);
+    const shifted = new Date(nowMs + normalizeUtcHour(offset) * HOUR_MS);
     const hours = String(shifted.getUTCHours()).padStart(2, '0');
     const minutes = String(shifted.getUTCMinutes()).padStart(2, '0');
     return `${hours}:${minutes} ${formatUtcHour(offset)}`;
@@ -138,21 +143,25 @@ function createDefaultClocks() {
 }
 
 function formatDuration(ms: any) {
-    const safeSeconds = Math.max(0, Math.floor((Number(ms) || 0) / 1000));
-    const hours = Math.floor(safeSeconds / 3600);
-    const minutes = Math.floor((safeSeconds % 3600) / 60);
-    const seconds = safeSeconds % 60;
+    const { hours, minutes, seconds } = durationParts(ms);
     if (hours > 0) {
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     }
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
+function durationParts(ms: any) {
+    const safeSeconds = Math.max(0, Math.floor((Number(ms) || 0) / SECOND_MS));
+    const hours = Math.floor(safeSeconds / SECONDS_PER_HOUR);
+    const minutes = Math.floor(
+        (safeSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
+    );
+    const seconds = safeSeconds % SECONDS_PER_MINUTE;
+    return { hours, minutes, seconds };
+}
+
 function formatAppUptime(ms: any) {
-    const safeSeconds = Math.max(0, Math.floor((Number(ms) || 0) / 1000));
-    const hours = Math.floor(safeSeconds / 3600);
-    const minutes = Math.floor((safeSeconds % 3600) / 60);
-    const seconds = safeSeconds % 60;
+    const { hours, minutes, seconds } = durationParts(ms);
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
@@ -569,7 +578,7 @@ export function AppStatusBar() {
         );
 
         try {
-            await openExternalLink(STATUS_PAGE_URL);
+            await openExternalLink(links.vrchatStatus);
         } catch (error) {
             toast.error(
                 error instanceof Error

@@ -1,5 +1,6 @@
 import { AppleIcon, MonitorIcon, RectangleGogglesIcon } from 'lucide-react';
 
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import {
     parseLocation,
     resolveFriendPresenceLocation
@@ -8,7 +9,7 @@ import {
 import { normalizeUserId } from './userProfileFields';
 
 export function isGroupId(value: any) {
-    return normalizeUserId(value).startsWith('grp_');
+    return hasGroupIdPrefix(normalizeUserId(value));
 }
 
 export function groupSeed(value: any) {

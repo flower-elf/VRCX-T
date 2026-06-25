@@ -1,10 +1,11 @@
 import { commands } from '@/platform/tauri/bindings';
 import externalApiRepository from '@/repositories/externalApiRepository';
+import { MINUTE_MS, SECOND_MS } from '@/shared/constants/time';
 import { useRuntimeStore } from '@/state/runtimeStore';
 
-const OK_POLL_MS = 5 * 60 * 1000;
-const ISSUE_POLL_MS = 2 * 60 * 1000;
-const FOCUS_REFRESH_MS = 60 * 1000;
+const OK_POLL_MS = 5 * MINUTE_MS;
+const ISSUE_POLL_MS = 2 * MINUTE_MS;
+const FOCUS_REFRESH_MS = MINUTE_MS;
 const POLL_EXECUTOR_TICK_MS = FOCUS_REFRESH_MS;
 const VRC_STATUS_REFRESH_JOB = 'vrcStatusRefresh';
 
@@ -69,7 +70,7 @@ let refreshPromise: Promise<void> | null = null;
 
 function pollingCadenceSeconds(intervalMs: unknown): number {
     const interval = Number(intervalMs) || OK_POLL_MS;
-    return Math.max(60, Math.ceil(interval / 1000));
+    return Math.max(60, Math.ceil(interval / SECOND_MS));
 }
 
 function parseResponse(data: unknown): unknown {

@@ -1,4 +1,8 @@
 import { commands } from '@/platform/tauri/bindings';
+import {
+    DEFAULT_MAX_TABLE_SIZE,
+    DEFAULT_SEARCH_LIMIT
+} from '@/shared/constants/settings';
 import { normalizeString } from '@/shared/utils/string';
 
 import { normalizeUserTablePrefix } from './userSessionRepository';
@@ -85,9 +89,6 @@ interface FeedLiveRowsMergeOptions {
     minLiveSequence?: number;
     maxRows?: number;
 }
-
-const DEFAULT_MAX_TABLE_SIZE = 500;
-const DEFAULT_SEARCH_TABLE_SIZE = 50000;
 
 function normalizeStringList(value: unknown): string[] {
     return Array.isArray(value)
@@ -259,7 +260,7 @@ const feed = {
         search: string,
         filters: string[],
         vipList: string[],
-        maxEntries: number = DEFAULT_SEARCH_TABLE_SIZE,
+        maxEntries: number = DEFAULT_SEARCH_LIMIT,
         dateFrom: string = '',
         dateTo: string = '',
         userId: unknown = '',
@@ -377,7 +378,7 @@ const feed = {
         instanceId: string,
         filters: string[],
         vipList: string[],
-        maxEntries: number = DEFAULT_SEARCH_TABLE_SIZE
+        maxEntries: number = DEFAULT_SEARCH_LIMIT
     ) {
         return queryFeedRows({
             userId,

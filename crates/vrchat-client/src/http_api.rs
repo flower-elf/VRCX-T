@@ -4,12 +4,12 @@ use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use url::Url;
+use vrcx_0_core::vrchat_endpoints::{
+    VRCHAT_API_DEFAULT_ENDPOINT, VRCHAT_API_HOST, VRCHAT_FILES_HOST, VRCHAT_FILES_S3_HOST,
+    VRCHAT_FILES_S3_HOST_PREFIX,
+};
 
 use crate::web_client::{WebExecuteRequest, WebUploadMode};
-
-const DEFAULT_VRCHAT_API_ENDPOINT: &str = "https://api.vrchat.cloud/api/1";
-const VRCHAT_API_HOST: &str = "api.vrchat.cloud";
-const VRCHAT_FILES_HOST: &str = "files.vrchat.cloud";
 
 #[derive(Debug, thiserror::Error)]
 pub enum HttpApiError {
@@ -276,7 +276,7 @@ pub fn build_web_execute_request(
 pub fn normalize_vrchat_api_endpoint(endpoint: Option<&str>) -> String {
     let endpoint = endpoint.unwrap_or("").trim().trim_end_matches('/');
     if endpoint.is_empty() {
-        DEFAULT_VRCHAT_API_ENDPOINT.to_string()
+        VRCHAT_API_DEFAULT_ENDPOINT.to_string()
     } else {
         endpoint.to_string()
     }
@@ -289,9 +289,9 @@ fn validated_vrchat_api_endpoint(endpoint: Option<&str>) -> Result<String, HttpA
         || url.host_str() != Some(VRCHAT_API_HOST)
         || url.path().trim_end_matches('/') != "/api/1"
     {
-        return Err(HttpApiError::Custom(
-            "VRChat API endpoint must be https://api.vrchat.cloud/api/1.".into(),
-        ));
+        return Err(HttpApiError::Custom(format!(
+            "VRChat API endpoint must be {VRCHAT_API_DEFAULT_ENDPOINT}."
+        )));
     }
     Ok(endpoint)
 }
@@ -360,8 +360,8 @@ fn is_allowed_vrchat_media_upload_url(url: &Url) -> bool {
     if host == VRCHAT_API_HOST {
         return url.path().starts_with("/api/1/file/");
     }
-    if host == "files.vrchat.cloud.s3.amazonaws.com"
-        || (host.starts_with("files.vrchat.cloud.") && host.ends_with(".amazonaws.com"))
+    if host == VRCHAT_FILES_S3_HOST
+        || (host.starts_with(VRCHAT_FILES_S3_HOST_PREFIX) && host.ends_with(".amazonaws.com"))
     {
         return true;
     }

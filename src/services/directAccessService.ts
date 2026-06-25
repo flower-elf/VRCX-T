@@ -8,6 +8,13 @@ import {
     openWorldDialog
 } from '@/services/dialogService';
 import { isHostCapabilityAvailable } from '@/services/hostCapabilityService';
+import {
+    hasAvatarIdPrefix,
+    hasGroupIdPrefix,
+    hasUserIdPrefix,
+    hasWorldIdPrefix
+} from '@/shared/constants/vrchatIds';
+import { VRCHAT_WEB_BASE } from '@/shared/constants/vrchatWebUrls';
 import { parseLocation } from '@/shared/utils/location';
 import { normalizeString } from '@/shared/utils/string';
 
@@ -213,7 +220,7 @@ async function directAccessWorld(rawInput: unknown, endpoint: unknown = '') {
     }
 
     if (input.startsWith('/home/')) {
-        input = `https://vrchat.com${input}`;
+        input = `${VRCHAT_WEB_BASE}${input}`;
     }
 
     if (/^[A-Za-z0-9]{8}$/.test(input)) {
@@ -275,13 +282,13 @@ async function directAccessWorld(rawInput: unknown, endpoint: unknown = '') {
     }
 
     if (
-        input.startsWith('wrld_') ||
+        hasWorldIdPrefix(input) ||
         input.startsWith('wld_') ||
         input.startsWith('o_')
     ) {
         if (input.includes('&instanceId=')) {
             return directAccessWorld(
-                `https://vrchat.com/home/launch?worldId=${input}`,
+                `${VRCHAT_WEB_BASE}/home/launch?worldId=${input}`,
                 endpoint
             );
         }
@@ -297,7 +304,7 @@ export async function directAccessParse(
     input: unknown,
     endpoint: unknown = ''
 ) {
-    const value = normalizeString(input);
+    const value = normalizeString(input).trim();
     if (!value) {
         return false;
     }
@@ -340,17 +347,17 @@ export async function directAccessParse(
         return openGroupByShortCode(value, endpoint);
     }
 
-    if (value.startsWith('usr_') || /^[A-Za-z0-9]{10}$/.test(value)) {
+    if (hasUserIdPrefix(value) || /^[A-Za-z0-9]{10}$/.test(value)) {
         openUserDialog({ userId: value });
         return true;
     }
 
-    if (value.startsWith('avtr_') || value.startsWith('b_')) {
+    if (hasAvatarIdPrefix(value) || value.startsWith('b_')) {
         openAvatarDialog({ avatarId: value });
         return true;
     }
 
-    if (value.startsWith('grp_')) {
+    if (hasGroupIdPrefix(value)) {
         openGroupDialog({ groupId: value });
         return true;
     }

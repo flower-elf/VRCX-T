@@ -15,6 +15,7 @@ import {
     copyTextToClipboard,
     openExternalLink
 } from '@/services/entityMediaService';
+import { vrchatGroupUrl } from '@/shared/constants/vrchatWebUrls';
 import { replaceBioSymbols } from '@/shared/utils/string';
 
 import {
@@ -523,9 +524,7 @@ export function GroupDialogTabbedView({
         }
     }
 
-    const groupUrl =
-        group.url ||
-        (group.id ? `https://vrchat.com/home/group/${group.id}` : '');
+    const groupUrl = group.url || (group.id ? vrchatGroupUrl(group.id) : '');
     const groupTitle = group.name || 'Group';
     const ownerLabel =
         ownerDisplayName && ownerDisplayName !== group.ownerId

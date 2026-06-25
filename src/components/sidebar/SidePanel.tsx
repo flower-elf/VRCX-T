@@ -8,6 +8,7 @@ import { buildFavoriteCollectionFriendIdSet } from '@/components/sidebar/friends
 import { cn } from '@/lib/utils';
 import configRepository from '@/repositories/configRepository';
 import { refreshFriendAndFavoriteSnapshots } from '@/services/backgroundMaintenanceService';
+import { SECOND_MS } from '@/shared/constants/time';
 import { useFavoriteStore } from '@/state/favoriteStore';
 import { useFriendRosterStore } from '@/state/friendRosterStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
@@ -50,7 +51,7 @@ const defaultPrefs: any = {
     sidebarTabDisplayMode: 'auto'
 };
 
-const FRIEND_REFRESH_COOLDOWN_MS = 30 * 1000;
+const FRIEND_REFRESH_COOLDOWN_MS = 30 * SECOND_MS;
 
 function parseConfigArray(value: any) {
     if (Array.isArray(value)) {
@@ -556,7 +557,10 @@ export const SidePanel = forwardRef(function SidePanel(
         if (cooldownRemainingMs > 0) {
             toast.info(
                 t('side_panel.refresh_available_in_seconds', {
-                    count: Math.max(1, Math.ceil(cooldownRemainingMs / 1000))
+                    count: Math.max(
+                        1,
+                        Math.ceil(cooldownRemainingMs / SECOND_MS)
+                    )
                 })
             );
             return;

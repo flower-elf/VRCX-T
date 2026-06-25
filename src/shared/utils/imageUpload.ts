@@ -22,7 +22,7 @@ export interface ImageCropRect {
 }
 
 const UPLOAD_TIMEOUT_MS = 30_000;
-const DEFAULT_MAX_IMAGE_UPLOAD_BYTES = 20_000_000;
+export const MAX_IMAGE_UPLOAD_BYTES = 20_000_000;
 export const IMAGE_UPLOAD_ACCEPT =
     'image/png,image/jpeg,image/webp,image/gif,image/bmp';
 
@@ -63,7 +63,7 @@ export async function readFileAsBase64(blob: Blob): Promise<string> {
 
 export function validateImageUploadFile(
     file: Blob | File | null | undefined,
-    { maxSize = DEFAULT_MAX_IMAGE_UPLOAD_BYTES }: any = {}
+    { maxSize = MAX_IMAGE_UPLOAD_BYTES }: ImageUploadValidationOptions = {}
 ): ImageUploadValidationResult {
     if (!file) {
         return { ok: false, reason: 'missing' };

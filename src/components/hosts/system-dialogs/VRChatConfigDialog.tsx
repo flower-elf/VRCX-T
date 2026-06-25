@@ -19,6 +19,7 @@ import {
     readVrchatConfigFileSafe,
     writeVrchatConfigFile
 } from '@/services/shellIntegrationService';
+import { links } from '@/shared/constants/link';
 import {
     VRChatCameraResolutions,
     VRChatScreenshotResolutions
@@ -589,7 +590,7 @@ export function VRChatConfigDialog({ open, onOpenChange }: any) {
                                     className="justify-start"
                                     onClick={() => {
                                         openExternalLink(
-                                            'https://docs.vrchat.com/docs/configuration-file'
+                                            links.vrchatDocsConfigurationFile
                                         );
                                     }}
                                 >

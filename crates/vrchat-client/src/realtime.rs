@@ -6,8 +6,8 @@ use tokio_tungstenite::tungstenite::handshake::client::Request;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{client_async_tls, connect_async, MaybeTlsStream, WebSocketStream};
 use url::Url;
+use vrcx_0_core::vrchat_endpoints::VRCHAT_API_DEFAULT_ENDPOINT;
 
-const DEFAULT_ENDPOINT_DOMAIN: &str = "https://api.vrchat.cloud/api/1";
 const DEFAULT_WEBSOCKET_DOMAIN: &str = "wss://pipeline.vrchat.cloud";
 const VRCHAT_WEBSOCKET_HOST: &str = "pipeline.vrchat.cloud";
 const BROWSER_WEBSOCKET_USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0";
@@ -83,7 +83,7 @@ pub fn validated_websocket_domain(value: &str) -> Result<String, Error> {
 fn normalize_endpoint(value: &str) -> String {
     let trimmed = value.trim().trim_end_matches('/');
     if trimmed.is_empty() {
-        DEFAULT_ENDPOINT_DOMAIN.to_string()
+        VRCHAT_API_DEFAULT_ENDPOINT.to_string()
     } else {
         trimmed.to_string()
     }

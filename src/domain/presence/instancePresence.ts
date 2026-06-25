@@ -1,3 +1,4 @@
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import {
     normalizeLocationValue,
     parseLocation,
@@ -237,7 +238,7 @@ function sameInstance(user: unknown, location: unknown): boolean {
 }
 
 function isGroupId(value: unknown): boolean {
-    return text(value).startsWith('grp_');
+    return hasGroupIdPrefix(value);
 }
 
 function buildInstancePresenceFact({

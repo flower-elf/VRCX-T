@@ -1,4 +1,6 @@
-const AUTO_LOGIN_WINDOW_MS = 60 * 60 * 1000;
+import { HOUR_MS } from '@/shared/constants/time';
+
+const AUTO_LOGIN_WINDOW_MS = HOUR_MS;
 const AUTO_LOGIN_MAX_ATTEMPTS = 3;
 
 const attemptTimestampsByKey = new Map<string, number[]>();

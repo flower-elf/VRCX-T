@@ -16,6 +16,10 @@ import {
 } from '@/shared/utils/userTransforms';
 
 import {
+    VRCHAT_API_DEFAULT_PAGE_SIZE,
+    VRCHAT_PROFILE_MAX_PAGES
+} from './paginationConstants';
+import {
     createRequestError,
     notifyVrchatAuthFailure,
     parseJsonResponse,
@@ -136,7 +140,10 @@ function normalizeUserProfile(user: unknown): UserProfileRecord {
 
 async function collectPages<T>(
     fetchPage: (page: PageRequest) => Promise<T[]>,
-    { pageSize = 100, maxPages = 50 }: CollectPagesOptions = {}
+    {
+        pageSize = VRCHAT_API_DEFAULT_PAGE_SIZE,
+        maxPages = VRCHAT_PROFILE_MAX_PAGES
+    }: CollectPagesOptions = {}
 ): Promise<T[]> {
     const rows: T[] = [];
 
@@ -354,7 +361,7 @@ async function getRepresentedGroup({
 async function getMutualFriends({
     userId,
     endpoint = '',
-    n = 100,
+    n = VRCHAT_API_DEFAULT_PAGE_SIZE,
     offset = 0
 }: MutualFriendsInput) {
     const normalizedUserId =

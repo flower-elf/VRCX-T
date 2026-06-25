@@ -29,6 +29,7 @@ import {
     requireHostCapabilitySupported
 } from '@/services/hostCapabilityService';
 import { showSQLiteErrorDialog } from '@/services/sqliteErrorDialogService';
+import { MINUTE_MS, SECOND_MS } from '@/shared/constants/time';
 import { normalizeBoolean } from '@/shared/utils/coerce';
 import { isRealInstance } from '@/shared/utils/instance';
 import { normalizeString } from '@/shared/utils/string';
@@ -50,7 +51,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value && typeof value === 'object');
 }
 
-function scheduleDebugLoggingCheck(delayMs: number = 60000) {
+function scheduleDebugLoggingCheck(delayMs: number = MINUTE_MS) {
     if (debugLoggingTimer !== null) {
         window.clearTimeout(debugLoggingTimer);
     }
@@ -491,7 +492,7 @@ export async function handleGameRunningUpdate(payload: unknown = {}) {
             startCurrentAvatarWearTimer();
         }
         clearCrashRelaunchTimer();
-        scheduleDebugLoggingCheck(1000);
+        scheduleDebugLoggingCheck(SECOND_MS);
     } else if (debugLoggingTimer !== null) {
         window.clearTimeout(debugLoggingTimer);
         debugLoggingTimer = null;

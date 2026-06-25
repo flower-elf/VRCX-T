@@ -17,6 +17,7 @@ import {
     copyTextToClipboard,
     openExternalLink
 } from '@/services/entityMediaService';
+import { vrchatWorldUrl } from '@/shared/constants/vrchatWebUrls';
 import { parseLocation } from '@/shared/utils/location';
 import { replaceVrcPackageUrl } from '@/shared/utils/urlUtils';
 
@@ -793,9 +794,7 @@ export function WorldDialogTabbedView({
         world?.name
     ]);
 
-    const worldUrl = world.id
-        ? `https://vrchat.com/home/world/${world.id}`
-        : '';
+    const worldUrl = world.id ? vrchatWorldUrl(world.id) : '';
     const packageUrl = replaceVrcPackageUrl(
         world.unityPackageUrl || world.unityPackage?.url || ''
     );

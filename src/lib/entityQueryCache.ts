@@ -1,10 +1,14 @@
 import type { QueryKey } from '@tanstack/react-query';
 
 import { queryClient } from '@/lib/queryClient';
+import { MINUTE_MS, SECOND_MS } from '@/shared/constants/time';
+import {
+    hasAvatarIdPrefix,
+    hasGroupIdPrefix,
+    hasUserIdPrefix,
+    hasWorldIdPrefix
+} from '@/shared/constants/vrchatIds';
 import { normalizeVrchatEndpointKey } from '@/shared/vrchatEndpoint';
-
-const SECOND = 1000;
-const MINUTE = 60 * SECOND;
 
 type EntityQueryPolicy = Readonly<{
     staleTime: number;
@@ -25,133 +29,133 @@ type FetchWithEntityPolicyOptions<TData = unknown> = {
 export const entityQueryPolicies = Object.freeze({
     instance: Object.freeze({
         staleTime: 0,
-        gcTime: 90 * SECOND,
+        gcTime: 90 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     avatar: Object.freeze({
-        staleTime: 60 * SECOND,
-        gcTime: 300 * SECOND,
+        staleTime: 60 * SECOND_MS,
+        gcTime: 300 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     avatarDialog: Object.freeze({
-        staleTime: 120 * SECOND,
-        gcTime: 300 * SECOND,
+        staleTime: 120 * SECOND_MS,
+        gcTime: 300 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     world: Object.freeze({
         staleTime: 0,
-        gcTime: 300 * SECOND,
+        gcTime: 300 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     worldDialog: Object.freeze({
         staleTime: 0,
-        gcTime: 300 * SECOND,
+        gcTime: 300 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     worldLocation: Object.freeze({
         staleTime: 0,
-        gcTime: 300 * SECOND,
+        gcTime: 300 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     worldBasic: Object.freeze({
         staleTime: 0,
-        gcTime: 10 * MINUTE,
+        gcTime: 10 * MINUTE_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     group: Object.freeze({
-        staleTime: 5 * MINUTE,
-        gcTime: 30 * MINUTE,
+        staleTime: 5 * MINUTE_MS,
+        gcTime: 30 * MINUTE_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     groupDialog: Object.freeze({
-        staleTime: 120 * SECOND,
-        gcTime: 30 * MINUTE,
+        staleTime: 120 * SECOND_MS,
+        gcTime: 30 * MINUTE_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     groupCollection: Object.freeze({
-        staleTime: 60 * SECOND,
-        gcTime: 300 * SECOND,
+        staleTime: 60 * SECOND_MS,
+        gcTime: 300 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     groupCalendarEvent: Object.freeze({
-        staleTime: 120 * SECOND,
-        gcTime: 600 * SECOND,
+        staleTime: 120 * SECOND_MS,
+        gcTime: 600 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     worldCollection: Object.freeze({
-        staleTime: 60 * SECOND,
-        gcTime: 300 * SECOND,
+        staleTime: 60 * SECOND_MS,
+        gcTime: 300 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     avatarGallery: Object.freeze({
-        staleTime: 30 * SECOND,
-        gcTime: 120 * SECOND,
+        staleTime: 30 * SECOND_MS,
+        gcTime: 120 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     favoriteLimits: Object.freeze({
-        staleTime: 600 * SECOND,
-        gcTime: 1800 * SECOND,
+        staleTime: 600 * SECOND_MS,
+        gcTime: 1800 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     inventoryCollection: Object.freeze({
-        staleTime: 20 * SECOND,
-        gcTime: 120 * SECOND,
+        staleTime: 20 * SECOND_MS,
+        gcTime: 120 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     fileAnalysis: Object.freeze({
-        staleTime: 60 * MINUTE,
-        gcTime: 240 * MINUTE,
+        staleTime: 60 * MINUTE_MS,
+        gcTime: 240 * MINUTE_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     fileObject: Object.freeze({
-        staleTime: 60 * SECOND,
-        gcTime: 300 * SECOND,
+        staleTime: 60 * SECOND_MS,
+        gcTime: 300 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     avatarStyles: Object.freeze({
-        staleTime: 60 * MINUTE,
-        gcTime: 240 * MINUTE,
+        staleTime: 60 * MINUTE_MS,
+        gcTime: 240 * MINUTE_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     representedGroup: Object.freeze({
-        staleTime: 60 * SECOND,
-        gcTime: 300 * SECOND,
+        staleTime: 60 * SECOND_MS,
+        gcTime: 300 * SECOND_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     mutualCounts: Object.freeze({
-        staleTime: 15 * MINUTE,
-        gcTime: 60 * MINUTE,
+        staleTime: 15 * MINUTE_MS,
+        gcTime: 60 * MINUTE_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     userDialogTabCounts: Object.freeze({
-        staleTime: 10 * MINUTE,
-        gcTime: 10 * MINUTE,
+        staleTime: 10 * MINUTE_MS,
+        gcTime: 10 * MINUTE_MS,
         retry: 1,
         refetchOnWindowFocus: false
     }),
     worldPersistData: Object.freeze({
-        staleTime: 30 * MINUTE,
-        gcTime: 120 * MINUTE,
+        staleTime: 30 * MINUTE_MS,
+        gcTime: 120 * MINUTE_MS,
         retry: 1,
         refetchOnWindowFocus: false
     })
@@ -365,13 +369,13 @@ export function getEntityQueryCacheStats() {
         if (typeof id !== 'string') {
             continue;
         }
-        if (kind === 'user' && id.startsWith('usr_')) {
+        if (kind === 'user' && hasUserIdPrefix(id)) {
             users.add(id);
-        } else if (kind === 'world' && id.startsWith('wrld_')) {
+        } else if (kind === 'world' && hasWorldIdPrefix(id)) {
             worlds.add(id);
-        } else if (kind === 'avatar' && id.startsWith('avtr_')) {
+        } else if (kind === 'avatar' && hasAvatarIdPrefix(id)) {
             avatars.add(id);
-        } else if (kind === 'group' && id.startsWith('grp_')) {
+        } else if (kind === 'group' && hasGroupIdPrefix(id)) {
             groups.add(id);
         }
     }

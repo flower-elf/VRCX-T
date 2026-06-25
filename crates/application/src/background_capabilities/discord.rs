@@ -1,6 +1,7 @@
 use serde::Serialize;
 use serde_json::{json, Map, Value};
 use vrcx_0_core::location::{parse_location, ParsedLocation};
+use vrcx_0_core::vrchat_endpoints::VRCHAT_SITE_ORIGIN;
 use vrcx_0_persistence::config::ConfigRepository;
 use vrcx_0_persistence::DatabaseService;
 use vrcx_0_vrchat_client::groups::profile_get_input as group_profile_get_input;
@@ -268,7 +269,7 @@ async fn load_discord_location_details(
                     details.world_capacity = int_field(&world, "capacity").unwrap_or(0);
                     if string_field(&world, "releaseStatus").as_deref() == Some("public") {
                         details.world_link =
-                            format!("https://vrchat.com/home/world/{}", parsed.world_id);
+                            format!("{VRCHAT_SITE_ORIGIN}/home/world/{}", parsed.world_id);
                     }
                 }
             }
@@ -684,7 +685,7 @@ fn get_launch_url(parsed: &ParsedLocation) -> String {
         return String::new();
     }
     let mut url = format!(
-        "https://vrchat.com/home/launch?worldId={}&instanceId={}",
+        "{VRCHAT_SITE_ORIGIN}/home/launch?worldId={}&instanceId={}",
         parsed.world_id, parsed.instance_id
     );
     if !parsed.short_name.is_empty() {

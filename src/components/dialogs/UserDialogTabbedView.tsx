@@ -9,6 +9,8 @@ import {
     openExternalLink
 } from '@/services/entityMediaService';
 import { isActionRecent } from '@/services/recentActionService';
+import { MINUTE_MS } from '@/shared/constants/time';
+import { vrchatUserUrl } from '@/shared/constants/vrchatWebUrls';
 import { parseLocation } from '@/shared/utils/location';
 import { useRuntimeStore } from '@/state/runtimeStore';
 
@@ -152,7 +154,7 @@ export function UserDialogTabbedView({
     useEffect(() => {
         const intervalId = window.setInterval(() => {
             setNowMs(Date.now());
-        }, 60000);
+        }, MINUTE_MS);
         return () => {
             window.clearInterval(intervalId);
         };
@@ -238,9 +240,7 @@ export function UserDialogTabbedView({
         t
     });
 
-    const userUrl = profile.id
-        ? `https://vrchat.com/home/user/${profile.id}`
-        : '';
+    const userUrl = profile.id ? vrchatUserUrl(profile.id) : '';
     const username =
         profile.username && profile.username !== profile.id
             ? profile.username

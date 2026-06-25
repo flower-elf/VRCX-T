@@ -1,4 +1,5 @@
 import { formatDateFilterOrFallback, timeToText } from '@/lib/dateTime';
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import {
     compareByDisplayName,
     compareByFriendOrder,
@@ -19,7 +20,7 @@ export function normalizedText(value: any) {
 }
 
 export function isGroupId(value: any) {
-    return normalizedText(value).startsWith('grp_');
+    return hasGroupIdPrefix(normalizedText(value));
 }
 
 export function firstNonGroupIdText(...values: any[]) {

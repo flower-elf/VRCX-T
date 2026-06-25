@@ -17,6 +17,8 @@ type WsSender =
     futures_util::stream::SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
 
 const MAX_UDP_PAYLOAD_BYTES: usize = 65_507;
+const XSOVERLAY_UDP_ADDR: &str = "127.0.0.1:42069";
+const OVRTOOLKIT_WS_URL: &str = "ws://127.0.0.1:11450/api";
 const XS_BUILTIN_DEFAULT_ICON: &str = "default";
 
 impl OvrToolkit {
@@ -96,7 +98,7 @@ pub fn send_xs_notification(
     }
     let socket = UdpSocket::bind("127.0.0.1:0").map_err(|error| format!("bind: {error}"))?;
     socket
-        .send_to(&bytes, "127.0.0.1:42069")
+        .send_to(&bytes, XSOVERLAY_UDP_ADDR)
         .map_err(|error| format!("send: {error}"))?;
     Ok(())
 }
@@ -147,7 +149,7 @@ fn ovr_toolkit_icon_base64(image: Option<&str>) -> String {
 }
 
 async fn connect_ws() -> Result<WsSender, String> {
-    let (ws_stream, _) = tokio_tungstenite::connect_async("ws://127.0.0.1:11450/api")
+    let (ws_stream, _) = tokio_tungstenite::connect_async(OVRTOOLKIT_WS_URL)
         .await
         .map_err(|error| format!("connect: {error}"))?;
     let (write, read) = ws_stream.split();

@@ -19,6 +19,7 @@ import {
     convertFileUrlToImageUrl,
     userImage
 } from '@/services/entityMediaService';
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import { useFavoriteStore } from '@/state/favoriteStore';
 import { useFriendRosterStore } from '@/state/friendRosterStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
@@ -190,11 +191,11 @@ function resolveGroupInstanceId(instance: any) {
         return groupId;
     }
     const ownerId = normalize(instance?.ownerId);
-    if (ownerId.startsWith('grp_')) {
+    if (hasGroupIdPrefix(ownerId)) {
         return ownerId;
     }
     const id = normalize(instance?.id);
-    return id.startsWith('grp_') ? id : '';
+    return hasGroupIdPrefix(id) ? id : '';
 }
 
 function buildGroupInstanceResults(groupInstances: any) {

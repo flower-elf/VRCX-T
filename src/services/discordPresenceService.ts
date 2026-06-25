@@ -8,6 +8,7 @@ import type {
     ActivityTypeValue,
     StatusDisplayTypeValue
 } from '@/shared/constants/discord';
+import { vrchatWorldUrl } from '@/shared/constants/vrchatWebUrls';
 import {
     getPlatformLabel,
     getRpcWorldConfig,
@@ -314,7 +315,7 @@ async function loadLocationDetails(currentLocation: string, endpoint: string) {
             details.worldCapacity = Number(world.capacity) || 0;
             details.worldLink =
                 world.releaseStatus === 'public'
-                    ? `https://vrchat.com/home/world/${parsed.worldId}`
+                    ? vrchatWorldUrl(parsed.worldId)
                     : '';
         } catch (error) {
             console.warn(

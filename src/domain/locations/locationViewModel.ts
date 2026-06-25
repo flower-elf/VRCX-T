@@ -1,4 +1,8 @@
 import {
+    hasGroupIdPrefix,
+    hasWorldIdPrefix
+} from '@/shared/constants/vrchatIds';
+import {
     normalizeLocationValue,
     parseLocation,
     resolveRegion
@@ -69,7 +73,7 @@ function resolveLocationTarget(location: unknown, traveling?: unknown): string {
 
 function normalizeWorldHint(value: unknown, worldId: unknown): string {
     const hint = text(value);
-    if (!hint || hint === text(worldId) || hint.startsWith('wrld_')) {
+    if (!hint || hint === text(worldId) || hasWorldIdPrefix(hint)) {
         return '';
     }
     return hint;
@@ -77,7 +81,7 @@ function normalizeWorldHint(value: unknown, worldId: unknown): string {
 
 function normalizeGroupHint(value: unknown, groupId: unknown): string {
     const hint = text(value);
-    if (!hint || hint === text(groupId) || hint.startsWith('grp_')) {
+    if (!hint || hint === text(groupId) || hasGroupIdPrefix(hint)) {
         return '';
     }
     return hint;

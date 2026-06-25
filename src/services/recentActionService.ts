@@ -1,3 +1,5 @@
+import { MINUTE_MS, MINUTES_PER_DAY } from '@/shared/constants/time';
+
 const STORAGE_KEY = 'VRCX_recentActions';
 const TRACKED_ACTIONS = new Set([
     'Send Friend Request',
@@ -25,7 +27,9 @@ function normalizeUserId(value: unknown): string {
 
 function normalizeMinutes(value: unknown): number {
     const parsed = Number.parseInt(String(value), 10);
-    return Number.isNaN(parsed) ? 60 : Math.min(1440, Math.max(1, parsed));
+    return Number.isNaN(parsed)
+        ? 60
+        : Math.min(MINUTES_PER_DAY, Math.max(1, parsed));
 }
 
 function readActions(): Record<string, number> {
@@ -123,7 +127,7 @@ export function isActionRecent(userId: unknown, actionType: unknown): boolean {
     if (!Number.isFinite(timestamp)) {
         return false;
     }
-    const cooldownMs = cooldownMinutes * 60 * 1000;
+    const cooldownMs = cooldownMinutes * MINUTE_MS;
     if (Date.now() - timestamp < cooldownMs) {
         return true;
     }

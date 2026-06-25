@@ -18,6 +18,7 @@ import {
     openCalendarFile,
     saveCalendarFile
 } from '@/services/shellIntegrationService';
+import { vrchatGroupCalendarUrl } from '@/shared/constants/vrchatWebUrls';
 import { useModalStore } from '@/state/modalStore';
 import { Button } from '@/ui/shadcn/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/shadcn/popover';
@@ -92,7 +93,7 @@ async function copyEventLink(event: any, t: any) {
     }
     try {
         await navigator.clipboard.writeText(
-            `https://vrchat.com/home/group/${groupId}/calendar/${eventId}`
+            vrchatGroupCalendarUrl(groupId, eventId)
         );
         toast.success(t('dialog.group_calendar.event_card.copied_event_link'));
     } catch (error) {

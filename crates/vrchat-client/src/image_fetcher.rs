@@ -2,7 +2,11 @@ use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 
 use crate::cookies::CookieJar;
+use crate::web_client::BASE_USER_AGENT;
 use reqwest::Client;
+use vrcx_0_core::vrchat_endpoints::{
+    VRCHAT_API_HOST, VRCHAT_ASSETS_HOST, VRCHAT_FILES_HOST, VRCHAT_LEGACY_CLOUDFRONT_HOST,
+};
 
 pub type Result<T> = std::result::Result<T, ImageFetchError>;
 
@@ -21,7 +25,7 @@ impl ImageFetcher {
     pub fn new(cookie_jar: Arc<CookieJar>, proxy_url: Option<&str>) -> Result<Self> {
         let mut builder = Client::builder()
             .cookie_provider(cookie_jar)
-            .user_agent("VRCX-0");
+            .user_agent(BASE_USER_AGENT);
 
         if let Some(proxy) = proxy_url {
             builder = builder.proxy(
@@ -35,10 +39,10 @@ impl ImageFetcher {
             .map_err(|e| ImageFetchError::Custom(format!("image cache http client: {e}")))?;
 
         let mut hosts = HashSet::new();
-        hosts.insert("api.vrchat.cloud".into());
-        hosts.insert("files.vrchat.cloud".into());
-        hosts.insert("d348imysud55la.cloudfront.net".into());
-        hosts.insert("assets.vrchat.com".into());
+        hosts.insert(VRCHAT_API_HOST.into());
+        hosts.insert(VRCHAT_FILES_HOST.into());
+        hosts.insert(VRCHAT_LEGACY_CLOUDFRONT_HOST.into());
+        hosts.insert(VRCHAT_ASSETS_HOST.into());
 
         Ok(Self {
             client,

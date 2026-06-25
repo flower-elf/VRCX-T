@@ -1,0 +1,10 @@
+pub const VRCHAT_API_DEFAULT_ENDPOINT: &str = "https://api.vrchat.cloud/api/1";
+pub const VRCHAT_API_HOST: &str = "api.vrchat.cloud";
+pub const VRCHAT_FILES_HOST: &str = "files.vrchat.cloud";
+pub const VRCHAT_FILES_S3_HOST: &str = "files.vrchat.cloud.s3.amazonaws.com";
+pub const VRCHAT_FILES_S3_HOST_PREFIX: &str = "files.vrchat.cloud.";
+pub const VRCHAT_ASSETS_HOST: &str = "assets.vrchat.com";
+pub const VRCHAT_LEGACY_CLOUDFRONT_HOST: &str = "d348imysud55la.cloudfront.net";
+pub const VRCHAT_SITE_ORIGIN: &str = "https://vrchat.com";
+pub const VRCHAT_SITE_HOST: &str = "vrchat.com";
+pub const VRCHAT_CLOUD_ROOT_HOST: &str = "vrchat.cloud";

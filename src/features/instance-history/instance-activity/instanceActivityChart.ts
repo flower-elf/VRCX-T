@@ -1,4 +1,5 @@
 import { formatClock as formatAppClock, timeToText } from '@/lib/dateTime';
+import { DAY_MS, HOUR_MS, MINUTE_MS } from '@/shared/constants/time';
 
 import { getLocalDayBounds } from './instanceActivityRows';
 import type {
@@ -8,14 +9,12 @@ import type {
     TranslateKey
 } from './instanceActivityTypes';
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-const HOUR_MS = 60 * 60 * 1000;
 const THREE_HOURS_MS = 3 * HOUR_MS;
-const AXIS_PADDING_MS = 30 * 60 * 1000;
+const AXIS_PADDING_MS = 30 * MINUTE_MS;
 
 function pickAxisInterval(spanMs: number) {
     const candidates = [
-        30 * 60 * 1000,
+        30 * MINUTE_MS,
         HOUR_MS,
         2 * HOUR_MS,
         THREE_HOURS_MS,

@@ -1,3 +1,5 @@
+import { hasWorldIdPrefix } from '@/shared/constants/vrchatIds';
+
 type UserStatusSource = Record<string, unknown>;
 
 type UserStatusIndicatorOptions = {
@@ -109,7 +111,7 @@ function normalizeUserStatus(value: unknown) {
     if (status === 'active') {
         return 'active';
     }
-    if (location.startsWith('wrld_')) {
+    if (hasWorldIdPrefix(location)) {
         return 'active';
     }
     return status || state;

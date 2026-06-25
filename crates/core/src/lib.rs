@@ -8,5 +8,6 @@ pub mod realtime;
 pub mod screenshots;
 pub mod trust;
 pub mod user_facts;
+pub mod vrchat_endpoints;
 pub mod vrchat_log_reader;
 pub mod vrchat_registry_policy;

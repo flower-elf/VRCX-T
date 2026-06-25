@@ -2,6 +2,9 @@ use super::*;
 
 use serde::Serialize;
 
+const MAX_FAVORITE_GROUPS_KEY: &str = "maxFavoriteGroups";
+const MAX_FAVORITES_PER_GROUP_KEY: &str = "maxFavoritesPerGroup";
+
 #[derive(Clone, Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 struct FavoriteGroupOutput {
@@ -107,7 +110,7 @@ fn default_favorite_limits() -> Value {
 
 fn merge_favorite_limits(limits: &Value) -> Value {
     let mut merged = default_favorite_limits();
-    for section in ["maxFavoriteGroups", "maxFavoritesPerGroup"] {
+    for section in [MAX_FAVORITE_GROUPS_KEY, MAX_FAVORITES_PER_GROUP_KEY] {
         let Some(source) = object_field(limits, section).and_then(Value::as_object) else {
             continue;
         };
@@ -139,53 +142,53 @@ fn build_favorite_groups_from_limits(
     let mut world_groups = Vec::new();
     let mut avatar_groups = Vec::new();
 
-    for index in 0..favorite_limit(favorite_limits, "maxFavoriteGroups", "friend") {
+    for index in 0..favorite_limit(favorite_limits, MAX_FAVORITE_GROUPS_KEY, "friend") {
         friend_groups.push(FavoriteGroupOutput {
             assign: false,
             key: format!("friend:group_{index}"),
             type_name: "friend".into(),
             name: format!("group_{index}"),
             display_name: format!("Group {}", index + 1),
-            capacity: favorite_limit(favorite_limits, "maxFavoritesPerGroup", "friend"),
+            capacity: favorite_limit(favorite_limits, MAX_FAVORITES_PER_GROUP_KEY, "friend"),
             count: 0,
             visibility: "private".into(),
         });
     }
 
-    for index in 0..favorite_limit(favorite_limits, "maxFavoriteGroups", "world") {
+    for index in 0..favorite_limit(favorite_limits, MAX_FAVORITE_GROUPS_KEY, "world") {
         world_groups.push(FavoriteGroupOutput {
             assign: false,
             key: format!("world:worlds{}", index + 1),
             type_name: "world".into(),
             name: format!("worlds{}", index + 1),
             display_name: format!("Group {}", index + 1),
-            capacity: favorite_limit(favorite_limits, "maxFavoritesPerGroup", "world"),
+            capacity: favorite_limit(favorite_limits, MAX_FAVORITES_PER_GROUP_KEY, "world"),
             count: 0,
             visibility: "private".into(),
         });
     }
 
-    for index in 0..favorite_limit(favorite_limits, "maxFavoriteGroups", "vrcPlusWorld") {
+    for index in 0..favorite_limit(favorite_limits, MAX_FAVORITE_GROUPS_KEY, "vrcPlusWorld") {
         world_groups.push(FavoriteGroupOutput {
             assign: false,
             key: format!("vrcPlusWorld:vrcPlusWorlds{}", index + 1),
             type_name: "vrcPlusWorld".into(),
             name: format!("vrcPlusWorlds{}", index + 1),
             display_name: format!("VRC+ Group {}", index + 1),
-            capacity: favorite_limit(favorite_limits, "maxFavoritesPerGroup", "vrcPlusWorld"),
+            capacity: favorite_limit(favorite_limits, MAX_FAVORITES_PER_GROUP_KEY, "vrcPlusWorld"),
             count: 0,
             visibility: "private".into(),
         });
     }
 
-    for index in 0..favorite_limit(favorite_limits, "maxFavoriteGroups", "avatar") {
+    for index in 0..favorite_limit(favorite_limits, MAX_FAVORITE_GROUPS_KEY, "avatar") {
         avatar_groups.push(FavoriteGroupOutput {
             assign: false,
             key: format!("avatar:avatars{}", index + 1),
             type_name: "avatar".into(),
             name: format!("avatars{}", index + 1),
             display_name: format!("Group {}", index + 1),
-            capacity: favorite_limit(favorite_limits, "maxFavoritesPerGroup", "avatar"),
+            capacity: favorite_limit(favorite_limits, MAX_FAVORITES_PER_GROUP_KEY, "avatar"),
             count: 0,
             visibility: "private".into(),
         });

@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 
 import { userFacingErrorMessage } from '@/lib/errorDisplay';
+import { links } from '@/shared/constants/link';
 import { useShellStore } from '@/state/shellStore';
 import { Toaster } from '@/ui/shadcn/sonner';
 import { Spinner } from '@/ui/shadcn/spinner';
@@ -17,7 +18,7 @@ const TITLE_BAR_TOAST_OFFSET: any = { top: 'calc(2rem + 32px)' };
 const APP_TOASTER_PORTAL_ID = 'vrcx-0-toast-root';
 const APP_TOASTER_Z_INDEX = 70;
 const VRCHAT_API_UNAVAILABLE_TOAST_DURATION_MS = 12000;
-const VRCHAT_STATUS_HOST = 'status.vrchat.com';
+const VRCHAT_STATUS_HOST = new URL(links.vrchatStatus).hostname.toLowerCase();
 const URL_PATTERN = /\bhttps?:\/\/[^\s"'<>]+/gi;
 let sonnerErrorToastPatched = false;
 

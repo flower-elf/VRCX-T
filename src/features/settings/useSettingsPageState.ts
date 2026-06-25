@@ -29,6 +29,7 @@ import {
     DEFAULT_MAX_TABLE_SIZE,
     DEFAULT_SEARCH_LIMIT
 } from '@/shared/constants/settings';
+import { MINUTES_PER_DAY } from '@/shared/constants/time';
 import { useFavoriteStore } from '@/state/favoriteStore';
 import {
     DEFAULT_PREFERENCES,
@@ -291,7 +292,7 @@ export function useSettingsPageState() {
         if (!Number.isFinite(parsed)) {
             return 60;
         }
-        return Math.min(1440, Math.max(1, parsed));
+        return Math.min(MINUTES_PER_DAY, Math.max(1, parsed));
     }
 
     async function saveInterfaceZoomLevel(value: any) {

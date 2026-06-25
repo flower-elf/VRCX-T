@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { InstanceActionBar } from '@/components/instances/InstanceActionBar';
 import { LocationWorld } from '@/components/LocationWorld';
+import { hasUserIdPrefix } from '@/shared/constants/vrchatIds';
 import { parseLocation } from '@/shared/utils/location';
 import {
     Empty,
@@ -98,7 +99,7 @@ function firstKnownValue(...values: any[]) {
 }
 
 function isUserId(value: any) {
-    return String(value || '').startsWith('usr_');
+    return hasUserIdPrefix(String(value || ''));
 }
 
 function normalizeGroupInstance(instance: any, location: any, users: any) {

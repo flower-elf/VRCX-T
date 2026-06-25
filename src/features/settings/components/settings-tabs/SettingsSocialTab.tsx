@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { MINUTES_PER_DAY } from '@/shared/constants/time';
 import { Button } from '@/ui/shadcn/button';
 import {
     DropdownMenu,
@@ -56,7 +57,7 @@ export function SettingsSocialTab({ social }: any) {
                             <Input
                                 type="number"
                                 min={1}
-                                max={1440}
+                                max={MINUTES_PER_DAY}
                                 className="w-28"
                                 value={prefs.recentActionCooldownMinutes}
                                 onChange={(event: any) =>

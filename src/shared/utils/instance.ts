@@ -1,3 +1,5 @@
+import { vrchatLaunchUrl } from '@/shared/constants/vrchatWebUrls';
+
 /**
  *
  * @param {string} instanceId
@@ -46,22 +48,7 @@ function isRealInstance(instanceId: unknown): instanceId is string {
  * @returns {string}
  */
 function getLaunchURL(instance: LaunchableInstance): string {
-    const L = instance;
-    if (L.instanceId) {
-        if (L.shortName) {
-            return `https://vrchat.com/home/launch?worldId=${encodeURIComponent(
-                L.worldId
-            )}&instanceId=${encodeURIComponent(
-                L.instanceId
-            )}&shortName=${encodeURIComponent(L.shortName)}`;
-        }
-        return `https://vrchat.com/home/launch?worldId=${encodeURIComponent(
-            L.worldId
-        )}&instanceId=${encodeURIComponent(L.instanceId)}`;
-    }
-    return `https://vrchat.com/home/launch?worldId=${encodeURIComponent(
-        L.worldId
-    )}`;
+    return vrchatLaunchUrl(instance);
 }
 
 const regionTagMap: Record<string, string> = {

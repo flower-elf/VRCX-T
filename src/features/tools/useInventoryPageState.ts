@@ -5,6 +5,10 @@ import { toast } from 'sonner';
 
 import mediaRepository from '@/repositories/mediaRepository';
 import {
+    VRCHAT_API_DEFAULT_PAGE_SIZE,
+    VRCHAT_INVENTORY_MAX_PAGES
+} from '@/repositories/paginationConstants';
+import {
     IMAGE_UPLOAD_ACCEPT,
     readFileAsBase64,
     withUploadTimeout
@@ -145,7 +149,7 @@ export function useInventoryPageState() {
         for (const tag of definition.fileTags || []) {
             const { json } = await mediaRepository.getFileList(
                 {
-                    n: 100,
+                    n: VRCHAT_API_DEFAULT_PAGE_SIZE,
                     tag
                 },
                 {
@@ -174,11 +178,15 @@ export function useInventoryPageState() {
             return [];
         }
         const nextRows: InventoryRow[] = [];
-        for (let pageIndex = 0; pageIndex < 100; pageIndex += 1) {
+        for (
+            let pageIndex = 0;
+            pageIndex < VRCHAT_INVENTORY_MAX_PAGES;
+            pageIndex += 1
+        ) {
             const { json } = await mediaRepository.getInventoryItems(
                 {
-                    n: 100,
-                    offset: pageIndex * 100,
+                    n: VRCHAT_API_DEFAULT_PAGE_SIZE,
+                    offset: pageIndex * VRCHAT_API_DEFAULT_PAGE_SIZE,
                     order: 'newest',
                     ...(definition.params || {})
                 },

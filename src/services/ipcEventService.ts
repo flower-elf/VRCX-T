@@ -6,6 +6,7 @@ import favoritePersistenceRepository from '@/repositories/favoritePersistenceRep
 import gameLogRepository from '@/repositories/gameLogRepository';
 import i18n from '@/services/i18nService';
 import { normalizeString } from '@/shared/utils/string';
+import { DEFAULT_VRCHAT_API_ENDPOINT } from '@/shared/vrchatEndpoint';
 import { useModalStore } from '@/state/modalStore';
 import { useNotificationStore } from '@/state/notificationStore';
 import { useRuntimeStore } from '@/state/runtimeStore';
@@ -178,8 +179,7 @@ async function handleLaunchCommand(input: unknown) {
     let shouldFocusWindow = true;
     const runtimeState = useRuntimeStore.getState();
     const endpoint =
-        runtimeState.auth.currentUserEndpoint ||
-        'https://api.vrchat.cloud/api/1';
+        runtimeState.auth.currentUserEndpoint || DEFAULT_VRCHAT_API_ENDPOINT;
 
     switch (command) {
         case 'world':

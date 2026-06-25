@@ -1,3 +1,5 @@
+import { isUserId } from '@/shared/constants/vrchatIds';
+
 export function sortRows(rows: any) {
     return rows.slice().sort((left: any, right: any) => {
         const leftTs = Date.parse(left?.created_at ?? '');
@@ -25,9 +27,7 @@ export function normalizeUserId(value: any) {
 export const UNKNOWN_FRIEND_LOG_DISPLAY_NAME = 'Unknown';
 
 export function isUserIdLike(value: any) {
-    return /^usr_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        normalizeUserId(value)
-    );
+    return isUserId(normalizeUserId(value));
 }
 
 // A row's displayName is "dirty" when older builds wrote the raw user id (or an empty value the UI

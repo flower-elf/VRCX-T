@@ -9,6 +9,7 @@ import {
     openExternalLink,
     openFileSelectorDialog
 } from '@/services/shellIntegrationService';
+import { links } from '@/shared/constants/link';
 import { Button } from '@/ui/shadcn/button';
 import {
     Dialog,
@@ -209,9 +210,7 @@ export function LaunchOptionsDialog({ open, onOpenChange }: any) {
                         type="button"
                         variant="outline"
                         onClick={() => {
-                            openExternalLink(
-                                'https://docs.vrchat.com/docs/launch-options'
-                            );
+                            openExternalLink(links.vrchatDocsLaunchOptions);
                         }}
                     >
                         <ExternalLinkIcon data-icon="inline-start" />

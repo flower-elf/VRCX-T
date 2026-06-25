@@ -5,6 +5,7 @@ import mediaRepository from '@/repositories/mediaRepository';
 import userProfileRepository from '@/repositories/userProfileRepository';
 import { emojiAnimationStyleList } from '@/shared/constants/emoji';
 import {
+    MAX_IMAGE_UPLOAD_BYTES,
     readFileAsBase64,
     validateImageUploadFile,
     withUploadTimeout
@@ -16,8 +17,6 @@ import { useRuntimeStore } from '@/state/runtimeStore';
 import { FILE_TABS, UPLOAD_ASPECT_RATIOS } from './galleryConstants';
 import { useGalleryAssetActions } from './useGalleryAssetActions';
 import { useGalleryInventoryActions } from './useGalleryInventoryActions';
-
-const MAX_IMAGE_UPLOAD_BYTES = 20_000_000;
 
 function buildProfilePicOverride(endpoint: any, fileId: any) {
     if (!fileId) {

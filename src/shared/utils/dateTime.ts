@@ -1,4 +1,14 @@
 import {
+    SECOND_MS,
+    SECONDS_PER_DAY,
+    SECONDS_PER_HOUR,
+    SECONDS_PER_MINUTE,
+    SECONDS_PER_MONTH,
+    SECONDS_PER_WEEK,
+    SECONDS_PER_YEAR
+} from '@/shared/constants/time';
+
+import {
     formatDateTimeValue,
     formatIsoDateTime,
     normalizeDateLocale
@@ -214,15 +224,15 @@ export function formatRelativeTimeWithPreferences(
     const nowMs = Number.isFinite(preferences.nowMs)
         ? Number(preferences.nowMs)
         : Date.now();
-    const diffSeconds = Math.round((date.getTime() - nowMs) / 1000);
+    const diffSeconds = Math.round((date.getTime() - nowMs) / SECOND_MS);
     const absSeconds = Math.abs(diffSeconds);
     const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
-        ['year', 31536000],
-        ['month', 2592000],
-        ['week', 604800],
-        ['day', 86400],
-        ['hour', 3600],
-        ['minute', 60],
+        ['year', SECONDS_PER_YEAR],
+        ['month', SECONDS_PER_MONTH],
+        ['week', SECONDS_PER_WEEK],
+        ['day', SECONDS_PER_DAY],
+        ['hour', SECONDS_PER_HOUR],
+        ['minute', SECONDS_PER_MINUTE],
         ['second', 1]
     ];
     const [unit, unitSeconds] =
@@ -253,35 +263,35 @@ export function timeToTextWithLabels(
         return String(sec);
     }
 
-    n = Math.floor(n / 1000);
+    n = Math.floor(n / SECOND_MS);
     const arr = [];
     if (n < 0) {
         n = -n;
     }
-    if (isNeedSeconds || n < 60) {
+    if (isNeedSeconds || n < SECONDS_PER_MINUTE) {
         n = Math.floor((n + 2.5) / 5) * 5;
     }
     const labels: TimeUnitLabels = {
         ...DEFAULT_TIME_UNIT_LABELS,
         ...(unitLabels || {})
     };
-    if (n >= 31536000) {
-        arr.push(`${Math.floor(n / 31536000)}${labels.y}`);
-        n %= 31536000;
+    if (n >= SECONDS_PER_YEAR) {
+        arr.push(`${Math.floor(n / SECONDS_PER_YEAR)}${labels.y}`);
+        n %= SECONDS_PER_YEAR;
     }
-    if (n >= 86400) {
-        arr.push(`${Math.floor(n / 86400)}${labels.d}`);
-        n %= 86400;
+    if (n >= SECONDS_PER_DAY) {
+        arr.push(`${Math.floor(n / SECONDS_PER_DAY)}${labels.d}`);
+        n %= SECONDS_PER_DAY;
     }
-    if (n >= 3600) {
-        arr.push(`${Math.floor(n / 3600)}${labels.h}`);
-        n %= 3600;
+    if (n >= SECONDS_PER_HOUR) {
+        arr.push(`${Math.floor(n / SECONDS_PER_HOUR)}${labels.h}`);
+        n %= SECONDS_PER_HOUR;
     }
-    if (n >= 60) {
-        arr.push(`${Math.floor(n / 60)}${labels.m}`);
-        n %= 60;
+    if (n >= SECONDS_PER_MINUTE) {
+        arr.push(`${Math.floor(n / SECONDS_PER_MINUTE)}${labels.m}`);
+        n %= SECONDS_PER_MINUTE;
     }
-    if (isNeedSeconds || (arr.length === 0 && n < 60)) {
+    if (isNeedSeconds || (arr.length === 0 && n < SECONDS_PER_MINUTE)) {
         arr.push(`${n}${labels.s}`);
     }
     return arr.join(' ');

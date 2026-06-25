@@ -4,6 +4,12 @@ import {
     openUserDialog,
     openWorldDialog
 } from '@/services/dialogService';
+import {
+    hasAvatarIdPrefix,
+    hasGroupIdPrefix,
+    hasUserIdPrefix,
+    hasWorldIdPrefix
+} from '@/shared/constants/vrchatIds';
 
 export function openRow(row: any, kind: any) {
     const id =
@@ -17,7 +23,7 @@ export function openRow(row: any, kind: any) {
     if (!id) {
         return;
     }
-    if (kind === 'user' || String(id).startsWith('usr_')) {
+    if (kind === 'user' || hasUserIdPrefix(id)) {
         openUserDialog({
             userId: id,
             title: row?.displayName || row?.username || undefined,
@@ -27,7 +33,7 @@ export function openRow(row: any, kind: any) {
     }
     if (
         kind === 'world' ||
-        String(id).startsWith('wrld_') ||
+        hasWorldIdPrefix(id) ||
         String(id).startsWith('wld_')
     ) {
         openWorldDialog({
@@ -37,7 +43,7 @@ export function openRow(row: any, kind: any) {
         });
         return;
     }
-    if (kind === 'avatar' || String(id).startsWith('avtr_')) {
+    if (kind === 'avatar' || hasAvatarIdPrefix(id)) {
         openAvatarDialog({
             avatarId: id,
             title: row?.name || undefined,
@@ -45,7 +51,7 @@ export function openRow(row: any, kind: any) {
         });
         return;
     }
-    if (kind === 'group' || String(id).startsWith('grp_')) {
+    if (kind === 'group' || hasGroupIdPrefix(id)) {
         openGroupDialog({
             groupId: id,
             title: row?.name || undefined,

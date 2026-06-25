@@ -10,6 +10,7 @@ import { openGroupDialog } from '@/services/dialogService';
 import { tryOpenLaunchLocation } from '@/services/directAccessService';
 import { convertFileUrlToImageUrl } from '@/services/entityMediaService';
 import { selfInviteToInstance } from '@/services/launchService';
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import { checkCanInviteSelf } from '@/shared/utils/invite';
 import { parseLocation } from '@/shared/utils/location';
 import { useFriendRosterStore } from '@/state/friendRosterStore';
@@ -87,7 +88,7 @@ function firstGroupId(...values: any[]) {
             typeof value === 'string'
                 ? value.trim()
                 : String(value ?? '').trim();
-        if (text.startsWith('grp_')) {
+        if (hasGroupIdPrefix(text)) {
             return text;
         }
     }

@@ -3,6 +3,7 @@ import type {
     ActivityFriendPresenceAfterInput,
     ActivityFriendPresenceSliceInput
 } from '@/platform/tauri/bindings';
+import { DAY_MS } from '@/shared/constants/time';
 import type { ActivitySession } from '@/shared/utils/activityEngine';
 
 type ActivityViewKind =
@@ -245,13 +246,9 @@ async function getSelfActivitySourceSlice({
     fromDays,
     toDays = 0
 }: ActivitySourceSliceInput) {
-    const fromDateIso = new Date(
-        Date.now() - fromDays * 86400000
-    ).toISOString();
+    const fromDateIso = new Date(Date.now() - fromDays * DAY_MS).toISOString();
     const toDateIso =
-        toDays > 0
-            ? new Date(Date.now() - toDays * 86400000).toISOString()
-            : '';
+        toDays > 0 ? new Date(Date.now() - toDays * DAY_MS).toISOString() : '';
 
     const rows = (await commands.appActivitySelfSourceSlice({
         fromDateIso,
@@ -350,13 +347,9 @@ async function getActivitySourceSlice({
         return getSelfActivitySourceSlice({ fromDays, toDays });
     }
 
-    const fromDateIso = new Date(
-        Date.now() - fromDays * 86400000
-    ).toISOString();
+    const fromDateIso = new Date(Date.now() - fromDays * DAY_MS).toISOString();
     const toDateIso =
-        toDays > 0
-            ? new Date(Date.now() - toDays * 86400000).toISOString()
-            : '';
+        toDays > 0 ? new Date(Date.now() - toDays * DAY_MS).toISOString() : '';
     return getFriendPresenceSlice({
         userId,
         fromDateIso,

@@ -1,3 +1,5 @@
+import { isUserId } from '@/shared/constants/vrchatIds';
+
 export const UNKNOWN_FEED_USER_DISPLAY_NAME = 'Unknown';
 
 export function normalizeFeedId(value: any) {
@@ -7,9 +9,7 @@ export function normalizeFeedId(value: any) {
 }
 
 export function isUserIdLike(value: any) {
-    return /^usr_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        normalizeFeedId(value)
-    );
+    return isUserId(normalizeFeedId(value));
 }
 
 export function resolveDisplayNameCandidate(value: any, userId: any) {

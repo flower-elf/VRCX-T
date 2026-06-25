@@ -8,6 +8,7 @@ import {
     convertFileUrlToImageUrl,
     openExternalLink
 } from '@/services/entityMediaService';
+import { vrchatAvatarUrl } from '@/shared/constants/vrchatWebUrls';
 import { getPlatformInfo } from '@/shared/utils/avatarPlatform';
 import { replaceVrcPackageUrl } from '@/shared/utils/urlUtils';
 import { Button } from '@/ui/shadcn/button';
@@ -321,9 +322,7 @@ export function AvatarDialogTabbedView({
     const copyAvatarText = useAvatarDialogClipboard();
     const openImagePreview = useAvatarDialogPreview();
     const avatarFallbackLabel = t('view.favorites.empty.avatar_fallback');
-    const avatarUrl = avatar.id
-        ? `https://vrchat.com/home/avatar/${avatar.id}`
-        : '';
+    const avatarUrl = avatar.id ? vrchatAvatarUrl(avatar.id) : '';
     const packageUrl = replaceVrcPackageUrl(
         avatar.unityPackageUrl || avatar.unityPackage?.url || ''
     );

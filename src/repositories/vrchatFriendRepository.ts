@@ -8,7 +8,6 @@ import {
 } from './vrchatRequest';
 
 const PAGE_SIZE = 50;
-const MAX_OFFSET = 7500;
 
 type FriendRecord = Record<string, unknown> & { id: string };
 
@@ -92,19 +91,18 @@ async function getAllFriends({
 }: Pick<FriendsPageInput, 'endpoint' | 'offline'> = {}) {
     const friends: FriendRecord[] = [];
 
-    for (let offset = 0; offset <= MAX_OFFSET; offset += PAGE_SIZE) {
+    for (let offset = 0; ; offset += PAGE_SIZE) {
         const response = await getFriends({
             endpoint,
             offline,
             n: PAGE_SIZE,
             offset
         });
-        const page = Array.isArray(response.json)
-            ? response.json.filter(isValidFriendUser)
-            : [];
+        const rawPage = Array.isArray(response.json) ? response.json : [];
+        const page = rawPage.filter(isValidFriendUser);
         friends.push(...page);
 
-        if (page.length < PAGE_SIZE) {
+        if (!rawPage.length || rawPage.length < PAGE_SIZE) {
             break;
         }
     }

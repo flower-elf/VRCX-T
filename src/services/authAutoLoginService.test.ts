@@ -92,6 +92,9 @@ function savedCredential() {
 function snapshot(patch: Record<string, unknown> = {}) {
     return {
         lastUserLoggedIn: 'usr_1',
+        savedCredentialCount: 1,
+        autoLoginStatus: 'available',
+        autoLoginReason: 'Saved credentials are available.',
         autoLoginDisplayName: 'User One',
         autoLoginThrottleKey: 'usr_1',
         cookieRestoreEligible: true,

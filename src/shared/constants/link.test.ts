@@ -10,4 +10,23 @@ describe('links', () => {
     it('uses Ko-fi as the alternate support target', () => {
         expect(links.kofi).toBe('https://ko-fi.com/map1en_');
     });
+
+    it('contains VRChat docs and status links', () => {
+        expect(links.vrchatStatus).toBe('https://status.vrchat.com/');
+        expect(links.vrchatDocsConfigurationFile).toBe(
+            'https://docs.vrchat.com/docs/configuration-file'
+        );
+        expect(links.vrchatDocsLaunchOptions).toBe(
+            'https://docs.vrchat.com/docs/launch-options'
+        );
+    });
+
+    it('contains community theme source links', () => {
+        expect(links.communityThemesRepository).toBe(
+            'https://github.com/Map1en/VRCX-0-Community-Themes'
+        );
+        expect(links.communityThemesIndex).toBe(
+            'https://raw.githubusercontent.com/Map1en/VRCX-0-Community-Themes/master/themes/index.json'
+        );
+    });
 });

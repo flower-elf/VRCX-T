@@ -13,6 +13,10 @@ import { normalizeVrchatEndpointDomain } from '@/shared/vrchatEndpoint';
 import avatarCacheRepository from './avatarCacheRepository';
 import memoPersistenceRepository from './memoPersistenceRepository';
 import {
+    VRCHAT_API_DEFAULT_PAGE_SIZE,
+    VRCHAT_PROFILE_MAX_PAGES
+} from './paginationConstants';
+import {
     createRequestError,
     notifyVrchatAuthFailure,
     parseJsonResponse,
@@ -242,7 +246,10 @@ function normalizeAvatarProfile(
 
 async function collectPages<T>(
     fetchPage: (page: { n: number; offset: number }) => Promise<T[]>,
-    { pageSize = 100, maxPages = 50 }: CollectPagesOptions = {}
+    {
+        pageSize = VRCHAT_API_DEFAULT_PAGE_SIZE,
+        maxPages = VRCHAT_PROFILE_MAX_PAGES
+    }: CollectPagesOptions = {}
 ): Promise<T[]> {
     const rows: T[] = [];
 
@@ -442,7 +449,7 @@ async function getAvatarsByUser({
     userId,
     user = '',
     endpoint = '',
-    n = 100,
+    n = VRCHAT_API_DEFAULT_PAGE_SIZE,
     offset = 0,
     sort = 'updated',
     order = 'descending',

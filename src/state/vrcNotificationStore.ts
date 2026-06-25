@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import notificationPersistenceRepository from '@/repositories/notificationPersistenceRepository';
+import { DAY_MS } from '@/shared/constants/time';
 import { windowDelay } from '@/shared/utils/delays';
 import {
     getNotificationCategory,
@@ -9,7 +10,7 @@ import {
 import { useRuntimeStore } from '@/state/runtimeStore';
 import { useShellStore } from '@/state/shellStore';
 
-const RECENT_WINDOW_MS = 24 * 60 * 60 * 1000;
+const RECENT_WINDOW_MS = DAY_MS;
 const TRANSIENT_V1_UNSEEN_TYPES = new Set(['friendRequest']);
 const ACTION_REQUIRED_V1_TYPES = new Set(['friendRequest']);
 const pendingSeenIds = new Set<unknown>();

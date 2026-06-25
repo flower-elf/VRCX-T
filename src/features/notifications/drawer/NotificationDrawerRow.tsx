@@ -36,6 +36,7 @@ import {
 import { Location } from '@/components/Location';
 import { formatDateFilter, formatRelativeTime } from '@/lib/dateTime';
 import { cn } from '@/lib/utils';
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/shadcn/avatar';
 import { Badge } from '@/ui/shadcn/badge';
 import { Button } from '@/ui/shadcn/button';
@@ -77,7 +78,7 @@ const PERSON_TYPES = new Set<string>([
 function usesAvatar(notification: any) {
     return (
         PERSON_TYPES.has(String(notification?.type || '')) &&
-        !String(notification?.senderUserId || '').startsWith('grp_')
+        !hasGroupIdPrefix(String(notification?.senderUserId || ''))
     );
 }
 
@@ -179,7 +180,7 @@ function getFriendMessage(notification: any) {
 
 function isGroupNotification(notification: any) {
     return (
-        String(notification?.senderUserId || '').startsWith('grp_') ||
+        hasGroupIdPrefix(String(notification?.senderUserId || '')) ||
         notification?.type?.startsWith('group.') ||
         notification?.type === 'groupChange'
     );

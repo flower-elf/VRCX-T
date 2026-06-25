@@ -1,6 +1,7 @@
 import configRepository from '@/repositories/configRepository';
 import gameLogRepository from '@/repositories/gameLogRepository';
 import mediaRepository from '@/repositories/mediaRepository';
+import { MINUTE_MS } from '@/shared/constants/time';
 import { parseLocation } from '@/shared/utils/location';
 import { parseVrchatScreenshotDateFromFileName } from '@/shared/utils/screenshot';
 import { normalizeString } from '@/shared/utils/string';
@@ -9,7 +10,7 @@ import { useRuntimeStore } from '@/state/runtimeStore';
 import { getFileNameFromPath } from './parsing';
 import { getCurrentLocation, ingestState } from './state';
 
-const SCREENSHOT_METADATA_FALLBACK_LOCATION_MAX_AGE_MS = 15 * 60 * 1000;
+const SCREENSHOT_METADATA_FALLBACK_LOCATION_MAX_AGE_MS = 15 * MINUTE_MS;
 
 type ScreenshotPlayer = {
     userId?: unknown;

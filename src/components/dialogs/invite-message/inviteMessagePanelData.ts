@@ -1,4 +1,5 @@
 import vrchatToolsRepository from '@/repositories/vrchatToolsRepository';
+import { HOUR_MS, MINUTE_MS } from '@/shared/constants/time';
 
 export const INVITE_MESSAGE_TYPES = [
     {
@@ -54,11 +55,11 @@ export function getInviteCooldownLabel(updatedAt: any, nowMs: any) {
     if (!Number.isFinite(updatedTime)) {
         return String(updatedAt);
     }
-    const remainingMs = updatedTime + 60 * 60 * 1000 - Number(nowMs);
+    const remainingMs = updatedTime + HOUR_MS - Number(nowMs);
     if (remainingMs <= 0) {
         return '';
     }
-    const minutes = Math.ceil(remainingMs / 60000);
+    const minutes = Math.ceil(remainingMs / MINUTE_MS);
     return minutes >= 60
         ? `${Math.floor(minutes / 60)}h ${minutes % 60}m`
         : `${minutes}m`;

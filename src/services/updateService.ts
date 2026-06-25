@@ -14,6 +14,7 @@ import externalApiRepository from '@/repositories/externalApiRepository';
 import storageRepository from '@/repositories/storageRepository';
 import { getVrcxBuildBadge, isPreviewBuildLabel } from '@/shared/buildLabel';
 import { branches } from '@/shared/constants/settings';
+import { MINUTE_MS } from '@/shared/constants/time';
 import {
     compareReleaseVersions,
     formatReleaseDisplayVersion,
@@ -358,7 +359,9 @@ function parsePreviewBuildTimestampMs() {
         hour,
         minute - TOKYO_UTC_OFFSET_MINUTES
     );
-    const tokyoDate = new Date(timestamp + TOKYO_UTC_OFFSET_MINUTES * 60000);
+    const tokyoDate = new Date(
+        timestamp + TOKYO_UTC_OFFSET_MINUTES * MINUTE_MS
+    );
     if (
         tokyoDate.getUTCFullYear() !== year ||
         tokyoDate.getUTCMonth() !== month - 1 ||

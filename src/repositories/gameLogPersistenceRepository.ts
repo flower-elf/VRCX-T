@@ -1,7 +1,13 @@
 import { commands } from '@/platform/tauri/bindings';
-
-const DEFAULT_MAX_TABLE_SIZE = 500;
-const DEFAULT_SEARCH_TABLE_SIZE = 50000;
+import {
+    DEFAULT_MAX_TABLE_SIZE,
+    DEFAULT_SEARCH_LIMIT
+} from '@/shared/constants/settings';
+import { DAY_MS, HOUR_MS, MINUTE_MS } from '@/shared/constants/time';
+import {
+    hasGroupIdPrefix,
+    hasWorldIdPrefix
+} from '@/shared/constants/vrchatIds';
 
 type GameLogKind =
     | 'Location'
@@ -83,7 +89,7 @@ async function queryGameLog(kind: string, params: GameLogParams = {}) {
 }
 
 const GAME_LOG_WORLD_NAME_CACHE_LIMIT = 1000;
-const EMPTY_WORLD_NAME_CACHE_TTL = 60 * 1000;
+const EMPTY_WORLD_NAME_CACHE_TTL = MINUTE_MS;
 const gameLogWorldNameCache = new Map<string, GameLogWorldCacheEntry>();
 const gameLogWorldNameRequests = new Map<string, Promise<string>>();
 
@@ -273,7 +279,7 @@ const gameLog = {
         vipList: string[] = [],
         {
             currentUserId = '',
-            maxEntries = DEFAULT_SEARCH_TABLE_SIZE
+            maxEntries = DEFAULT_SEARCH_LIMIT
         }: { currentUserId?: unknown; maxEntries?: number } = {}
     ) {
         const rows = await queryGameLog('rowsByLocation', {
@@ -303,11 +309,11 @@ const gameLog = {
         search: string,
         filters: string[],
         vipList: string[],
-        maxEntries: number = DEFAULT_SEARCH_TABLE_SIZE,
+        maxEntries: number = DEFAULT_SEARCH_LIMIT,
         currentUserId: unknown = ''
     ) {
         const normalizedCurrentUserId = normalizeCurrentUserId(currentUserId);
-        if (search.startsWith('wrld_') || search.startsWith('grp_')) {
+        if (hasWorldIdPrefix(search) || hasGroupIdPrefix(search)) {
             return this.getGameLogByLocation(search, filters, vipList, {
                 currentUserId: normalizedCurrentUserId,
                 maxEntries
@@ -325,7 +331,7 @@ const gameLog = {
 
     async getLastDateGameLogDatabase() {
         var date = new Date().toJSON();
-        var dateOffset = new Date(Date.now() - 86400000).toJSON();
+        var dateOffset = new Date(Date.now() - DAY_MS).toJSON();
         const newDate = await queryGameLog('lastDate');
         if (
             typeof newDate === 'string' &&
@@ -374,7 +380,7 @@ const gameLog = {
 
     async getPreviousInstancesByUserId(input: GameLogUserIdentity) {
         const normalizedUserId = normalizeGameLogIdentifier(input?.id);
-        var groupingTimeTolerance = 1 * 60 * 60 * 1000;
+        var groupingTimeTolerance = HOUR_MS;
         var data = new Set<PreviousInstanceGroup>();
         var currentGroup: PreviousInstanceGroup | undefined;
         var prevEvent: unknown;
@@ -538,12 +544,12 @@ const gameLog = {
 
         if (fromDays > 0) {
             params.fromDate = new Date(
-                now.getTime() - fromDays * 86400000
+                now.getTime() - fromDays * DAY_MS
             ).toISOString();
         }
         if (toDays > 0) {
             params.toDate = new Date(
-                now.getTime() - toDays * 86400000
+                now.getTime() - toDays * DAY_MS
             ).toISOString();
         }
 

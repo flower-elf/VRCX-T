@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { formatDateFilter } from '@/lib/dateTime';
 import { cn } from '@/lib/utils';
 import { convertFileUrlToImageUrl } from '@/services/entityMediaService';
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import { Badge } from '@/ui/shadcn/badge';
 import { Button } from '@/ui/shadcn/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/shadcn/tooltip';
@@ -129,7 +130,7 @@ export function useNotificationColumns({
                         getNotificationSenderLabel(notification);
                     if (
                         notification.senderUserId &&
-                        !notification.senderUserId.startsWith('grp_')
+                        !hasGroupIdPrefix(notification.senderUserId)
                     ) {
                         return (
                             <Button
@@ -176,7 +177,7 @@ export function useNotificationColumns({
                     }
                     if (
                         senderLabel &&
-                        !notification.senderUserId?.startsWith('grp_')
+                        !hasGroupIdPrefix(notification.senderUserId)
                     ) {
                         return (
                             <div className="max-w-48 truncate text-sm">
@@ -195,9 +196,7 @@ export function useNotificationColumns({
                 cell: ({ row }: any) => {
                     const notification = row.original;
                     const label = getNotificationGroupColumnLabel(notification);
-                    const groupId = notification.senderUserId?.startsWith(
-                        'grp_'
-                    )
+                    const groupId = hasGroupIdPrefix(notification.senderUserId)
                         ? notification.senderUserId
                         : notification.link?.startsWith('group:')
                           ? notification.link.slice('group:'.length)

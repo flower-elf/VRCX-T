@@ -1,6 +1,7 @@
-export const ONLINE_SESSION_MERGE_GAP_MS = 5 * 60 * 1000;
-export const DEFAULT_MAX_SESSION_MS = 8 * 60 * 60 * 1000;
-const ONE_HOUR_MS = 60 * 60 * 1000;
+import { DAY_MS, HOUR_MS, MINUTE_MS } from '@/shared/constants/time';
+
+export const ONLINE_SESSION_MERGE_GAP_MS = 5 * MINUTE_MS;
+export const DEFAULT_MAX_SESSION_MS = 8 * HOUR_MS;
 
 export interface ActivitySession {
     start: number;
@@ -106,7 +107,7 @@ export function buildSessionsFromGamelog(
             } else {
                 duration = nowMs - start;
             }
-            duration = Math.min(duration, 24 * 60 * 60 * 1000);
+            duration = Math.min(duration, DAY_MS);
         }
         if (duration > 0) {
             rawSessions.push({ start, end: start + duration });
@@ -193,9 +194,9 @@ export function buildHeatmapBuckets(
             const slot = date.getDay() * 24 + date.getHours();
             const nextHour = new Date(cursor);
             nextHour.setMinutes(0, 0, 0);
-            nextHour.setTime(nextHour.getTime() + ONE_HOUR_MS);
+            nextHour.setTime(nextHour.getTime() + HOUR_MS);
             const segmentEnd = Math.min(nextHour.getTime(), end);
-            buckets[slot] += (segmentEnd - cursor) / 60000;
+            buckets[slot] += (segmentEnd - cursor) / MINUTE_MS;
             cursor = segmentEnd;
         }
     }
@@ -400,7 +401,7 @@ export function computeActivityView({
     normalizeConfig,
     maxSessionMs = DEFAULT_MAX_SESSION_MS
 }: ActivityViewInput): ActivityView {
-    const windowStartMs = nowMs - rangeDays * 86400000;
+    const windowStartMs = nowMs - rangeDays * DAY_MS;
     const clippedSessions = clipSessionsToRange(sessions, windowStartMs, nowMs);
     const rawBuckets = buildHeatmapBuckets(
         clippedSessions,
@@ -436,7 +437,7 @@ export function computeOverlapView({
     normalizeConfig,
     maxSessionMs = DEFAULT_MAX_SESSION_MS
 }: OverlapViewInput): OverlapView {
-    const windowStartMs = nowMs - rangeDays * 86400000;
+    const windowStartMs = nowMs - rangeDays * DAY_MS;
     const clippedSelf = clipSessionsToRange(selfSessions, windowStartMs, nowMs);
     const clippedTarget = clipSessionsToRange(
         targetSessions,
@@ -504,7 +505,6 @@ export function buildDailySummary(
 ): Array<{ date: string; totalMs: number }> {
     const dayMap = new Map<string, number>();
     const clipped = clipSessionsToRange(sessions, rangeStartMs, rangeEndMs);
-    const ONE_DAY_MS = 86400000;
 
     for (const session of clipped) {
         let cursor = session.start;
@@ -512,7 +512,7 @@ export function buildDailySummary(
             const dayStart = new Date(cursor);
             dayStart.setHours(0, 0, 0, 0);
             const dayKey = `${dayStart.getFullYear()}-${String(dayStart.getMonth() + 1).padStart(2, '0')}-${String(dayStart.getDate()).padStart(2, '0')}`;
-            const nextDayStart = dayStart.getTime() + ONE_DAY_MS;
+            const nextDayStart = dayStart.getTime() + DAY_MS;
             const segmentEnd = Math.min(session.end, nextDayStart);
             const duration = segmentEnd - cursor;
             dayMap.set(dayKey, (dayMap.get(dayKey) || 0) + duration);

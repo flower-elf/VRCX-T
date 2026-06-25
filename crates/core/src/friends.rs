@@ -138,13 +138,14 @@ mod tests {
     use super::{
         strip_default_avatar_image, FriendRecord, FriendRosterBaseline, DEFAULT_AVATAR_FILE_ID,
     };
+    use crate::vrchat_endpoints::VRCHAT_API_DEFAULT_ENDPOINT;
     use serde_json::{json, Value};
 
     #[test]
     fn strips_default_avatar_image_and_thumbnail() {
         let mut object = json!({
-            "currentAvatarImageUrl": format!("https://api.vrchat.cloud/api/1/file/{DEFAULT_AVATAR_FILE_ID}/1/file"),
-            "currentAvatarThumbnailImageUrl": format!("https://api.vrchat.cloud/api/1/file/{DEFAULT_AVATAR_FILE_ID}/1/256"),
+            "currentAvatarImageUrl": format!("{VRCHAT_API_DEFAULT_ENDPOINT}/file/{DEFAULT_AVATAR_FILE_ID}/1/file"),
+            "currentAvatarThumbnailImageUrl": format!("{VRCHAT_API_DEFAULT_ENDPOINT}/file/{DEFAULT_AVATAR_FILE_ID}/1/256"),
             "displayName": "Friend"
         })
         .as_object()

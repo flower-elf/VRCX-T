@@ -1,3 +1,4 @@
+import { hasGroupIdPrefix } from '@/shared/constants/vrchatIds';
 import { compareByMemberCount, compareByName } from '@/shared/utils/compare';
 
 import { firstArray, normalizedText } from './userDialogRows';
@@ -26,7 +27,7 @@ export function groupIdForRow(group: any) {
         return explicitGroupId;
     }
     const directId = firstText(group?.id);
-    return directId.startsWith('grp_') ? directId : '';
+    return hasGroupIdPrefix(directId) ? directId : '';
 }
 
 function compareGroupRowsByInGameOrder(groupOrder: any[] = []) {

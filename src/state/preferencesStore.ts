@@ -18,6 +18,7 @@ import {
     TABLE_MAX_SIZE_MAX,
     TABLE_MAX_SIZE_MIN
 } from '@/shared/constants/settings';
+import { MINUTES_PER_DAY } from '@/shared/constants/time';
 import {
     TRUST_COLOR_DEFAULTS,
     normalizeTrustColors
@@ -373,7 +374,7 @@ export function normalizePreferenceSnapshot(snapshot: unknown = {}) {
         ),
         recentActionCooldownMinutes: normalizeBoundedInt(
             next.recentActionCooldownMinutes,
-            { min: 1, max: 1440, fallback: 60 }
+            { min: 1, max: MINUTES_PER_DAY, fallback: 60 }
         ),
         screenshotHelper: normalizeBool(next.screenshotHelper),
         screenshotHelperModifyFilename: normalizeBool(

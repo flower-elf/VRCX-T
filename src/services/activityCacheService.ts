@@ -1,4 +1,5 @@
 import activityPersistenceRepository from '@/repositories/activityPersistenceRepository';
+import { DAY_MS } from '@/shared/constants/time';
 import { useRuntimeStore } from '@/state/runtimeStore';
 import { useSessionStore } from '@/state/sessionStore';
 
@@ -349,7 +350,7 @@ async function runActivityCacheWarmup({
     const totalDays = Math.max(
         Number.isNaN(earliestDate.getTime())
             ? currentDays
-            : Math.ceil((Date.now() - earliestDate.getTime()) / 86400000) + 1,
+            : Math.ceil((Date.now() - earliestDate.getTime()) / DAY_MS) + 1,
         currentDays
     );
     const cappedTotalDays = Math.min(FULL_CACHE_MAX_DAYS, totalDays);

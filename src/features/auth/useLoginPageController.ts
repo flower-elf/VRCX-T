@@ -9,10 +9,9 @@ export function useLoginPageController() {
         actions: {
             openDiscord: () => page.openExternalLink(links.discord),
             openForgotPassword: () =>
-                page.openExternalLink('https://vrchat.com/home/password'),
+                page.openExternalLink(links.vrchatPassword),
             openGithub: () => page.openExternalLink(links.github),
-            openRegister: () =>
-                page.openExternalLink('https://vrchat.com/register')
+            openRegister: () => page.openExternalLink(links.vrchatRegister)
         },
         autoLogin: {
             autoLoginState: page.autoLoginState,

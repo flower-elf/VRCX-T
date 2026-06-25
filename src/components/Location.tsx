@@ -12,6 +12,7 @@ import { directAccessParse } from '@/services/directAccessService';
 import { copyTextToClipboard } from '@/services/entityMediaService';
 import { selfInviteToInstance } from '@/services/launchService';
 import { accessTypeLocaleKeyMap } from '@/shared/constants/accessType';
+import { vrchatWorldUrl } from '@/shared/constants/vrchatWebUrls';
 import {
     getLocationText,
     parseLocation,
@@ -126,7 +127,7 @@ export function Location({
         parsedLocation.instanceId
     );
     const shareUrl = parsedLocation.worldId
-        ? `https://vrchat.com/home/world/${parsedLocation.worldId}`
+        ? vrchatWorldUrl(parsedLocation.worldId)
         : '';
     const showContextMenu = Boolean(
         enableContextMenu &&

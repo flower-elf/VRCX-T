@@ -1,3 +1,4 @@
+import { hasWorldIdPrefix } from '@/shared/constants/vrchatIds';
 import {
     parseLocation,
     resolveFriendPresenceLocation
@@ -96,7 +97,7 @@ export function isSentinelLocationValue(value: any) {
 export function resolveWorldIdCandidate(...values: any[]) {
     for (const value of values) {
         const normalizedValue = normalizeFriendsLocationId(value);
-        if (normalizedValue && normalizedValue.startsWith('wrld_')) {
+        if (normalizedValue && hasWorldIdPrefix(normalizedValue)) {
             return normalizedValue;
         }
     }

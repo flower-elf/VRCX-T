@@ -17,6 +17,7 @@ import {
     recordKnownUsers,
     recordLocationHintsFromInstances
 } from '@/services/domainIngestionService';
+import { hasUserIdPrefix } from '@/shared/constants/vrchatIds';
 import { checkCanInvite } from '@/shared/utils/invite';
 import { parseLocation } from '@/shared/utils/location';
 
@@ -114,7 +115,7 @@ async function enrichLocationUsersWithProfiles({
     for (let index = 0; index < nextUsers.length; index += 1) {
         const user = nextUsers[index];
         const userId = locationUserId(user);
-        if (!userId.startsWith('usr_') || locationUserHasImage(user)) {
+        if (!hasUserIdPrefix(userId) || locationUserHasImage(user)) {
             continue;
         }
 
