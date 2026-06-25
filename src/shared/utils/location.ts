@@ -1,32 +1,13 @@
+import type { ParsedLocation as BackendParsedLocation } from '@/platform/tauri/bindings';
+
 import { isRealInstance } from './instance';
 
-export interface ParsedLocation {
-    tag: string;
-    isOffline: boolean;
-    isPrivate: boolean;
-    isTraveling: boolean;
-    isRealInstance: boolean;
-    worldId: string;
-    instanceId: string;
-    instanceName: string;
-    accessType: string;
-    accessTypeName: string;
-    region: string;
-    shortName: string;
-    userId: string | null;
-    hiddenId: string | null;
-    privateId: string | null;
-    friendsId: string | null;
-    groupId: string | null;
-    groupAccessType: string | null;
-    canRequestInvite: boolean;
-    strict: boolean;
-    ageGate: boolean;
-}
+export type ParsedLocation = BackendParsedLocation & Record<string, unknown>;
 
-type LocationLike = {
+interface LocationRecord extends Record<string, unknown> {
     tag?: unknown;
     location?: unknown;
+    ref?: LocationRecord;
     $location?: {
         tag?: unknown;
         worldId?: unknown;
@@ -40,7 +21,34 @@ type LocationLike = {
     isOffline?: unknown;
     isPrivate?: unknown;
     isTraveling?: unknown;
-};
+}
+
+type ParsedStringField =
+    | 'tag'
+    | 'worldId'
+    | 'instanceId'
+    | 'instanceName'
+    | 'accessType'
+    | 'accessTypeName'
+    | 'region'
+    | 'shortName';
+
+type ParsedNullableStringField =
+    | 'userId'
+    | 'hiddenId'
+    | 'privateId'
+    | 'friendsId'
+    | 'groupId'
+    | 'groupAccessType';
+
+type ParsedBooleanField =
+    | 'isOffline'
+    | 'isPrivate'
+    | 'isTraveling'
+    | 'isRealInstance'
+    | 'canRequestInvite'
+    | 'strict'
+    | 'ageGate';
 
 const SENTINEL_LOCATION_VALUES = new Set([
     'offline',
@@ -52,8 +60,97 @@ const SENTINEL_LOCATION_VALUES = new Set([
 ]);
 const SHORT_NAME_QUALIFIER = '&shortName=';
 
-function isLocationLike(value: unknown): value is LocationLike {
+const PARSED_LOCATION_STRING_FIELDS: ParsedStringField[] = [
+    'tag',
+    'worldId',
+    'instanceId',
+    'instanceName',
+    'accessType',
+    'accessTypeName',
+    'region',
+    'shortName'
+];
+
+const PARSED_LOCATION_NULLABLE_STRING_FIELDS: ParsedNullableStringField[] = [
+    'userId',
+    'hiddenId',
+    'privateId',
+    'friendsId',
+    'groupId',
+    'groupAccessType'
+];
+
+const PARSED_LOCATION_BOOLEAN_FIELDS: ParsedBooleanField[] = [
+    'isOffline',
+    'isPrivate',
+    'isTraveling',
+    'isRealInstance',
+    'canRequestInvite',
+    'strict',
+    'ageGate'
+];
+
+function isLocationLike(value: unknown): value is LocationRecord {
     return Boolean(value && typeof value === 'object');
+}
+
+function isNullableString(value: unknown): boolean {
+    return value === null || typeof value === 'string';
+}
+
+function isCompleteParsedLocation(value: unknown): value is LocationRecord {
+    if (!isLocationLike(value)) {
+        return false;
+    }
+    return (
+        PARSED_LOCATION_STRING_FIELDS.every(
+            (field) => typeof value[field] === 'string'
+        ) &&
+        PARSED_LOCATION_BOOLEAN_FIELDS.every(
+            (field) => typeof value[field] === 'boolean'
+        ) &&
+        PARSED_LOCATION_NULLABLE_STRING_FIELDS.every((field) =>
+            isNullableString(value[field])
+        )
+    );
+}
+
+function stringField(value: unknown): string {
+    return typeof value === 'string' ? value : '';
+}
+
+function nullableStringField(value: unknown): string | null {
+    return typeof value === 'string' ? value : null;
+}
+
+function parsedLocationFromObject(value: unknown): ParsedLocation | null {
+    if (!isCompleteParsedLocation(value)) {
+        return null;
+    }
+    return {
+        ...value,
+        tag: normalizeLaunchUrlTag(stringField(value.tag)),
+        isOffline: value.isOffline === true,
+        isPrivate: value.isPrivate === true,
+        isTraveling: value.isTraveling === true,
+        isRealInstance: value.isRealInstance === true,
+        worldId: stringField(value.worldId),
+        instanceId: stringField(value.instanceId),
+        instanceName: stringField(value.instanceName),
+        accessType: stringField(value.accessType),
+        accessTypeName: stringField(value.accessTypeName),
+        region: stringField(value.region),
+        shortName: stringField(value.shortName),
+        userId: nullableStringField(value.userId),
+        hiddenId: nullableStringField(value.hiddenId),
+        privateId: nullableStringField(value.privateId),
+        friendsId: nullableStringField(value.friendsId),
+        groupId: nullableStringField(value.groupId),
+        groupAccessType: nullableStringField(value.groupAccessType),
+        canRequestInvite: value.canRequestInvite === true,
+        strict: value.strict === true,
+        ageGate: value.ageGate === true
+    };
 }
 
 function displayLocation(
@@ -260,8 +357,8 @@ function applyAccessType(ctx: ParsedLocation): void {
     }
 }
 
-function parseLocation(tag: unknown): ParsedLocation {
-    let _tag = normalizeLocationTag(tag);
+function parseLocationTag(tag: string): ParsedLocation {
+    let _tag = tag;
     const ctx = createParsedLocation(_tag);
     if (_tag === 'offline' || _tag === 'offline:offline') {
         ctx.isOffline = true;
@@ -269,7 +366,7 @@ function parseLocation(tag: unknown): ParsedLocation {
         ctx.isPrivate = true;
     } else if (_tag === 'traveling' || _tag === 'traveling:traveling') {
         ctx.isTraveling = true;
-    } else if (tag && !_tag.startsWith('local')) {
+    } else if (_tag && !_tag.startsWith('local')) {
         ctx.isRealInstance = true;
         const sep = _tag.indexOf(':');
         const shortNameIndex = _tag.indexOf(SHORT_NAME_QUALIFIER);
@@ -291,6 +388,17 @@ function parseLocation(tag: unknown): ParsedLocation {
         }
     }
     return ctx;
+}
+
+function parseLocation(tag: unknown): ParsedLocation {
+    const object = isLocationLike(tag) ? tag : null;
+    const parsedObject =
+        parsedLocationFromObject(object?.$location) ||
+        parsedLocationFromObject(tag);
+    if (parsedObject) {
+        return parsedObject;
+    }
+    return parseLocationTag(normalizeLocationTag(tag));
 }
 
 function resolveRegion(L: ParsedLocation): string {
@@ -327,11 +435,6 @@ function translateAccessType(
 }
 
 export { parseLocation, displayLocation, resolveRegion, translateAccessType };
-
-type LocationRecord = Record<string, unknown> & {
-    $location?: Record<string, unknown>;
-    ref?: LocationRecord;
-};
 
 interface LastLocation {
     friendList?:

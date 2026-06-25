@@ -2,8 +2,8 @@ use specta_typescript::{BigIntExportBehavior, Typescript};
 use tauri_specta::{collect_commands, Builder, ErrorHandlingMode};
 use vrcx_0_application::{
     BackendRuntimeTelemetry, FriendProjection, GameLogProjection, HostSessionProjection,
-    OverlayActivitySnapshot, RealtimeCurrentUserProjection, RealtimeEntryCorrection,
-    RealtimeInstanceClosedProjection, RealtimeInstanceQueueProjection,
+    OverlayActivitySnapshot, ParsedLocation, RealtimeCurrentUserProjection,
+    RealtimeEntryCorrection, RealtimeInstanceClosedProjection, RealtimeInstanceQueueProjection,
     RealtimeNotificationProjection, RealtimeWsStatusPayload,
 };
 use vrcx_0_harness::{
@@ -29,6 +29,7 @@ pub fn builder() -> Builder<tauri::Wry> {
         .typ::<HostSessionProjection>()
         .typ::<McpServerStatus>()
         .typ::<OverlayActivitySnapshot>()
+        .typ::<ParsedLocation>()
         .typ::<RealtimeCurrentUserProjection>()
         .typ::<RealtimeEntryCorrection>()
         .typ::<RealtimeInstanceClosedProjection>()

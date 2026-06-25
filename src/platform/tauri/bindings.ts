@@ -3537,6 +3537,29 @@ export type OverlayActivityTypeDefinition = {
     defaultScope: OverlayActivityScope;
     aliases: string[];
 };
+export type ParsedLocation = {
+    tag: string;
+    isOffline: boolean;
+    isPrivate: boolean;
+    isTraveling: boolean;
+    isRealInstance: boolean;
+    worldId: string;
+    instanceId: string;
+    instanceName: string;
+    accessType: string;
+    accessTypeName: string;
+    region: string;
+    shortName: string;
+    userId: string | null;
+    hiddenId: string | null;
+    privateId: string | null;
+    friendsId: string | null;
+    groupId: string | null;
+    groupAccessType: string | null;
+    canRequestInvite: boolean;
+    strict: boolean;
+    ageGate: boolean;
+};
 export type PlayerDetail = {
     id?: string;
     displayName?: string;

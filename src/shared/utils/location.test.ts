@@ -210,6 +210,67 @@ describe('location parser', () => {
         });
     });
 
+    it('prefers full backend parsed location objects over raw fallback fields', () => {
+        const parsed = parseLocation({
+            location: 'wrld_stale:1',
+            $location: {
+                tag: 'wrld_backend:2~group(grp_backend)~groupAccessType(plus)',
+                isOffline: false,
+                isPrivate: false,
+                isTraveling: false,
+                isRealInstance: true,
+                worldId: 'wrld_backend',
+                instanceId: '2~group(grp_backend)~groupAccessType(plus)',
+                instanceName: '2',
+                accessType: 'group',
+                accessTypeName: 'groupPlus',
+                region: '',
+                shortName: '',
+                userId: null,
+                hiddenId: null,
+                privateId: null,
+                friendsId: null,
+                groupId: 'grp_backend',
+                groupAccessType: 'plus',
+                canRequestInvite: false,
+                strict: false,
+                ageGate: false,
+                worldName: 'Backend World'
+            }
+        });
+
+        expect(parsed).toMatchObject({
+            tag: 'wrld_backend:2~group(grp_backend)~groupAccessType(plus)',
+            worldId: 'wrld_backend',
+            instanceId: '2~group(grp_backend)~groupAccessType(plus)',
+            accessType: 'group',
+            accessTypeName: 'groupPlus',
+            groupId: 'grp_backend',
+            groupAccessType: 'plus',
+            worldName: 'Backend World'
+        });
+    });
+
+    it('falls back from old minimal backend location objects', () => {
+        expect(
+            parseLocation({
+                $location: {
+                    tag: 'wrld_123:instance1~hidden(usr_abc)~region(jp)',
+                    worldId: 'wrld_123',
+                    instanceId: 'instance1~hidden(usr_abc)~region(jp)',
+                    groupId: ''
+                }
+            })
+        ).toMatchObject({
+            worldId: 'wrld_123',
+            instanceId: 'instance1~hidden(usr_abc)~region(jp)',
+            accessType: 'friends+',
+            hiddenId: 'usr_abc',
+            userId: 'usr_abc',
+            region: 'jp'
+        });
+    });
+
     it('resolves default regions for real instances only', () => {
         expect(resolveRegion(parseLocation('wrld_123:instance1'))).toBe('us');
         expect(
